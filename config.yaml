@@ -32,7 +32,6 @@ menu:
 params:
   comments:
     enabled: true
-  pagetitle: All about static site generation
   subtitle: "My brain-dump of random code/configuration."
   social:
     - name: RSS

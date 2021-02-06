@@ -1,10 +1,41 @@
-baseURL: https://blog.lekwati.com/
-languageCode: en-gb
+baseURL: https://blog.thalheim.io/
+languageCode: en-us
+defaultContentLanguage: en
 theme: hugo-vitae
 paginate: 5
 title: ~/git/blog
-disqusShortname: shannans-write-y-things
+author: Mic92
+disqusShortname: mic92
+copyright: © 2021 Jörg Thalheim
+pygmentsstyle: github
+pygmentscodefences: true
+pygmentscodefencesguesssyntax: true
+enableRobotsTXT: true
 
-#params:
-#  comments: true
-#  ShowReadingTime: true
+permalinks:
+  posts: /:year/:month/:day/:title/
+
+menu:
+  main:
+    - name: Home
+      url: /
+      weight: 1
+
+    - name: All Posts
+      url: /post
+      weight: 2
+
+    - name: Categories
+      url: /categories
+      weight: 5
+
+params:
+  pagetitle: All about static site generation
+  subtitle: "My brain-dump of random code/configuration."
+  social:
+    - name: RSS
+      url: /index.html
+      icon: fas fa-rss
+    - name: Github
+      icon: fab fa-github
+      url: https://github.com/Mic92/blog

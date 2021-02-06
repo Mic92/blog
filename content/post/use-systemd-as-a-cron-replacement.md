@@ -12,7 +12,7 @@ is good at executing stuff and monitor its state!
 * with the help of journalctl you get last status and logging output, which is a
   great thing to debug failing jobs:
 
-```
+```console
 $ systemctl status reflector-update.service
 reflector-update.service - "Update pacman's mirrorlist using reflector"
    Loaded: loaded
@@ -37,15 +37,19 @@ directories /etc/cron.{daily,hourly,monthly,weekly}.
 On my distribution (archlinux) these are logrotate, man-db, shadow and updatedb:
 For convenience I created a structure like /etc/cron.\*:
 
-    mkdir /etc/systemd/system/timer-{hourly,daily,weekly}.target.wants
+```console
+$ mkdir /etc/systemd/system/timer-{hourly,daily,weekly}.target.wants
+```
 
 and added the following timer.
 
-    cd /etc/systemd/system
-    wget https://blog.higgsboson.tk/downloads/timers.tar
-    tar -xvf timers.tar && rm timers.tar
+```console
+$ cd /etc/systemd/system
+$ wget https://blog.thalheim.io/downloads/timers.tar
+$ tar -xvf timers.tar && rm timers.tar
+```
 
-<pre><code>
+```systemd
 [Unit]
 Description=Hourly Timer
 
@@ -56,13 +60,15 @@ Unit=timer-hourly.target
 
 [Install]
 WantedBy=basic.target
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Hourly Timer Target
 StopWhenUnneeded=yes
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Daily Timer
 
@@ -73,13 +79,15 @@ Unit=timer-daily.target
 
 [Install]
 WantedBy=basic.target
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Daily Timer Target
 StopWhenUnneeded=yes
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Weekly Timer
 
@@ -90,29 +98,34 @@ Unit=timer-weekly.target
 
 [Install]
 WantedBy=basic.target
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Weekly Timer Target
 StopWhenUnneeded=yes
-</code></pre>
+```
 
 ... and enable them:
 
-    systemctl enable timer-hourly.timer
-    systemctl enable timer-daily.timer
-    systemctl enable timer-weekly.timer
+```console
+$ systemctl enable timer-hourly.timer
+$ systemctl enable timer-daily.timer
+$ systemctl enable timer-weekly.timer
+```
 
 These directories work like their cron equivalents, each service file located in
 such a directory will be executed at the given time.
 
 Now move on to the service files. If you're not running Arch, the paths might be different on your system.
 
-    cd /etc/systemd/system
-    wget https://blog.higgsboson.tk/downloads/services.tar
-    tar -xvf services.tar && rm services.tar
+```console
+$ cd /etc/systemd/system
+$ wget https://blog.higgsboson.tk/downloads/services.tar
+$ tar -xvf services.tar && rm services.tar
+```
 
-<pre><code>
+```systemd
 [Unit]
 Description=Update man-db
 
@@ -121,8 +134,9 @@ Nice=19
 IOSchedulingClass=2
 IOSchedulingPriority=7
 ExecStart=/usr/bin/logrotate /etc/logrotate.conf
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Update man-db
 
@@ -131,8 +145,9 @@ Nice=19
 IOSchedulingClass=2
 IOSchedulingPriority=7
 ExecStart=/usr/bin/mandb --quiet
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Update mlocate database
 
@@ -141,8 +156,9 @@ Nice=19
 IOSchedulingClass=2
 IOSchedulingPriority=7
 ExecStart=/usr/bin/updatedb
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Verify integrity of password and group files
 
@@ -150,16 +166,18 @@ Description=Verify integrity of password and group files
 Type=oneshot
 ExecStart=/usr/sbin/pwck -r
 ExecStart=/usr/sbin/grpck -r
-</code></pre>
+```
 
 At last but not least you can disable cron:
 
-    systemctl stop cronie && systemctl disable cronie
+```console
+$ systemctl stop cronie && systemctl disable cronie
+```
 
 If you want to execute at a special calendar events for example "every first day in a month" use the ["OnCalendar=" option](http://www.freedesktop.org/software/systemd/man/systemd.time.html) in the timer file.
 example:
 
-``` ini send-bill.timer
+``` systemd send-bill.timer
 [Unit]
 Description=Daily Timer
 
@@ -175,7 +193,7 @@ That's all for the moment. Have a good time using the power of systemd!
 
 Below some service files, I use:
 
-<pre><code>
+```systemd
 [Unit]
 Description="Update pacman's mirrorlist using reflector"
 
@@ -185,18 +203,20 @@ IOSchedulingClass=2
 IOSchedulingPriority=7
 Type=oneshot
 ExecStart=/usr/bin/reflector --verbose -l 5 --sort rate --save /etc/pacman.d/mirrorlist
-</code></pre>
-<pre><code>
+```
+
+```systemd
 [Unit]
 Description=Run pkgstats
 
 [Service]
 User=nobody
 ExecStart=/usr/bin/pkgstats
-</code></pre>
+```
 
 [See this link](https://bbs.archlinux.org/viewtopic.php?id=162989) for details about my shell-based pacman notifier
-<pre><code>
+
+```systemd
 [Unit]
 Description=Update pacman's package cache
 
@@ -208,4 +228,4 @@ IOSchedulingPriority=7
 Environment=CHECKUPDATE_DB=/var/lib/pacman/checkupdate
 ExecStartPre=/bin/sh -c "/usr/bin/checkupdates &gt; /var/log/pacman-updates.log"
 ExecStart=/usr/bin/pacman --sync --upgrades --downloadonly --noconfirm --dbpath=/var/lib/pacman/checkupdate
-</code></pre>
+```

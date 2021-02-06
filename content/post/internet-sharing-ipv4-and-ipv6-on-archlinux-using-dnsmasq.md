@@ -33,20 +33,17 @@ network with the device on which the dhcp service is running.
 
 Happy networking!
 
-<pre><code>
-</code></pre>
-
-<pre><code>
+```
 # google as an upstream dns server
 server=8.8.8.8
 server=8.8.4.4
 no-resolv
 cache-size=2000
-</code></pre>
+```
 
 Ethernet to Wlan:
 
-<pre><code>
+```
 # Device which has internet access, ex: wlan0 or usb0
 EXTERNAL_DEVICE="wlp3s0"
 
@@ -57,7 +54,7 @@ IP4_SUBNET="10.20.0.2,10.20.0.255"
 IP6_ADDRESS="fd21:30c2:dd2f::1"
 IP6_NETMASK="64"
 IP6_SUBNET="fd21:30c2:dd2f::"
-</code></pre>
+```
 
 Wlan to Ethernet:
 
@@ -67,7 +64,7 @@ To enable the adhoc network:
 
    $ sudo systemctl enable wireless-adhoc@\<device\>.service
 
-<pre><code>
+```
 # Device which has internet access, ex: wlan0 or usb0
 EXTERNAL_DEVICE="enp0s20u2"
 
@@ -78,9 +75,9 @@ IP4_SUBNET="10.20.0.100,10.20.0.199"
 IP6_ADDRESS="fd21:30c2:dd2f::1"
 IP6_NETMASK="64"
 IP6_SUBNET="fd21:30c2:dd2f::"
-</code></pre>
+```
 
-<pre><code>
+```systemd
 [Unit]
 Description=Ad-hoc wireless network connectivity (%i)
 Wants=network.target
@@ -96,9 +93,9 @@ ExecStart=/usr/sbin//wpa_supplicant -D nl80211,wext -c/etc/wpa_supplicant/wpa_su
 
 [Install]
 RequiredBy=share-internet@%i.service
-</code></pre>
+```
 
-<pre><code>
+```
 ctrl_interface=DIR=/run/wpa_supplicant GROUP=wheel
 
 # use 'ap_scan=2' on all devices connected to the network
@@ -128,4 +125,4 @@ network={
 #    wep_key0="fnord"
 #    wep_tx_keyidx=0
 #}
-</code></pre>
+```

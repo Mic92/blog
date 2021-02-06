@@ -36,7 +36,7 @@ $ wget http://blog.higgsboson.tk/downloads/code/chef-backup/restore-chef.sh
 $ chmod +x {backup,restore}-chef.sh
 ```
 
-<pre><code>
+```bash
 #!/bin/bash
 # optional: load rvm
 source "$HOME/.rvm/scripts/rvm" || source "/usr/local/rvm/scripts/rvm"
@@ -53,9 +53,9 @@ knife --config $HOME/.chef/knife-backup.rb backup export -D . &gt;/dev/null
 tar -cjf "$BACKUP/$(date +%m.%d.%Y).tar.bz2" .
 # keep the last X backups
 ls -t "$BACKUP" | tail -n+$MAX_BACKUPS | xargs rm -f
-</code></pre>
+```
 
-<pre><code>
+```bash
 #!/bin/bash
 
 if [ "$#" -eq 0 ]; then
@@ -72,7 +72,7 @@ cd "$TMPDIR"
 trap "rm -rf '$TMPDIR'" INT QUIT TERM EXIT
 tar xf $1
 knife --config $HOME/.chef/knife-backup.rb backup restore -D .
-</code></pre>
+```
 
 Modify BACKUP variable to match your backup destination.
 Next you will need a knife.rb to get access to your server.
@@ -106,7 +106,9 @@ If everything works, you can add a cronjob to automate this.
 $ crontab -e
 ```
 
-    @daily $HOME/bin/backup-chef.sh
+```
+@daily $HOME/bin/backup-chef.sh
+```
 
 To restore a backup simply run (where `DATE` is the date of the backup)
 

@@ -1,3 +1,3 @@
-# Shannan's Write-y Things
+# Source of my blog
 
-These are just some of my write-y things that I have writed...written.
+Visit at https://blog.thalheim.io

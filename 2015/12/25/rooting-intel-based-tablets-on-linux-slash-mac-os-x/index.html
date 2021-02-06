@@ -1,0 +1,41 @@
+<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.79.1"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="Rooting Intel Based Tablets on Linux Slash Mac Os X"><meta property="og:title" content="Rooting Intel Based Tablets on Linux Slash Mac Os X"><meta property="og:description" content="In this article I will explain how to root Intel-CPU based android Devices on Linux/Mac OS X. The instructions are based on this forum post. I used this code to root a Medion LIFETAB P8912. However this should also apply to all devices mentioned in this forum post.
+The first thing to do, is install fastboot and adb on your PC/Mac. Make sure that you have enabled the development option on your android device and are able to connect to it via adb."><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2015/12/25/rooting-intel-based-tablets-on-linux-slash-mac-os-x/"><meta property="article:published_time" content="2015-12-25T00:00:00+00:00"><meta property="article:modified_time" content="2015-12-25T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Rooting Intel Based Tablets on Linux Slash Mac Os X"><meta name=twitter:description content="In this article I will explain how to root Intel-CPU based android Devices on Linux/Mac OS X. The instructions are based on this forum post. I used this code to root a Medion LIFETAB P8912. However this should also apply to all devices mentioned in this forum post.
+The first thing to do, is install fastboot and adb on your PC/Mac. Make sure that you have enabled the development option on your android device and are able to connect to it via adb."><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>Rooting Intel Based Tablets on Linux Slash Mac Os X | ~/git/blog</title></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.html><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/post>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author></div><div class=post-header><div class=meta><div class=date><span class=day>25</span>
+<span class=rest>Dec 2015</span></div></div><div class=matter><h1 class=title>Rooting Intel Based Tablets on Linux Slash Mac Os X</h1></div></div><div class=markdown><p>In this article I will explain how to root Intel-CPU based android Devices on
+Linux/Mac OS X. The instructions are based on this
+<a href=http://forum.xda-developers.com/android/development/intel-android-devices-root-temp-cwm-t2975096 target=_blank>forum post</a>.
+I used this code to root a Medion LIFETAB P8912. However this should also apply
+to all devices mentioned in this forum post.</p><p>The first thing to do, is install
+<a href=http://lifehacker.com/the-easiest-way-to-install-androids-adb-and-fastboot-to-1586992378 target=_blank>fastboot and adb</a>
+on your PC/Mac.
+Make sure that you have enabled the development option on your android device
+and are able to connect to it via adb.</p><p>Then place the update, you want to install on the sdcard on your device.
+In case you want to install the root patch, you can download the latest
+<a href=http://download.chainfire.eu/supersu target=_blank>SuperSU</a>. <strong>Note</strong> that you will be not able
+to install custom roms, if your bootloader is locked. If the signature missmatch
+it will refuse to boot.</p><p>The next thing to do is to download and extract
+<a href="https://www.androidfilehost.com/?fid=24052804347782876" target=_blank>IntelAndroid-FBRL-07-24-2015.7z</a> mentioned in the post.
+It contains a recovery images for CWM or TWRP and some custom trigger code to
+start a temporary CWM Recovery Session on the device. After reboot this session
+will be gone. But you can apply updates during the session such as SuperSU.
+You will <strong>not</strong> be able to follow the exact instructions from this forum post, because it contains a
+windows specific batch file and windows executables. However these are just
+fancy wrappers around adb and fastboot, so you can still use the contained images/launch code.</p><p>To reboot your device into the bootloader, connect it to your computer and
+run, while it is turned on:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ adb reboot-bootloader
+</code></pre></div><p>Within the boot loader, we will first put the alternate rescue image on the
+device along with some custom launcher code. I first tried TWRP on my device,
+but my touchscreen didn&rsquo;t work with it, so I sticked to CWM:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># assuming you have changed to the directory of extracted archive:
+$ fastboot flash /tmp/recovery.zip FB_RecoveryLauncher/cwm.zip
+$ fastboot flash /tmp/recovery.launcher FB_RecoveryLauncher/recovery.launcher
+</code></pre></div><p>The next thing to do is to trigger the device via fastboot to start our
+recovery. The forum post contained 4 alternatives approaches based on the android
+device. The following (T4) was working for me:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ fastboot oem start_partitioning; fastboot flash /system/bin/logcat FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
+</code></pre></div><p>This temporary replace logcat with a launcher. It is important to execute all
+commands in one shot. Otherwise fastboot will fail to flash logcat.</p><p>If the command will not work for you, you could one of these commands:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># T1
+$ fastboot flash /sbin/adbd FB_RecoveryLauncher/fbrl.trigger; fastboot oem startftm
+# T2
+$ fastboot flash /system/bin/cp FB_RecoveryLauncher/fbrl.trigger; fastboot oem backup_factory
+# T3
+$ fastboot flash /sbin/partlink FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
+</code></pre></div><p>If everything works it should start the recovery image.</p></div></div><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}
+var d=document,s=d.createElement('script');s.async=true;s.src='//'+"mic92"+'.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>

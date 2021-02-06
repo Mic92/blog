@@ -1,0 +1,144 @@
+<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.79.1"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="Use Systemd as a Cron Replacement"><meta property="og:title" content="Use Systemd as a Cron Replacement"><meta property="og:description" content="Since systemd 197 timer units support calendar time events, which makes systemd a full cron replacement. Why one would replace the good old cron? Well, because systemd is good at executing stuff and monitor its state!
+ with the help of journalctl you get last status and logging output, which is a great thing to debug failing jobs:  $ systemctl status reflector-update.service reflector-update.service - &#34;Update pacman's mirrorlist using reflector&#34; Loaded: loaded (/etc/systemd/system/timer-weekly."><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2013/06/09/use-systemd-as-a-cron-replacement/"><meta property="article:published_time" content="2013-06-09T00:00:00+00:00"><meta property="article:modified_time" content="2013-06-09T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Use Systemd as a Cron Replacement"><meta name=twitter:description content="Since systemd 197 timer units support calendar time events, which makes systemd a full cron replacement. Why one would replace the good old cron? Well, because systemd is good at executing stuff and monitor its state!
+ with the help of journalctl you get last status and logging output, which is a great thing to debug failing jobs:  $ systemctl status reflector-update.service reflector-update.service - &#34;Update pacman's mirrorlist using reflector&#34; Loaded: loaded (/etc/systemd/system/timer-weekly."><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>Use Systemd as a Cron Replacement | ~/git/blog</title></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.html><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/post>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author></div><div class=post-header><div class=meta><div class=date><span class=day>09</span>
+<span class=rest>Jun 2013</span></div></div><div class=matter><h1 class=title>Use Systemd as a Cron Replacement</h1></div></div><div class=markdown><p>Since systemd 197 timer units support calendar time events, which makes systemd a
+full cron replacement. Why one would replace the good old cron? Well, because systemd
+is good at executing stuff and monitor its state!</p><ul><li>with the help of journalctl you get last status and logging output, which is a
+great thing to debug failing jobs:</li></ul><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ systemctl status reflector-update.service
+reflector-update.service - &#34;Update pacman&#39;s mirrorlist using reflector&#34;
+   Loaded: loaded
+(/etc/systemd/system/timer-weekly.target.wants/reflector-update.service)
+   Active: inactive (dead)
+
+Jun 09 17:58:30 higgsboson reflector[30109]: rating http://www.gtlib.gatech.edu/pub/archlinux/
+Jun 09 17:58:30 higgsboson reflector[30109]: rating rsync://rsync.gtlib.gatech.edu/archlinux/
+Jun 09 17:58:30 higgsboson reflector[30109]: rating http://lug.mtu.edu/archlinux/
+Jun 09 17:58:30 higgsboson reflector[30109]: Server Rate       Time
+...
+</code></pre></div><ul><li>there are a lot of useful <a href=http://www.freedesktop.org/software/systemd/man/systemd.exec.html target=_blank>systemd unit options</a> like <code>IOSchedulingPriority</code>, <code>Nice</code> or <code>JobTimeoutSec</code></li><li>it is possible to let depend units on other services, like mounting the nfs host
+before starting the mysql-backup.service or depending on the network.target.</li></ul><p>So let&rsquo;s get it started. The first thing you might want to do, is to replace the
+default scripts located in the <a href=http://superuser.com/questions/402781/what-is-run-parts-in-etc-crontab-and-how-do-i-use-it target=_blank>runparts</a>
+directories /etc/cron.{daily,hourly,monthly,weekly}.</p><p>On my distribution (archlinux) these are logrotate, man-db, shadow and updatedb:
+For convenience I created a structure like /etc/cron.*:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ mkdir /etc/systemd/system/timer-{hourly,daily,weekly}.target.wants
+</code></pre></div><p>and added the following timer.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ cd /etc/systemd/system
+$ wget https://blog.thalheim.io/downloads/timers.tar
+$ tar -xvf timers.tar &amp;&amp; rm timers.tar
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Hourly Timer</span>
+
+<span style=color:#000;font-weight:700>[Timer]</span>
+<span style=color:teal>OnBootSec</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>5min</span>
+<span style=color:teal>OnUnitActiveSec</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>1h</span>
+<span style=color:teal>Unit</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>timer-hourly.target</span>
+
+<span style=color:#000;font-weight:700>[Install]</span>
+<span style=color:teal>WantedBy</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>basic.target</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Hourly Timer Target</span>
+<span style=color:teal>StopWhenUnneeded</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>yes</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Daily Timer</span>
+
+<span style=color:#000;font-weight:700>[Timer]</span>
+<span style=color:teal>OnBootSec</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>10min</span>
+<span style=color:teal>OnUnitActiveSec</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>1d</span>
+<span style=color:teal>Unit</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>timer-daily.target</span>
+
+<span style=color:#000;font-weight:700>[Install]</span>
+<span style=color:teal>WantedBy</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>basic.target</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Daily Timer Target</span>
+<span style=color:teal>StopWhenUnneeded</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>yes</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Weekly Timer</span>
+
+<span style=color:#000;font-weight:700>[Timer]</span>
+<span style=color:teal>OnBootSec</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>15min</span>
+<span style=color:teal>OnUnitActiveSec</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>1w</span>
+<span style=color:teal>Unit</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>timer-weekly.target</span>
+
+<span style=color:#000;font-weight:700>[Install]</span>
+<span style=color:teal>WantedBy</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>basic.target</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Weekly Timer Target</span>
+<span style=color:teal>StopWhenUnneeded</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>yes</span>
+</code></pre></div><p>&mldr; and enable them:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ systemctl enable timer-hourly.timer
+$ systemctl enable timer-daily.timer
+$ systemctl enable timer-weekly.timer
+</code></pre></div><p>These directories work like their cron equivalents, each service file located in
+such a directory will be executed at the given time.</p><p>Now move on to the service files. If you&rsquo;re not running Arch, the paths might be different on your system.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ cd /etc/systemd/system
+$ wget https://blog.higgsboson.tk/downloads/services.tar
+$ tar -xvf services.tar &amp;&amp; rm services.tar
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Update man-db</span>
+
+<span style=color:#000;font-weight:700>[Service]</span>
+<span style=color:teal>Nice</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>19</span>
+<span style=color:teal>IOSchedulingClass</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>2</span>
+<span style=color:teal>IOSchedulingPriority</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>7</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/logrotate /etc/logrotate.conf</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Update man-db</span>
+
+<span style=color:#000;font-weight:700>[Service]</span>
+<span style=color:teal>Nice</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>19</span>
+<span style=color:teal>IOSchedulingClass</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>2</span>
+<span style=color:teal>IOSchedulingPriority</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>7</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/mandb --quiet</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Update mlocate database</span>
+
+<span style=color:#000;font-weight:700>[Service]</span>
+<span style=color:teal>Nice</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>19</span>
+<span style=color:teal>IOSchedulingClass</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>2</span>
+<span style=color:teal>IOSchedulingPriority</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>7</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/updatedb</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Verify integrity of password and group files</span>
+
+<span style=color:#000;font-weight:700>[Service]</span>
+<span style=color:teal>Type</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>oneshot</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/sbin/pwck -r</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/sbin/grpck -r</span>
+</code></pre></div><p>At last but not least you can disable cron:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ systemctl stop cronie &amp;&amp; systemctl disable cronie
+</code></pre></div><p>If you want to execute at a special calendar events for example &ldquo;every first day in a month&rdquo; use the <a href=http://www.freedesktop.org/software/systemd/man/systemd.time.html target=_blank>&amp;ldquo;OnCalendar=&amp;rdquo; option</a> in the timer file.
+example:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Daily Timer</span>
+
+<span style=color:#000;font-weight:700>[Timer]</span>
+<span style=color:teal>OnCalendar</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>*-*-1 0:0:O</span>
+<span style=color:teal>Unit</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>send-bill.target</span>
+
+<span style=color:#000;font-weight:700>[Install]</span>
+<span style=color:teal>WantedBy</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>basic.target</span>
+</code></pre></div><p>That&rsquo;s all for the moment. Have a good time using the power of systemd!</p><p>Below some service files, I use:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;Update pacman&#39;s mirrorlist using reflector&#34;</span>
+
+<span style=color:#000;font-weight:700>[Service]</span>
+<span style=color:teal>Nice</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>19</span>
+<span style=color:teal>IOSchedulingClass</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>2</span>
+<span style=color:teal>IOSchedulingPriority</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>7</span>
+<span style=color:teal>Type</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>oneshot</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/reflector --verbose -l 5 --sort rate --save /etc/pacman.d/mirrorlist</span>
+</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Run pkgstats</span>
+
+<span style=color:#000;font-weight:700>[Service]</span>
+<span style=color:teal>User</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>nobody</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/pkgstats</span>
+</code></pre></div><p><a href="https://bbs.archlinux.org/viewtopic.php?id=162989" target=_blank>See this link</a> for details about my shell-based pacman notifier</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
+<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Update pacman&#39;s package cache</span>
+
+<span style=color:#000;font-weight:700>[Service]</span>
+<span style=color:teal>Nice</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>19</span>
+<span style=color:teal>Type</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>oneshot</span>
+<span style=color:teal>IOSchedulingClass</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>2</span>
+<span style=color:teal>IOSchedulingPriority</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>7</span>
+<span style=color:teal>Environment</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>CHECKUPDATE_DB=/var/lib/pacman/checkupdate</span>
+<span style=color:teal>ExecStartPre</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/bin/sh -c &#34;/usr/bin/checkupdates &amp;gt; /var/log/pacman-updates.log&#34;</span>
+<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/pacman --sync --upgrades --downloadonly --noconfirm --dbpath=/var/lib/pacman/checkupdate</span>
+</code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/cron/>cron</a>
+<a href=/categories/linux/>linux</a>
+<a href=/categories/systemd/>systemd</a>
+<a href=/categories/timer/>timer</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}
+var d=document,s=d.createElement('script');s.async=true;s.src='//'+"mic92"+'.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>

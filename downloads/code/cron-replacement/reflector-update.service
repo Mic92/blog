@@ -1,0 +1,9 @@
+[Unit]
+Description="Update pacman's mirrorlist using reflector"
+
+[Service]
+Nice=19
+IOSchedulingClass=2
+IOSchedulingPriority=7
+Type=oneshot
+ExecStart=/usr/bin/reflector --verbose -l 5 --sort rate --save /etc/pacman.d/mirrorlist

@@ -1,0 +1,10 @@
+baseURL: https://blog.lekwati.com/
+languageCode: en-gb
+theme: hugo-vitae
+paginate: 5
+title: ~/git/blog
+disqusShortname: shannans-write-y-things
+
+#params:
+#  comments: true
+#  ShowReadingTime: true

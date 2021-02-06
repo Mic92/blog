@@ -16,7 +16,7 @@ The systemd configuration could look like this:
 - Listens on tcp port 3000 (both ipv4 and ipv6)
 - Execute python script as user 'nobody' with a timeout of 5 minutes
 
-```
+```systemd
 [Unit]
 Description=Start update on demand
 
@@ -30,7 +30,7 @@ BindIPv6Only=both
 WantedBy=multi-user.target
 ```
 
-```
+```systemd
 [Unit]
 Description=Start update on demand
 JobTimeoutSec=5min

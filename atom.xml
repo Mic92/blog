@@ -1,0 +1,1398 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2021-02-17T17:24:33+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Solve Vivado Remote Connection Test Failed</title><link href="https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/</id><published>2017-04-13T00:00:00+00:00</published><updated>2017-04-13T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When you are trying to get Vivado Remote Connections working on Ubuntu, you might have an issue to establish the connection.
+This can be easily solved by adding a symlink to your bash, called sh. You can do this for example using the following commands:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir -p ~/.local/bin
+$ ln -s /bin/bash ~/.local/bin/sh
+</code></pre></div><p>Thanks to ole2 for providing this solution in the xilinx forum, which you can find here:
+<a href="https://forums.xilinx.com/t5/Installation-and-Licensing/Vivado-2013-2-Launching-jobs-on-a-remote-host/td-p/396861" target="_blank">forum post</a></p>
+<p>As he points out, this seem to be a bug in Vivado. Vivado seems to call a script with #!/bin/sh and expects a bash to be executed. But for Ubuntu, /bin/sh points to /bin/dash per default. An alternative solution is to re-configure this link using:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ sudo dpkg-reconfigure dash 
+</code></pre></div><p>I had this issue in Vivado 2016.4 and Ubuntu 16.04 LTS.</p>
+]]></content></entry><entry><title type="html">Rooting Intel Based Tablets on Linux Slash Mac Os X</title><link href="https://blog.thalheim.io/2015/12/25/rooting-intel-based-tablets-on-linux-slash-mac-os-x/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/12/25/rooting-intel-based-tablets-on-linux-slash-mac-os-x/</id><published>2015-12-25T00:00:00+00:00</published><updated>2015-12-25T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will explain how to root Intel-CPU based android Devices on
+Linux/Mac OS X. The instructions are based on this
+<a href="http://forum.xda-developers.com/android/development/intel-android-devices-root-temp-cwm-t2975096" target="_blank">forum post</a>.
+I used this code to root a Medion LIFETAB P8912. However this should also apply
+to all devices mentioned in this forum post.</p>
+<p>The first thing to do, is install
+<a href="http://lifehacker.com/the-easiest-way-to-install-androids-adb-and-fastboot-to-1586992378" target="_blank">fastboot and adb</a>
+on your PC/Mac.
+Make sure that you have enabled the development option on your android device
+and are able to connect to it via adb.</p>
+<p>Then place the update, you want to install on the sdcard on your device.
+In case you want to install the root patch, you can download the latest
+<a href="http://download.chainfire.eu/supersu" target="_blank">SuperSU</a>. <strong>Note</strong> that you will be not able
+to install custom roms, if your bootloader is locked. If the signature missmatch
+it will refuse to boot.</p>
+<p>The next thing to do is to download and extract
+<a href="https://www.androidfilehost.com/?fid=24052804347782876" target="_blank">IntelAndroid-FBRL-07-24-2015.7z</a> mentioned in the post.
+It contains a recovery images for CWM or TWRP and some custom trigger code to
+start a temporary CWM Recovery Session on the device. After reboot this session
+will be gone. But you can apply updates during the session such as SuperSU.
+You will <strong>not</strong> be able to follow the exact instructions from this forum post, because it contains a
+windows specific batch file and windows executables. However these are just
+fancy wrappers around adb and fastboot, so you can still use the contained images/launch code.</p>
+<p>To reboot your device into the bootloader, connect it to your computer and
+run, while it is turned on:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ adb reboot-bootloader
+</code></pre></div><p>Within the boot loader, we will first put the alternate rescue image on the
+device along with some custom launcher code. I first tried TWRP on my device,
+but my touchscreen didn&rsquo;t work with it, so I sticked to CWM:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># assuming you have changed to the directory of extracted archive:
+$ fastboot flash /tmp/recovery.zip FB_RecoveryLauncher/cwm.zip
+$ fastboot flash /tmp/recovery.launcher FB_RecoveryLauncher/recovery.launcher
+</code></pre></div><p>The next thing to do is to trigger the device via fastboot to start our
+recovery. The forum post contained 4 alternatives approaches based on the android
+device. The following (T4) was working for me:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ fastboot oem start_partitioning; fastboot flash /system/bin/logcat FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
+</code></pre></div><p>This temporary replace logcat with a launcher. It is important to execute all
+commands in one shot. Otherwise fastboot will fail to flash logcat.</p>
+<p>If the command will not work for you, you could one of these commands:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># T1
+$ fastboot flash /sbin/adbd FB_RecoveryLauncher/fbrl.trigger; fastboot oem startftm
+# T2
+$ fastboot flash /system/bin/cp FB_RecoveryLauncher/fbrl.trigger; fastboot oem backup_factory
+# T3
+$ fastboot flash /sbin/partlink FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
+</code></pre></div><p>If everything works it should start the recovery image.</p>
+]]></content></entry><entry><title type="html">Cgi Like Python Scripts With Systemd Socket Activation</title><link href="https://blog.thalheim.io/2015/06/25/cgi-like-python-scripts-with-systemd-socket-activation/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/06/25/cgi-like-python-scripts-with-systemd-socket-activation/</id><published>2015-06-25T00:00:00+00:00</published><updated>2015-06-25T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Lets say you want to trigger remote the start of a python script.
+But you don&rsquo;t want to have a service running all the time waiting for requests.</p>
+<p>What you can do, is using socket-unit in systemd, which is waiting on a tcp port for connections
+and starts the service, if somebody is requesting it.</p>
+<p>The systemd configuration could look like this:</p>
+<ul>
+<li>Listens on tcp port 3000 (both ipv4 and ipv6)</li>
+<li>Execute python script as user &lsquo;nobody&rsquo; with a timeout of 5 minutes</li>
+</ul>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Start update on demand</span>
+
+<span style="color:#000;font-weight:bold">[Socket]</span>
+<span style="color:#008080">ListenStream</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">3000</span>
+<span style="color:#998;font-style:italic"># only listen on localhost</span>
+<span style="color:#998;font-style:italic">#ListenStream=127.0.0.1:3000</span>
+<span style="color:#008080">BindIPv6Only</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">both</span>
+
+<span style="color:#000;font-weight:bold">[Install]</span>
+<span style="color:#008080">WantedBy</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">multi-user.target</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Start update on demand</span>
+<span style="color:#008080">JobTimeoutSec</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">5min</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">User</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">nobody</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/python /path/to/script.py</span>
+</code></pre></div><p>In your python code, do the following</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">systemd_socket_response</span>():
+    <span style="color:#d14">&#34;&#34;&#34;
+</span><span style="color:#d14">    Accepts every connection of the listen socket provided by systemd, send the
+</span><span style="color:#d14">    HTTP Response &#39;OK&#39; back.
+</span><span style="color:#d14">    &#34;&#34;&#34;</span>
+    <span style="color:#000;font-weight:bold">try</span>:
+        <span style="color:#000;font-weight:bold">from</span> <span style="color:#555">systemd.daemon</span> <span style="color:#000;font-weight:bold">import</span> listen_fds;
+        fds <span style="color:#000;font-weight:bold">=</span> listen_fds()
+    <span style="color:#000;font-weight:bold">except</span> <span style="color:#900;font-weight:bold">ImportError</span>:
+        fds <span style="color:#000;font-weight:bold">=</span> [<span style="color:#099">3</span>]
+
+    <span style="color:#000;font-weight:bold">for</span> fd <span style="color:#000;font-weight:bold">in</span> fds:
+        <span style="color:#000;font-weight:bold">import</span> <span style="color:#555">socket</span>
+        sock <span style="color:#000;font-weight:bold">=</span> socket<span style="color:#000;font-weight:bold">.</span>fromfd(fd, socket<span style="color:#000;font-weight:bold">.</span>AF_INET, socket<span style="color:#000;font-weight:bold">.</span>SOCK_STREAM)
+        sock<span style="color:#000;font-weight:bold">.</span>settimeout(<span style="color:#099">0</span>)
+
+        <span style="color:#000;font-weight:bold">try</span>:
+            <span style="color:#000;font-weight:bold">while</span> <span style="color:#999">True</span>:
+              conn, addr <span style="color:#000;font-weight:bold">=</span> sock<span style="color:#000;font-weight:bold">.</span>accept()
+              conn<span style="color:#000;font-weight:bold">.</span>sendall(<span style="color:#d14">b</span><span style="color:#d14">&#34;HTTP/1.1 200 OK</span><span style="color:#d14">\r\n</span><span style="color:#d14">Content-Type: text/plain</span><span style="color:#d14">\r\n</span><span style="color:#d14">Content-Length: 3</span><span style="color:#d14">\r\n\r\n</span><span style="color:#d14">OK</span><span style="color:#d14">\n</span><span style="color:#d14">&#34;</span>)
+        <span style="color:#000;font-weight:bold">except</span> socket<span style="color:#000;font-weight:bold">.</span>timeout:
+            <span style="color:#000;font-weight:bold">pass</span>
+        <span style="color:#000;font-weight:bold">except</span> <span style="color:#900;font-weight:bold">OSError</span> <span style="color:#000;font-weight:bold">as</span> e:
+            <span style="color:#998;font-style:italic"># Connection closed again? Don&#39;t care, we just do our job.</span>
+            <span style="color:#000;font-weight:bold">print</span>(e)
+
+<span style="color:#000;font-weight:bold">if</span> __name__ <span style="color:#000;font-weight:bold">==</span> <span style="color:#d14">&#34;__main__&#34;</span>:
+   <span style="color:#000;font-weight:bold">if</span> os<span style="color:#000;font-weight:bold">.</span>environ<span style="color:#000;font-weight:bold">.</span>get(<span style="color:#d14">&#34;LISTEN_FDS&#34;</span>, <span style="color:#999">None</span>) <span style="color:#000;font-weight:bold">!=</span> <span style="color:#999">None</span>:
+        systemd_socket_response()
+   <span style="color:#998;font-style:italic"># here your own code begins</span>
+   do_work()
+</code></pre></div><p>This still lacks of authentication and does not take any arguments.
+You could protect this port using a frontend webserver with http authentication,
+or you pass the listen socket to an python http server, which add some token
+passed authentication. Systemd will ensure, that your service will not run more
+than once at the time.</p>
+]]></content></entry><entry><title type="html">Fix Sshd Socket Activation When Using Tmux Slash Screen</title><link href="https://blog.thalheim.io/2015/04/13/fix-sshd-socket-activation-when-using-tmux-slash-screen/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/04/13/fix-sshd-socket-activation-when-using-tmux-slash-screen/</id><published>2015-04-13T00:00:00+00:00</published><updated>2015-04-13T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When using sshd.socket to start sshd on demand, detaching from a tmux/screen
+session will not work. The reason is once the ssh session is closed, systemd
+will terminate all remaining processes in the sshd cgroups, which affects also
+the tmux/screen background process. However this behaviour can be changed using
+the following drop-in file:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Service]
+KillMode=process
+</code></pre></div>]]></content></entry><entry><title type="html">Ipv6 Configuration on Digitalocean on Freebsd</title><link href="https://blog.thalheim.io/2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd/</id><published>2015-01-19T00:00:00+00:00</published><updated>2015-01-19T00:00:00+00:00</updated><content type="html"><![CDATA[<p>By default Digitalocean add some custom rc.d scripts for network configuration to your droplet.</p>
+<p>You can just append the content of <code>/etc/rc.digitalocean.d/droplet.conf</code> to your <code>/etc/rc.conf</code>
+In my case the public ipv4 address is <code>188.166.0.1</code> and my first ipv6 address
+is <code>2a03:b0c0:2:d0::2a5:f001</code>.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#008080">defaultrouter</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;188.166.0.1&#34;</span>
+<span style="color:#998;font-style:italic"># ipv6 address are shortend for readability</span>
+<span style="color:#008080">ipv6_defaultrouter</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;2a03:b0c0:2:d0::1&#34;</span>
+<span style="color:#008080">ifconfig_vtnet0</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;inet 188.166.16.37 netmask 255.255.192.0&#34;</span>
+<span style="color:#008080">ifconfig_vtnet0_ipv6</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;inet6 2a03:b0c0:2:d0::2a5:f001 prefixlen 64&#34;</span>
+</code></pre></div><p>Digitalocean provides these days for native Ipv6 for the most of its datacenters.
+Unlike other hoster they are very spare, when distributing Ipv6
+Addresses and only route 16 addresses per droplet (xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxx1 until xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxf).
+To make use of these additional ip addresses they have to be assigned to your network interface <code>vtnet0</code>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#008080">ifconfig_vtnet0_aliases</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;\
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f002 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f003 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f004 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f005 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f006 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f007 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f008 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f009 prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f00a prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f00b prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f00c prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f00d prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f00e prefixlen 64 \
+</span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f00f prefixlen 64&#34;</span>
+</code></pre></div><p>In case you want to add freebsd jails later on, it is a good idea to allocate
+private ipv4 addresses for these too. In my case I generated as many ipv4
+address as ipv6 addresses I got:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#008080">cloned_interfaces</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;</span><span style="color:#d14">${</span><span style="color:#008080">cloned_interfaces</span><span style="color:#d14">}</span><span style="color:#d14"> lo1&#34;</span>
+<span style="color:#008080">ifconfig_lo1_aliases</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;\
+</span><span style="color:#d14">                      inet 192.168.67.1/24 \
+</span><span style="color:#d14">                      inet 192.168.67.2/24 \
+</span><span style="color:#d14">                      inet 192.168.67.3/24 \
+</span><span style="color:#d14">                      inet 192.168.67.4/24 \
+</span><span style="color:#d14">                      inet 192.168.67.5/24 \
+</span><span style="color:#d14">                      inet 192.168.67.6/24 \
+</span><span style="color:#d14">                      inet 192.168.67.7/24 \
+</span><span style="color:#d14">                      inet 192.168.67.8/24 \
+</span><span style="color:#d14">                      inet 192.168.67.9/24 \
+</span><span style="color:#d14">                      inet 192.168.67.10/24 \
+</span><span style="color:#d14">                      inet 192.168.67.11/24 \
+</span><span style="color:#d14">                      inet 192.168.67.12/24 \
+</span><span style="color:#d14">                      inet 192.168.67.13/24 \
+</span><span style="color:#d14">                      inet 192.168.67.14/24 \
+</span><span style="color:#d14">                      inet 192.168.67.15/24&#34;</span>
+</code></pre></div><p>To apply these network settings immediately issue the following commands in
+series:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ sudo service netif restart; sudo /etc/rc.d/routing restart
+</code></pre></div><p>The second command is important because it adds the ipv4 gateway back. Otherwise
+you will not reach your droplet via ipv4 without rebooting.</p>
+<p>If everything still works, you can remove, the following files leftover from cloudflare&rsquo;s provisioning:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ rm /etc/rc.d/digitalocean
+$ rm -r /etc/rc.digitalocean.d
+$ rm -r /usr/local/bsd-cloudinit/
+$ pkg remove avahi-autoipd
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/freebsd" term="freebsd" label="freebsd"/><category scheme="https://blog.thalheim.io/categories/digitalocean" term="digitalocean" label="digitalocean"/><category scheme="https://blog.thalheim.io/categories/network" term="network" label="network"/></entry><entry><title type="html">Static Mac Address for Bananapi</title><link href="https://blog.thalheim.io/2015/01/06/static-mac-address-for-bananapi/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/01/06/static-mac-address-for-bananapi/</id><published>2015-01-06T00:00:00+00:00</published><updated>2015-01-06T00:00:00+00:00</updated><content type="html"><![CDATA[<p>The bananapi does currently assign random mac addresses to its ethnernet nic,
+which is bad if you want to assign static dhcp leases. To solve this issue just
+create the following udev rule:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">ACTION==&#34;add&#34;, SUBSYSTEM==&#34;net&#34;, ATTR{dev_id}==&#34;0x0&#34;, RUN+=&#34;/usr/bin/ip link set dev %k address XX:XX:XX:XX:XX:XX&#34;
+</code></pre></div><p>Replace XX:XX:XX:XX:XX:XX with your current mac address:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ip address
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 16436 qdisc noqueue state UNKNOWN group
+default
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP
+group default qlen 1000
+    link/ether 02:8a:03:43:02:2a brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.56/24 brd 192.168.1.255 scope global eth0
+    inet6 fe80::8a:3ff:fe43:22a/64 scope link
+       valid_lft forever preferred_lft forever
+    inet6 fe80::9985:bd71:3b59:4875/64 scope link
+       valid_lft forever preferred_lft forever
+
+</code></pre></div><p>which is <code>02:8a:03:43:02:2a</code> in my case.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/linux" term="linux" label="linux"/><category scheme="https://blog.thalheim.io/categories/bananapi" term="bananapi" label="bananapi"/><category scheme="https://blog.thalheim.io/categories/network" term="network" label="network"/></entry><entry><title type="html">Remove Current Binding Dot Pry From Pry</title><link href="https://blog.thalheim.io/2014/11/14/remove-current-binding-dot-pry-from-pry/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/11/14/remove-current-binding-dot-pry-from-pry/</id><published>2014-11-14T00:00:00+00:00</published><updated>2014-11-14T00:00:00+00:00</updated><content type="html"><![CDATA[<p>If you are a ruby user and find it annoying to remove <a href="http://pryrepl.org/" target="_blank">binding.pry</a> by hand, you may
+find the following snippet useful. (Put it in your ~/.pryrc to use it)</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#008080">Pry</span><span style="color:#000;font-weight:bold">.</span>config<span style="color:#000;font-weight:bold">.</span>commands<span style="color:#000;font-weight:bold">.</span>command <span style="color:#d14">&#34;remove-pry&#34;</span>, <span style="color:#d14">&#34;Remove current pry&#34;</span> <span style="color:#000;font-weight:bold">do</span>
+  <span style="color:#0086b3">require</span> <span style="color:#d14">&#39;pry/commands/edit/file_and_line_locator&#39;</span>
+  file_name, remove_line <span style="color:#000;font-weight:bold">=</span>
+<span style="color:#008080">Pry</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">Command</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">Edit</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">FileAndLineLocator</span><span style="color:#000;font-weight:bold">.</span>from_binding(_pry_<span style="color:#000;font-weight:bold">.</span>current_binding)
+  temp_file <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">Tempfile</span><span style="color:#000;font-weight:bold">.</span>new(<span style="color:#d14">&#39;foo&#39;</span>)
+  i <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0</span>
+  <span style="color:#008080">File</span><span style="color:#000;font-weight:bold">.</span>foreach(file_name) <span style="color:#000;font-weight:bold">do</span> <span style="color:#000;font-weight:bold">|</span>line<span style="color:#000;font-weight:bold">|</span>
+    i <span style="color:#000;font-weight:bold">+=</span> <span style="color:#099">1</span>
+    <span style="color:#000;font-weight:bold">if</span> i <span style="color:#000;font-weight:bold">==</span> remove_line
+      line<span style="color:#000;font-weight:bold">.</span>gsub!(<span style="color:#009926">/binding.pry(\s)?/</span>, <span style="color:#d14">&#34;&#34;</span>)
+      temp_file<span style="color:#000;font-weight:bold">.</span>write line <span style="color:#000;font-weight:bold">unless</span> line <span style="color:#000;font-weight:bold">=~</span> <span style="color:#009926">/\A[[:space:]]*\z/</span>
+    <span style="color:#000;font-weight:bold">else</span>
+      temp_file<span style="color:#000;font-weight:bold">.</span>write line
+    <span style="color:#000;font-weight:bold">end</span>
+  <span style="color:#000;font-weight:bold">end</span>
+  temp_file<span style="color:#000;font-weight:bold">.</span>close
+  <span style="color:#008080">FileUtils</span><span style="color:#000;font-weight:bold">.</span>cp(temp_file<span style="color:#000;font-weight:bold">.</span>path, file_name)
+<span style="color:#000;font-weight:bold">end</span>
+</code></pre></div><p><strong>Usage</strong></p>
+<p>Before:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#998;font-style:italic"># ...</span>
+<span style="color:#000;font-weight:bold">if</span> foo <span style="color:#000;font-weight:bold">==</span> <span style="color:#990073">:bar</span>
+  <span style="color:#0086b3">binding</span><span style="color:#000;font-weight:bold">.</span>pry
+  a_shiny_method
+<span style="color:#000;font-weight:bold">end</span>
+<span style="color:#998;font-style:italic"># ...</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">pry<span style="color:#000;font-weight:bold">&gt;</span> remove<span style="color:#000;font-weight:bold">-</span>pry
+</code></pre></div><p>After:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#998;font-style:italic"># ...</span>
+<span style="color:#000;font-weight:bold">if</span> foo <span style="color:#000;font-weight:bold">==</span> <span style="color:#990073">:bar</span>
+  a_shiny_method
+<span style="color:#000;font-weight:bold">end</span>
+<span style="color:#998;font-style:italic"># ...</span>
+</code></pre></div>]]></content></entry><entry><title type="html">Ferm Rules for Docker</title><link href="https://blog.thalheim.io/2014/11/01/ferm-rules-for-docker/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/11/01/ferm-rules-for-docker/</id><published>2014-11-01T00:00:00+00:00</published><updated>2014-11-01T00:00:00+00:00</updated><content type="html"><![CDATA[<p>The Docker daemon add his own custom rules by default to iptables.  If you use
+<a href="http://ferm.foo-projects.org/" target="_blank">ferm</a> to manage your iptables rules, it is a
+good idea to prepopulate rules for docker. Otherwise they will be overwritten by
+ferm as it restarts.</p>
+<p>To do so add the following lines at the top of your ferm.conf:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">domain ip {
+    table filter chain FORWARD {
+        outerface docker0 mod conntrack ctstate (RELATED ESTABLISHED) ACCEPT;
+        interface docker0 outerface !docker0 ACCEPT;
+        interface docker0 outerface docker0 ACCEPT;
+    }
+    table nat {
+        chain DOCKER;
+        chain PREROUTING {
+           mod addrtype dst-type LOCAL jump DOCKER;
+        }
+        chain OUTPUT {
+           daddr !127.0.0.0/8 mod addrtype dst-type LOCAL jump DOCKER;
+        }
+
+        chain POSTROUTING {
+           saddr 172.17.0.0/16 outerface !docker0 MASQUERADE;
+        }
+    }
+}
+</code></pre></div><p>In my case docker&rsquo;s subnet is <code>172.17.0.0/16</code> and uses <code>docker0</code> as bridge
+device.</p>
+]]></content></entry><entry><title type="html">Gathering Crash Reports and User Feedback for Your Android App</title><link href="https://blog.thalheim.io/2014/06/10/gathering-crash-reports-and-user-feedback-for-your-android-app/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/06/10/gathering-crash-reports-and-user-feedback-for-your-android-app/</id><published>2014-06-10T00:00:00+00:00</published><updated>2014-06-10T00:00:00+00:00</updated><content type="html"><![CDATA[<p><strong>tl;dr:</strong> How-to use ACRA and a PHP-script for getting <strong>fairly pretty crash-reports and
+user-feedback via email</strong> (without ugly Android email-Intents)</p>
+<h2 id="introduction">Introduction</h2>
+<p>I&rsquo;m the developer of <a href="https://github.com/chaosbastler/opentraining" target="_blank">OpenTraining</a>, an open source Android app for fitness training.
+I recently looked for a possibility to add a simple feedback system to my app.
+There&rsquo;s an open source framework for crash reports named <a href="https://github.com/ACRA" target="_blank">ACRA</a> that I decided to use for both crash reports and user feedback.</p>
+<p>The Google Play Store offers a crash report system as well, but if you deploy your app on multiple app stores you might want a central instance for collecting crash reports.
+For user feedback many apps simply open an email-Intent but I don&rsquo;t think this offers a good user experience.</p>
+<p>This is how the user feedback dialog and the generated mail look like:</p>
+<p><figure>
+  <img src="/downloads/android_feedback.jpg" alt="Android feedback dialog and feedback mail"  title="Android feedback dialog and feedback mail"  />
+</figure></p>
+<p>Advantages:</p>
+<ul>
+<li>simple</li>
+<li>self-hosted</li>
+<li>good workflow for smaller projects</li>
+<li>only PHP required</li>
+</ul>
+<p>Disadvantages:</p>
+<ul>
+<li>does not scale (e.g. if you have 50.000+ users)</li>
+</ul>
+<p>If your project is pretty large you should consider another <a href="https://github.com/ACRA/acra/wiki/Backends" target="_blank">ACRA-backend</a>. I tried some of them, but as long as I get &lt; 20 emails per week I&rsquo;ll use the PHP backend.</p>
+<p>This How-to is based on <a href="https://github.com/ACRA" target="_blank">ACRA</a> and <a href="https://github.com/d-a-n/acra-mailer" target="_blank">ACRA-mailer</a>.</p>
+<h2 id="how-to">How-To</h2>
+<p>The most important changes I had to apply to my project for adding the feedback-feature can be seen in <a href="https://github.com/chaosbastler/opentraining/commit/19e52b76b8370e78b9d67e4110d04463d1cd2ad6" target="_blank">this commit</a> on GitHub (but there have been some more commits concerning ACRA).</p>
+<h3 id="1-add-acra-to-your-project">1. Add ACRA to your project</h3>
+<ul>
+<li>Open your Eclipse project</li>
+<li>Add the file <a href="http://search.maven.org/remotecontent?filepath=ch/acra/acra/4.5.0/acra-4.5.0.jar" target="_blank">acra-4.X.Y.jar</a> to the libs folder</li>
+<li>Right-click on the jar file -&gt; add to build path</li>
+</ul>
+<p>If you have any problems with this step have a look at the <a href="https://github.com/ACRA/acra/wiki/BasicSetup" target="_blank">ACRA documentation</a>. There&rsquo;s also a description for <a href="https://github.com/ACRA/acra/wiki/AdvancedUsage#integrating-as-a-dependency-with-maven-or-gradle" target="_blank">Gradle integration</a>.</p>
+<h3 id="2-use-the-acra-library">2. Use the ACRA library</h3>
+<p>Create a new class that extends Application:</p>
+<pre><code>import org.acra.*;
+import org.acra.annotation.*;
+
+import android.app.Application;
+
+
+@ReportsCrashes(
+    formKey = &quot;&quot; // This is required for backward compatibility but not used
+ )
+
+
+public class YourApplication extends Application{
+ 
+    @Override
+     public void onCreate() {
+         super.onCreate();
+
+         // The following line triggers the initialization of ACRA
+         ACRA.init(this);
+         ACRA.getErrorReporter().setReportSender(new ACRACrashReportMailer()); // default crash report sender
+    }
+
+
+}
+</code></pre>
+<p>Open the android manifest editor (AndroidManifest.xml)</p>
+<ul>
+<li>In the Application tab, click on the Browse button next to the Name field</li>
+<li>Select your newly created Application class</li>
+</ul>
+<p>Make sure that your application requests the permission <strong>&lsquo;android.permission.INTERNET&rsquo;</strong>.</p>
+<h3 id="3-add-reportsender">3. Add ReportSender</h3>
+<p>I use 2 different implementations of ReportSender:</p>
+<ul>
+<li>one to report crashes: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/ACRACrashReportMailer.java" target="_blank">ACRACrashReportMailer</a></li>
+<li>one to report feedback: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/ACRAFeedbackMailer.java" target="_blank">ACRAFeedbackMailer</a></li>
+</ul>
+<p>The crash reporter sends nearly all data that&rsquo;s available, the feedback reporter sends the user message, the date and the app version. Add both to your project.</p>
+<p>Remember to change the &lsquo;BASE_URL&rsquo;. Use HTTPS if your server supports it (mine doesn&rsquo;t).</p>
+<h3 id="4-add-php-scripts">4. Add PHP scripts</h3>
+<p>There are 2 PHP scripts as well:</p>
+<ul>
+<li>one to report crashes: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/acra_crash.php" target="_blank">acra_crash.php</a></li>
+<li>one to report feedback: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/acra_feedback.php" target="_blank">acra_feedback.php</a></li>
+</ul>
+<p>You will also need the <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/mail_template.txt" target="_blank">mail template</a>.
+Change the destination email and add the files to the webspace/server of your choice (e.g. <a href="https://uberspace.de/" target="_blank">uberspace</a>). If you want you can change the &ldquo;shared_secret&rdquo;, but remember to do this in the Java class as well.</p>
+<h3 id="5-test-receiving-feedback">5. Test receiving feedback</h3>
+<p>Now you should have a try and test sending feedback to yourself:</p>
+<pre><code>ACRA.getErrorReporter().setReportSender(new ACRAFeedbackMailer());
+ACRA.getErrorReporter().putCustomData(&quot;User message&quot;, &quot;Some Text here&quot;);
+ACRA.getErrorReporter().handleSilentException(new NullPointerException(&quot;Test&quot;));
+</code></pre>
+<p>If this works you need a suitable spot for your user feedback. In most cases a <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/create_workout/SendExerciseFeedbackDialogFragment.java" target="_blank">dialog</a> should be fine.</p>
+<p>Consider to write your <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/RequestExerciseUpdate.java" target="_blank">own class(es)</a> that extend(s) Exception.
+Your PHP script could do further processing with this information.</p>
+<h2 id="ideas-for-further-improvements">Ideas for further improvements</h2>
+<h3 id="improve-the-email-formatting">Improve the email formatting</h3>
+<p>As you have a server-side script it is very easy to change the formatting of the emails.
+Highlighting the user comments or the type of exception may be a good first step.</p>
+<h3 id="usage-for-larger-projects">Usage for larger projects</h3>
+<p>With the use of two different implementations of ReportSender it is also possible to use email only for sending feedback and send crash reports to another backend that is better suited for bug tracking.
+For larger projects this approach is recommended.</p>
+<p><em>by Christian Skubich</em></p>
+<p>eMail: <a href="mailto:christian@skubware.de">christian@skubware.de</a></p>
+<p>Twitter: <a href="https://twitter.com/chaosbastler" target="_blank">@chaosbastler</a></p>
+]]></content></entry><entry><title type="html">Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq</title><link href="https://blog.thalheim.io/2014/02/08/internet-sharing-ipv4-and-ipv6-on-archlinux-using-dnsmasq/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/02/08/internet-sharing-ipv4-and-ipv6-on-archlinux-using-dnsmasq/</id><published>2014-02-08T00:00:00+00:00</published><updated>2014-02-08T00:00:00+00:00</updated><content type="html"><![CDATA[<p><strong>Update:</strong> Added adhoc wlan network</p>
+<p>A guide to connect with a different machine using a ethernet cable for
+internet sharing or just transferring files:</p>
+<ol>
+<li>
+<p>Install dnsmasq and iproute2</p>
+<p>$ pacman -S dnsmasq iproute2</p>
+</li>
+<li>
+<p>Copy over the configuration files at the end of the article and edit the
+<em>/etc/conf.d/share-internet@&lt;device&gt;</em> to match your network setup. (where
+&lt;device&gt; is your network device)</p>
+</li>
+<li>
+<p>Start the sharing service with systemd</p>
+<p>$ sudo systemctl start internet-sharing@<!-- raw HTML omitted -->.service</p>
+</li>
+</ol>
+<p>After that the other machine can connect via dhcp. It will get an ipv4
+address from the <strong>10.20.0.0/24</strong> subnet and a ipv6 address from the <strong>fd21:30c2:dd2f::</strong>
+subnet. Your host will be reachable via <strong>10.20.0.1</strong> or <strong>fd21:30c2:dd2f::1</strong>.
+Thanks to ipv6 router advertising, an AAAA record for each host is automatically set based on the hostname.
+This means if your hostname is <em>foo</em>, all members of the network can just connect
+to it using the address <em>foo</em>. You should disable the share-internet.service, if
+you don&rsquo;t need it. Otherwise you might mess up network setups, if you connect to a
+network with the device on which the dhcp service is running.</p>
+<p>Happy networking!</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># google as an upstream dns server
+server=8.8.8.8
+server=8.8.4.4
+no-resolv
+cache-size=2000
+</code></pre></div><p>Ethernet to Wlan:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># Device which has internet access, ex: wlan0 or usb0
+EXTERNAL_DEVICE=&#34;wlp3s0&#34;
+
+IP4_ADDRESS=&#34;10.20.0.1&#34;
+IP4_NETMASK=&#34;24&#34;
+IP4_SUBNET=&#34;10.20.0.2,10.20.0.255&#34;
+
+IP6_ADDRESS=&#34;fd21:30c2:dd2f::1&#34;
+IP6_NETMASK=&#34;64&#34;
+IP6_SUBNET=&#34;fd21:30c2:dd2f::&#34;
+</code></pre></div><p>Wlan to Ethernet:</p>
+<p>If you have luck and your wifi driver is capable of the infrastructure mode,
+you should take a look at hostadp, in my case I have to create an adhoc network.
+To enable the adhoc network:</p>
+<p>$ sudo systemctl enable wireless-adhoc@&lt;device&gt;.service</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># Device which has internet access, ex: wlan0 or usb0
+EXTERNAL_DEVICE=&#34;enp0s20u2&#34;
+
+IP4_ADDRESS=&#34;10.20.0.1&#34;
+IP4_NETMASK=&#34;24&#34;
+IP4_SUBNET=&#34;10.20.0.100,10.20.0.199&#34;
+
+IP6_ADDRESS=&#34;fd21:30c2:dd2f::1&#34;
+IP6_NETMASK=&#34;64&#34;
+IP6_SUBNET=&#34;fd21:30c2:dd2f::&#34;
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Ad-hoc wireless network connectivity (%i)</span>
+<span style="color:#008080">Wants</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">network.target</span>
+<span style="color:#008080">Before</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">network.target</span>
+<span style="color:#008080">Conflicts</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">netctl-auto@.service</span>
+<span style="color:#008080">BindsTo</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">sys-subsystem-net-devices-%i.device</span>
+<span style="color:#008080">After</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">sys-subsystem-net-devices-%i.device</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">Type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">simple</span>
+<span style="color:#008080">ExecStartPre</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/rfkill unblock wifi</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/sbin//wpa_supplicant -D nl80211,wext -c/etc/wpa_supplicant/wpa_supplicant-adhoc-%I.conf -i%I</span>
+
+<span style="color:#000;font-weight:bold">[Install]</span>
+<span style="color:#008080">RequiredBy</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">share-internet@%i.service</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">ctrl_interface=DIR=/run/wpa_supplicant GROUP=wheel
+
+# use &#39;ap_scan=2&#39; on all devices connected to the network
+ap_scan=2
+
+network={
+    ssid=&#34;The.Secure.Network&#34;
+    mode=1
+    frequency=2432
+    proto=WPA
+    key_mgmt=WPA-NONE
+    pairwise=NONE
+    group=TKIP
+    psk=&#34;fnord&#34;
+}
+
+# MacOS X and Networmanager aren&#39;t capable of using WPA/WPA2 for Adhoc Networks
+#network={
+#    ssid=&#34;The.Insecure.Network&#34;
+#    mode=1
+#    frequency=2432
+#    proto=WPA
+#    key_mgmt=NONE
+#    pairwise=NONE
+#    group=TKIP
+#
+#    wep_key0=&#34;fnord&#34;
+#    wep_tx_keyidx=0
+#}
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/arch" term="arch" label="arch"/><category scheme="https://blog.thalheim.io/categories/dhcp" term="dhcp" label="dhcp"/><category scheme="https://blog.thalheim.io/categories/ipv6-router-advertisement" term="ipv6-router-advertisement" label="ipv6 router advertisement"/><category scheme="https://blog.thalheim.io/categories/network" term="network" label="network"/></entry><entry><title type="html">Busybox to the Rescue</title><link href="https://blog.thalheim.io/2014/01/30/busybox-to-the-rescue/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/01/30/busybox-to-the-rescue/</id><published>2014-01-30T00:00:00+00:00</published><updated>2014-01-30T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Some days before I broke my raspberry pie, after pacman running out of memory, while
+updating my glibc. To solve such problems on any of my machines, I decided to
+setup rescue systems with busybox. Therefor just install the package <em>busybox</em>
+on archlinux or <em>busybox-static</em> if you are on debian.
+Busybox is a so called multi-call binary.
+This means, it exposes different behaviour depending on the program name, which
+is used to execute it. As a basic environment for the rescue system, I created a
+symlinks for every command which busybox is capable of:</p>
+<pre><code>$ sudo mkdir /opt/busybox/bin
+
+$ busybox --list | xargs -n 1 -d &quot;\n&quot; -I &quot;cmd&quot; sudo ln -s $(which busybox) /opt/busybox/bin/cmd
+</code></pre>
+<p>In order to be able to login in a system, where the usual shell is broken, I
+added a new user called <em>rescue</em>.</p>
+<pre><code>$ useradd -m -s /opt/busybox/bin/ash rescue
+</code></pre>
+<p>Because origin passwd uses sha256 for password hashes, which busybox is not
+capable of by default you have to recreate every password, you plan to login, to
+make things like su work:</p>
+<pre><code>$ sudo busybox passwd -a 2 rescue # use sha1 instead of sha256
+$ sudo busybox passwd -a 2 root
+</code></pre>
+<p>The login shell is set in this case to the one busybox provides.
+In order to be able to login via ssh this shell has to be added
+<em>/etc/shells</em>:</p>
+<pre><code>$ echo /opt/busybox/bin/ash | sudo tee -a /etc/shells
+</code></pre>
+<p>The last thing left, is to prepend the path with busybox symlinks, to the PATH
+variable of the rescue user, to use them instead of their coreutils equivalents.</p>
+<pre><code>$ echo 'export PATH=/opt/busybox/bin:$PATH' | sudo tee -a /home/rescue/.profile
+</code></pre>
+]]></content></entry><entry><title type="html">Permanent Remap Keys in X11</title><link href="https://blog.thalheim.io/2013/10/16/permanent-remap-keys-in-x11/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/10/16/permanent-remap-keys-in-x11/</id><published>2013-10-16T00:00:00+00:00</published><updated>2013-10-16T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Because my shift key got broken, I remapped Caps Lock to Shift using xmodmap:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">remove Lock = Caps_Lock
+keysym Caps_Lock = Shift_L
+add Shift = Shift_L
+</code></pre></div><p>However these settings got sometimes lost. (ex: after the driver was reloaded after suspend).
+Finally I found event_key_remap patch from <a href="http://www.thenautilus.net/SW/xf86-input-evdev/en" target="_blank">here</a>,
+which allows to permanently redefine keys in the xorg.conf.</p>
+<p>To apply the patch under archlinux simply install <a href="https://aur.archlinux.org/packages/xf86-input-evdev-remap/?setlang=de" target="_blank">xf86-input-evdev-remap</a> from AUR:</p>
+<pre><code>yaourt -S xf86-input-evdev-remap
+</code></pre>
+<p>To track down the key, you want to remap use <code>xev</code> on the terminal.
+Just type the wanted keys a few times. The output will be something like
+the following:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">KeyRelease event,  serial 33,  synthetic NO,  window 0x1e00001,
+    root 0x8e,  subw 0x0,  time 5672767,  (611, 262),  root:(613, 288),
+    state 0x1,  keycode 50 (keysym 0xffe1,  Shift_L),  same_screen YES
+    XLookupString gives 0 bytes:
+    XFilterEvent returns: False
+</code></pre></div><p>The interesting value here is the <code>keycode</code>.
+Use this code to build your final xorg.conf.
+In my case this was:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">#/etc/X11/xorg.conf.d/10-kb-layout.conf
+Section &#34;InputClass&#34;
+    Identifier             &#34;Keyboard Defaults&#34;
+    MatchIsKeyboard        &#34;yes&#34;
+    Option                 &#34;XkbLayout&#34; &#34;de&#34;          # Replace this with your layout
+    Option                 &#34;event_key_remap&#34; &#34;58=50&#34; # Caps Lock Key = Shift
+EndSection
+</code></pre></div>]]></content></entry><entry><title type="html">Global Request Management With Restkit</title><link href="https://blog.thalheim.io/2013/09/03/global-request-management-with-restkit/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/09/03/global-request-management-with-restkit/</id><published>2013-09-03T00:00:00+00:00</published><updated>2013-09-03T00:00:00+00:00</updated><content type="html"><![CDATA[<p>For our latest iOS app we are using <a href="http://restkit.org" target="_blank">RestKit Framework</a>, which is a really great and advanced library to communicate to your REST API.</p>
+<p>When you have lots of requests in different areas of your project, you may want to have a global handling for failure events.
+For example how an Login View, if any of the requests gives you an 401 (Unauthorized) status code.</p>
+<p>In RestKit 0.20 they introduced the oppertunity to register your own <code>RKObjectRequestOperation</code>, which is the common way to do this.</p>
+<p>So at first you create a subclass of <code>RKObjectRequestOperation</code>, let&rsquo;s call it <code>CustomRKObjectRequestOperation</code></p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">
+<span style="color:#999;font-weight:bold;font-style:italic">#import &#34;RKObjectRequestOperation.h&#34;
+</span><span style="color:#999;font-weight:bold;font-style:italic"></span>
+<span style="color:#000;font-weight:bold">@interface</span> <span style="color:#458;font-weight:bold">CustomRKObjectRequestOperation</span> : <span style="color:#458;font-weight:bold">RKObjectRequestOperation</span>
+
+<span style="color:#000;font-weight:bold">@end</span>
+
+<span style="color:#000;font-weight:bold">@implementation</span> <span style="color:#458;font-weight:bold">CustomRKObjectRequestOperation</span>
+
+- (<span style="color:#458;font-weight:bold">void</span>)<span style="color:#900;font-weight:bold">setCompletionBlockWithSuccess:</span>(<span style="color:#458;font-weight:bold">void</span> ( <span style="color:#000;font-weight:bold">^</span> ) ( RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation , RKMappingResult <span style="color:#000;font-weight:bold">*</span>mappingResult ))<span style="color:#008080">success</span> <span style="color:#900;font-weight:bold">failure:</span>(<span style="color:#458;font-weight:bold">void</span> ( <span style="color:#000;font-weight:bold">^</span> ) ( RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation , NSError <span style="color:#000;font-weight:bold">*</span>error ))<span style="color:#008080">failure</span>
+{
+    [<span style="color:#0086b3">super</span> <span style="color:#900;font-weight:bold">setCompletionBlockWithSuccess</span>:<span style="color:#000;font-weight:bold">^</span><span style="color:#458;font-weight:bold">void</span>(RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation , RKMappingResult <span style="color:#000;font-weight:bold">*</span>mappingResult) {
+        <span style="color:#000;font-weight:bold">if</span> (success) {
+            success(operation, mappingResult);
+        }
+        
+    }<span style="color:#900;font-weight:bold">failure</span>:<span style="color:#000;font-weight:bold">^</span><span style="color:#458;font-weight:bold">void</span>(RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation , NSError <span style="color:#000;font-weight:bold">*</span>error) {
+        
+        [[NSNotificationCenter defaultCenter] <span style="color:#900;font-weight:bold">postNotificationName</span>:<span style="color:#d14">@&#34;connectionFailure&#34;</span> <span style="color:#900;font-weight:bold">object</span>:operation];
+        
+        <span style="color:#000;font-weight:bold">if</span> (failure) {
+            failure(operation, error);
+        }
+        
+    }];
+}
+
+<span style="color:#000;font-weight:bold">@end</span>
+
+</code></pre></div><p>This is the point where we overwrite the method which sets the completion and failure block.
+I use the Observer Pattern (<code>NSNotificationCenter</code>) to notify about connectionFailures. (<a href="http://mobile.tutsplus.com/tutorials/iphone/ios-sdk_nsnotificationcenter/" target="_blank">Learn more about NSNotificationCenter</a>)</p>
+<p>Of course we need to tell RestKit to use our custom <code>RKObjectRequestOperation</code> class. You can do this by adding this line to you RestKit configuration:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">[[RKObjectManager sharedManager] <span style="color:#900;font-weight:bold">registerRequestOperationClass</span>:[CustomRKObjectRequestOperation <span style="color:#000;font-weight:bold">class</span>]];
+</code></pre></div><p>Now we need a class where we listen to the failure notifications. You can choose any of your class, I use the AppDelegate for this.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">[[NSNotificationCenter defaultCenter] <span style="color:#900;font-weight:bold">addObserver</span>:<span style="color:#0086b3">self</span> <span style="color:#900;font-weight:bold">selector</span>:<span style="color:#000;font-weight:bold">@selector</span>(<span style="color:#900;font-weight:bold">connectionFailedWithOperation</span>:) <span style="color:#900;font-weight:bold">name</span>:<span style="color:#d14">@&#34;connectionFailure&#34;</span> <span style="color:#900;font-weight:bold">object</span>:<span style="color:#0086b3">nil</span>];
+</code></pre></div><p>As you should know, the <code>connectionFailedWithOperation:</code> is called when a connection failure occures.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">- (<span style="color:#458;font-weight:bold">void</span>)<span style="color:#900;font-weight:bold">connectionFailedWithOperation:</span>(NSNotification <span style="color:#000;font-weight:bold">*</span>)<span style="color:#008080">notification</span>
+{
+    RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation <span style="color:#000;font-weight:bold">=</span> (RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>)notification.object;
+    <span style="color:#000;font-weight:bold">if</span> (operation) {
+        
+        NSInteger statusCode <span style="color:#000;font-weight:bold">=</span> operation.HTTPRequestOperation.response.statusCode;
+
+        <span style="color:#000;font-weight:bold">switch</span> (statusCode) {
+            <span style="color:#000;font-weight:bold">case</span> <span style="color:#099">0</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#998;font-style:italic">// No internet connection
+</span><span style="color:#998;font-style:italic"></span>            {
+            }
+                <span style="color:#000;font-weight:bold">break</span>;
+            <span style="color:#000;font-weight:bold">case</span>  <span style="color:#099">401</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#998;font-style:italic">// not authenticated
+</span><span style="color:#998;font-style:italic"></span>            {
+            }
+                <span style="color:#000;font-weight:bold">break</span>;
+                
+            <span style="color:#000;font-weight:bold">default</span><span style="color:#000;font-weight:bold">:</span>
+            {
+            }
+                <span style="color:#000;font-weight:bold">break</span>;
+        }
+    }
+}
+</code></pre></div><p>Links:<br>
+<a href="http://restkit.org" target="_blank">RestKit Framework</a><br>
+<a href="http://restkit.org/api/latest/Classes/RKObjectRequestOperation.html" target="_blank">Class Documentation for RKObjectRequestOperation</a></p>
+<p><em>by Albert Schulz</em><br>
+If you have any questions feel free to contact me:<br>
+eMail: <a href="mailto:mail@halfco.de">mail@halfco.de</a><br>
+Twitter: <a href="https://twitter.com/albert_sn" target="_blank">@albert_sn</a><br>
+Web: <a href="http://halfco.de" target="_blank">halfco.de</a></p>
+]]></content></entry><entry><title type="html">Mongoid Use Objectid as Created At</title><link href="https://blog.thalheim.io/2013/08/23/mongoid-use-objectid-as-created-at/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/08/23/mongoid-use-objectid-as-created-at/</id><published>2013-08-23T00:00:00+00:00</published><updated>2013-08-23T00:00:00+00:00</updated><content type="html"><![CDATA[<p>date = &ldquo;Nov&rdquo;
+slug = &ldquo;Nov/mongoid-use-objectid-as-created-at&rdquo;</p>
+<p>One great feature of Mongodb is, that the first bytes of each ObjectID contains the time, they were generated.
+This can be exploited to mimic the well known <code>created_at</code> field in rails.
+First put this file in your lib directory.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#998;font-style:italic">#lib/mongoid/created.rb</span>
+<span style="color:#000;font-weight:bold">module</span> <span style="color:#555">Mongoid</span>
+  <span style="color:#000;font-weight:bold">module</span> <span style="color:#555">CreatedAt</span>
+    <span style="color:#998;font-style:italic"># Returns the creation time calculated from ObjectID</span>
+    <span style="color:#998;font-style:italic">#</span>
+    <span style="color:#998;font-style:italic"># @return [ Date ] the creation time</span>
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">created_at</span>
+      <span style="color:#0086b3">id</span><span style="color:#000;font-weight:bold">.</span>generation_time
+    <span style="color:#000;font-weight:bold">end</span>
+
+    <span style="color:#998;font-style:italic"># Set generation time of ObjectId.</span>
+    <span style="color:#998;font-style:italic"># Note: This will modify the ObjectId and</span>
+    <span style="color:#998;font-style:italic"># is therefor only useful for not persisted documents</span>
+    <span style="color:#998;font-style:italic">#</span>
+    <span style="color:#998;font-style:italic"># @return [ BSON::ObjectId ] the generated object id</span>
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">created_at</span><span style="color:#000;font-weight:bold">=</span>(date)
+      <span style="color:#0086b3">self</span><span style="color:#000;font-weight:bold">.</span>id <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">BSON</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">ObjectId</span><span style="color:#000;font-weight:bold">.</span>from_time(date)
+    <span style="color:#000;font-weight:bold">end</span>
+  <span style="color:#000;font-weight:bold">end</span>
+<span style="color:#000;font-weight:bold">end</span>
+</code></pre></div><p>If you are still using mongoid 3 replace <code>BSON::ObjectId</code> with <code>Moped::BSON::ObjectId</code>.</p>
+<p>Now you can include this module in every Model, where you need created at.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#998;font-style:italic">#app/models/user.rb</span>
+<span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">User</span>
+  <span style="color:#000;font-weight:bold">include</span> <span style="color:#008080">Mongoid</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">Document</span>
+  <span style="color:#000;font-weight:bold">include</span> <span style="color:#008080">Mongoid</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">CreatedAt</span>
+<span style="color:#998;font-style:italic"># ...</span>
+<span style="color:#000;font-weight:bold">end</span>
+u <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">User</span><span style="color:#000;font-weight:bold">.</span>new(<span style="color:#990073">created_at</span>: <span style="color:#099">1</span><span style="color:#000;font-weight:bold">.</span>hour<span style="color:#000;font-weight:bold">.</span>ago)
+u<span style="color:#000;font-weight:bold">.</span>created_at
+</code></pre></div><p>That&rsquo;s all easy enough, isn&rsquo;t it?</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/mongodb" term="mongodb" label="mongodb"/><category scheme="https://blog.thalheim.io/categories/rails" term="rails" label="rails"/><category scheme="https://blog.thalheim.io/categories/mongoid" term="mongoid" label="mongoid"/></entry><entry><title type="html">Use Systemd as a Cron Replacement</title><link href="https://blog.thalheim.io/2013/06/09/use-systemd-as-a-cron-replacement/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/06/09/use-systemd-as-a-cron-replacement/</id><published>2013-06-09T00:00:00+00:00</published><updated>2013-06-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Since systemd 197 timer units support calendar time events, which makes systemd a
+full cron replacement. Why one would replace the good old cron? Well, because systemd
+is good at executing stuff and monitor its state!</p>
+<ul>
+<li>with the help of journalctl you get last status and logging output, which is a
+great thing to debug failing jobs:</li>
+</ul>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ systemctl status reflector-update.service
+reflector-update.service - &#34;Update pacman&#39;s mirrorlist using reflector&#34;
+   Loaded: loaded
+(/etc/systemd/system/timer-weekly.target.wants/reflector-update.service)
+   Active: inactive (dead)
+
+Jun 09 17:58:30 higgsboson reflector[30109]: rating http://www.gtlib.gatech.edu/pub/archlinux/
+Jun 09 17:58:30 higgsboson reflector[30109]: rating rsync://rsync.gtlib.gatech.edu/archlinux/
+Jun 09 17:58:30 higgsboson reflector[30109]: rating http://lug.mtu.edu/archlinux/
+Jun 09 17:58:30 higgsboson reflector[30109]: Server Rate       Time
+...
+</code></pre></div><ul>
+<li>there are a lot of useful <a href="http://www.freedesktop.org/software/systemd/man/systemd.exec.html" target="_blank">systemd unit options</a> like <code>IOSchedulingPriority</code>, <code>Nice</code> or <code>JobTimeoutSec</code></li>
+<li>it is possible to let depend units on other services, like mounting the nfs host
+before starting the mysql-backup.service or depending on the network.target.</li>
+</ul>
+<p>So let&rsquo;s get it started. The first thing you might want to do, is to replace the
+default scripts located in the <a href="http://superuser.com/questions/402781/what-is-run-parts-in-etc-crontab-and-how-do-i-use-it" target="_blank">runparts</a>
+directories /etc/cron.{daily,hourly,monthly,weekly}.</p>
+<p>On my distribution (archlinux) these are logrotate, man-db, shadow and updatedb:
+For convenience I created a structure like /etc/cron.*:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir /etc/systemd/system/timer-{hourly,daily,weekly}.target.wants
+</code></pre></div><p>and added the following timer.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ cd /etc/systemd/system
+$ wget https://blog.thalheim.io/downloads/timers.tar
+$ tar -xvf timers.tar &amp;&amp; rm timers.tar
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Hourly Timer</span>
+
+<span style="color:#000;font-weight:bold">[Timer]</span>
+<span style="color:#008080">OnBootSec</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">5min</span>
+<span style="color:#008080">OnUnitActiveSec</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">1h</span>
+<span style="color:#008080">Unit</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">timer-hourly.target</span>
+
+<span style="color:#000;font-weight:bold">[Install]</span>
+<span style="color:#008080">WantedBy</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">basic.target</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Hourly Timer Target</span>
+<span style="color:#008080">StopWhenUnneeded</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">yes</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Daily Timer</span>
+
+<span style="color:#000;font-weight:bold">[Timer]</span>
+<span style="color:#008080">OnBootSec</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">10min</span>
+<span style="color:#008080">OnUnitActiveSec</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">1d</span>
+<span style="color:#008080">Unit</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">timer-daily.target</span>
+
+<span style="color:#000;font-weight:bold">[Install]</span>
+<span style="color:#008080">WantedBy</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">basic.target</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Daily Timer Target</span>
+<span style="color:#008080">StopWhenUnneeded</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">yes</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Weekly Timer</span>
+
+<span style="color:#000;font-weight:bold">[Timer]</span>
+<span style="color:#008080">OnBootSec</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">15min</span>
+<span style="color:#008080">OnUnitActiveSec</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">1w</span>
+<span style="color:#008080">Unit</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">timer-weekly.target</span>
+
+<span style="color:#000;font-weight:bold">[Install]</span>
+<span style="color:#008080">WantedBy</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">basic.target</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Weekly Timer Target</span>
+<span style="color:#008080">StopWhenUnneeded</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">yes</span>
+</code></pre></div><p>&hellip; and enable them:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ systemctl enable timer-hourly.timer
+$ systemctl enable timer-daily.timer
+$ systemctl enable timer-weekly.timer
+</code></pre></div><p>These directories work like their cron equivalents, each service file located in
+such a directory will be executed at the given time.</p>
+<p>Now move on to the service files. If you&rsquo;re not running Arch, the paths might be different on your system.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ cd /etc/systemd/system
+$ wget https://blog.higgsboson.tk/downloads/services.tar
+$ tar -xvf services.tar &amp;&amp; rm services.tar
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Update man-db</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">Nice</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">19</span>
+<span style="color:#008080">IOSchedulingClass</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">2</span>
+<span style="color:#008080">IOSchedulingPriority</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">7</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/logrotate /etc/logrotate.conf</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Update man-db</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">Nice</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">19</span>
+<span style="color:#008080">IOSchedulingClass</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">2</span>
+<span style="color:#008080">IOSchedulingPriority</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">7</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/mandb --quiet</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Update mlocate database</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">Nice</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">19</span>
+<span style="color:#008080">IOSchedulingClass</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">2</span>
+<span style="color:#008080">IOSchedulingPriority</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">7</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/updatedb</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Verify integrity of password and group files</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">Type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">oneshot</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/sbin/pwck -r</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/sbin/grpck -r</span>
+</code></pre></div><p>At last but not least you can disable cron:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ systemctl stop cronie &amp;&amp; systemctl disable cronie
+</code></pre></div><p>If you want to execute at a special calendar events for example &ldquo;every first day in a month&rdquo; use the <a href="http://www.freedesktop.org/software/systemd/man/systemd.time.html" target="_blank">&amp;ldquo;OnCalendar=&amp;rdquo; option</a> in the timer file.
+example:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Daily Timer</span>
+
+<span style="color:#000;font-weight:bold">[Timer]</span>
+<span style="color:#008080">OnCalendar</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">*-*-1 0:0:O</span>
+<span style="color:#008080">Unit</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">send-bill.target</span>
+
+<span style="color:#000;font-weight:bold">[Install]</span>
+<span style="color:#008080">WantedBy</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">basic.target</span>
+</code></pre></div><p>That&rsquo;s all for the moment. Have a good time using the power of systemd!</p>
+<p>Below some service files, I use:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;Update pacman&#39;s mirrorlist using reflector&#34;</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">Nice</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">19</span>
+<span style="color:#008080">IOSchedulingClass</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">2</span>
+<span style="color:#008080">IOSchedulingPriority</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">7</span>
+<span style="color:#008080">Type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">oneshot</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/reflector --verbose -l 5 --sort rate --save /etc/pacman.d/mirrorlist</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Run pkgstats</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">User</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">nobody</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/pkgstats</span>
+</code></pre></div><p><a href="https://bbs.archlinux.org/viewtopic.php?id=162989" target="_blank">See this link</a> for details about my shell-based pacman notifier</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
+<span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Update pacman&#39;s package cache</span>
+
+<span style="color:#000;font-weight:bold">[Service]</span>
+<span style="color:#008080">Nice</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">19</span>
+<span style="color:#008080">Type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">oneshot</span>
+<span style="color:#008080">IOSchedulingClass</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">2</span>
+<span style="color:#008080">IOSchedulingPriority</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">7</span>
+<span style="color:#008080">Environment</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">CHECKUPDATE_DB=/var/lib/pacman/checkupdate</span>
+<span style="color:#008080">ExecStartPre</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/bin/sh -c &#34;/usr/bin/checkupdates &amp;gt; /var/log/pacman-updates.log&#34;</span>
+<span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/pacman --sync --upgrades --downloadonly --noconfirm --dbpath=/var/lib/pacman/checkupdate</span>
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/systemd" term="systemd" label="systemd"/><category scheme="https://blog.thalheim.io/categories/timer" term="timer" label="timer"/><category scheme="https://blog.thalheim.io/categories/linux" term="linux" label="linux"/><category scheme="https://blog.thalheim.io/categories/cron" term="cron" label="cron"/></entry><entry><title type="html">Automated Backups for Chef Server</title><link href="https://blog.thalheim.io/2013/04/27/automated-backups-for-chef-server/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/04/27/automated-backups-for-chef-server/</id><published>2013-04-27T00:00:00+00:00</published><updated>2013-04-27T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will share my setup, I use to backup chef server.
+In the best case, you have a dedicated machine, which has network access to your chef
+server. Otherwise you will have to additionally use a different backup program
+like <a href="http://www.rsnapshot.org/" target="_blank">rsnapshot</a> or
+<a href="http://duplicity.nongnu.org/" target="_blank">duplicity</a> to backup the created export
+directory. In my case I use a raspberry pie with a
+<a href="http://www.amazon.de/dp/B0017J4IAQ?tag=gitblo-21" target="_blank">hdd docking station</a> and a
+<a href="http://www.amazon.de/dp/B004VFJ9MK?tag=gitblo-21" target="_blank">power saving harddrive</a></p>
+<p>To get started you will need ruby on the backup machine. I prefer using rvm for
+this job. Feel free to choose your preferred way:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ curl -L https://get.rvm.io | bash -s stable --autolibs=enabled
+</code></pre></div><p>To create the backup, I use the great <a href="https://github.com/mdxp/knife-backup" target="_blank">knife-backup gem</a> of <a href="http://www.ducea.com/" target="_blank">Marius Ducea</a>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ gem install knife-backup
+</code></pre></div><p>Then add these scripts to your system:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir -p ~/bin &amp;&amp; cd ~/bin
+$ wget http://blog.higgsboson.tk/downloads/code/chef-backup/backup-chef.sh
+$ wget http://blog.higgsboson.tk/downloads/code/chef-backup/restore-chef.sh
+$ chmod +x {backup,restore}-chef.sh
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#999;font-weight:bold;font-style:italic">#!/bin/bash
+</span><span style="color:#999;font-weight:bold;font-style:italic"></span><span style="color:#998;font-style:italic"># optional: load rvm</span>
+<span style="color:#0086b3">source</span> <span style="color:#d14">&#34;</span><span style="color:#008080">$HOME</span><span style="color:#d14">/.rvm/scripts/rvm&#34;</span> <span style="color:#000;font-weight:bold">||</span> <span style="color:#0086b3">source</span> <span style="color:#d14">&#34;/usr/local/rvm/scripts/rvm&#34;</span>
+
+<span style="color:#0086b3">cd</span> /tmp
+
+<span style="color:#008080">BACKUP</span><span style="color:#000;font-weight:bold">=</span>/path/to/your/backup <span style="color:#998;font-style:italic">#&amp;lt;--- EDIT THIS LINE</span>
+<span style="color:#008080">TMPDIR</span><span style="color:#000;font-weight:bold">=</span>/tmp/<span style="color:#000;font-weight:bold">$(</span>mktemp -d chef-backup-XXXX<span style="color:#000;font-weight:bold">)</span>
+<span style="color:#008080">MAX_BACKUPS</span><span style="color:#000;font-weight:bold">=</span><span style="color:#099">8</span>
+
+<span style="color:#0086b3">cd</span> <span style="color:#008080">$TMPDIR</span>
+<span style="color:#0086b3">trap</span> <span style="color:#d14">&#34;rm -rf &#39;</span><span style="color:#008080">$TMPDIR</span><span style="color:#d14">&#39;&#34;</span> INT QUIT TERM EXIT
+knife --config <span style="color:#008080">$HOME</span>/.chef/knife-backup.rb backup <span style="color:#0086b3">export</span> -D . &amp;gt;/dev/null
+tar -cjf <span style="color:#d14">&#34;</span><span style="color:#008080">$BACKUP</span><span style="color:#d14">/</span><span style="color:#000;font-weight:bold">$(</span>date +%m.%d.%Y<span style="color:#000;font-weight:bold">)</span><span style="color:#d14">.tar.bz2&#34;</span> .
+<span style="color:#998;font-style:italic"># keep the last X backups</span>
+ls -t <span style="color:#d14">&#34;</span><span style="color:#008080">$BACKUP</span><span style="color:#d14">&#34;</span> | tail -n+<span style="color:#008080">$MAX_BACKUPS</span> | xargs rm -f
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#999;font-weight:bold;font-style:italic">#!/bin/bash
+</span><span style="color:#999;font-weight:bold;font-style:italic"></span>
+<span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">[</span> <span style="color:#d14">&#34;</span><span style="color:#008080">$#</span><span style="color:#d14">&#34;</span> -eq <span style="color:#099">0</span> <span style="color:#000;font-weight:bold">]</span>; <span style="color:#000;font-weight:bold">then</span>
+    <span style="color:#0086b3">echo</span> <span style="color:#d14">&#34;USAGE: </span><span style="color:#008080">$0</span><span style="color:#d14"> /path/to/backup&#34;</span>
+    <span style="color:#0086b3">exit</span> <span style="color:#099">1</span>
+<span style="color:#000;font-weight:bold">fi</span>
+
+<span style="color:#0086b3">source</span> <span style="color:#d14">&#34;</span><span style="color:#008080">$HOME</span><span style="color:#d14">/.rvm/scripts/rvm&#34;</span> <span style="color:#000;font-weight:bold">||</span> <span style="color:#0086b3">source</span> <span style="color:#d14">&#34;/usr/local/rvm/scripts/rvm&#34;</span>
+
+<span style="color:#0086b3">cd</span> /tmp
+<span style="color:#008080">TMPDIR</span><span style="color:#000;font-weight:bold">=</span>/tmp/<span style="color:#000;font-weight:bold">$(</span>mktemp -d chef-restore-XXXX<span style="color:#000;font-weight:bold">)</span>
+
+<span style="color:#0086b3">cd</span> <span style="color:#d14">&#34;</span><span style="color:#008080">$TMPDIR</span><span style="color:#d14">&#34;</span>
+<span style="color:#0086b3">trap</span> <span style="color:#d14">&#34;rm -rf &#39;</span><span style="color:#008080">$TMPDIR</span><span style="color:#d14">&#39;&#34;</span> INT QUIT TERM EXIT
+tar xf <span style="color:#008080">$1</span>
+knife --config <span style="color:#008080">$HOME</span>/.chef/knife-backup.rb backup restore -D .
+</code></pre></div><p>Modify BACKUP variable to match your backup destination.
+Next you will need a knife.rb to get access to your server.
+I suggest to create a new client:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir -p ~/.chef
+$ knife client create backup --admin --file &#34;$HOME/.chef/backup.pem&#34;
+$ cat &lt;&lt;&#39;__EOF__&#39; &gt;&gt; ~/.chef/knife-backup.rb
+log_level                :info
+log_location             STDOUT
+node_name                &#39;backup&#39;
+client_key               &#34;#{ENV[&#34;HOME&#34;]}/.chef/backup.pem&#34;
+chef_server_url          &#39;https://chef.yourdomain.tld&#39; # EDIT HERE
+syntax_check_cache_path  &#34;#{ENV[&#34;HOME&#34;]}.chef/syntax_check_cache&#34;
+__EOF__
+$ knife role list # test authentication
+</code></pre></div><p>Now test the whole setup, by running the <code>backup-chef.sh</code> script:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ~/bin/backup-chef.sh
+</code></pre></div><p>It should create a tar file in the backup directory.</p>
+<p>If everything works, you can add a cronjob to automate this.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ crontab -e
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">@daily $HOME/bin/backup-chef.sh
+</code></pre></div><p>To restore a backup simply run (where <code>DATE</code> is the date of the backup)</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ~/bin/restore-chef.sh /path/to/backup/DATE.tar.bz2
+</code></pre></div><p>That&rsquo;s all folks!</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/chef" term="chef" label="chef"/><category scheme="https://blog.thalheim.io/categories/opscode" term="opscode" label="opscode"/><category scheme="https://blog.thalheim.io/categories/backup" term="backup" label="backup"/><category scheme="https://blog.thalheim.io/categories/cron" term="cron" label="cron"/><category scheme="https://blog.thalheim.io/categories/knife-backup" term="knife-backup" label="knife-backup"/></entry><entry><title type="html">Owncloud 5 and Nginx</title><link href="https://blog.thalheim.io/2013/04/19/owncloud-5-and-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/04/19/owncloud-5-and-nginx/</id><published>2013-04-19T00:00:00+00:00</published><updated>2013-04-19T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Since my last <a href="http://localhost:4000/2012/06/03/owncloud-4-and-nginx/" target="_blank">post</a>
+owncloud has added <a href="http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration" target="_blank">offical documentation for nginx</a>.
+Unfortunately the documentation there didn&rsquo;t worked for me out of the box:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">2013/04/19 22:14:38 [error] 32402#0: *251 FastCGI sent in stderr: &#34;Access to the
+script &#39;/var/www/cloud&#39; has been denied (see security.limit_extensions)&#34; while
+reading response header from upstream,  client: ::1,  server:
+cloud.higgsboson.tk,  request: &#34;GET /index.php HTTP/1.1&#34;,  upstream:
+&#34;fastcgi://unix:/var/run/php-fpm.sock:&#34;,  host: &#34;cloud.higgsboson.tk&#34;
+</code></pre></div><p>The problem here was again a missing fastcgi_params option.</p>
+<p>To solve the problem include the following line either in &lsquo;/etc/nginx/fastcgi_params&rsquo;</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">SCRIPT_FILENAME</span> <span style="color:#008080">$document_root$fastcgi_script_name</span>;
+<span style="color:#998;font-style:italic"># ...
+</span></code></pre></div><p>or in the owncloud block in nginx.conf:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">server</span> {
+  <span style="color:#000;font-weight:bold">listen</span> <span style="color:#099">80</span>;
+  <span style="color:#000;font-weight:bold">server_name</span> <span style="color:#d14">cloud.example.com</span>;
+  <span style="color:#000;font-weight:bold">return</span>  <span style="color:#d14">https://</span><span style="color:#008080">$server_name$request_uri</span>;  <span style="color:#998;font-style:italic"># enforce https
+</span><span style="color:#998;font-style:italic"></span>}
+
+<span style="color:#000;font-weight:bold">server</span> {
+  <span style="color:#000;font-weight:bold">listen</span> <span style="color:#099">443</span> <span style="color:#d14">ssl</span>;
+  <span style="color:#000;font-weight:bold">server_name</span> <span style="color:#d14">cloud.example.com</span>;
+
+  <span style="color:#000;font-weight:bold">ssl_certificate</span> <span style="color:#d14">/etc/ssl/nginx/cloud.example.com.crt</span>;
+  <span style="color:#000;font-weight:bold">ssl_certificate_key</span> <span style="color:#d14">/etc/ssl/nginx/cloud.example.com.key</span>;
+
+  <span style="color:#998;font-style:italic"># Path to the root of your installation
+</span><span style="color:#998;font-style:italic"></span>  <span style="color:#000;font-weight:bold">root</span> <span style="color:#d14">/var/www/</span>;
+
+  <span style="color:#000;font-weight:bold">client_max_body_size</span> <span style="color:#d14">10G</span>; <span style="color:#998;font-style:italic"># set max upload size
+</span><span style="color:#998;font-style:italic"></span>  <span style="color:#000;font-weight:bold">fastcgi_buffers</span> <span style="color:#099">64</span> <span style="color:#d14">4K</span>;
+
+  <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/caldav(.*)</span>$ <span style="color:#d14">/remote.php/caldav</span><span style="color:#008080">$1</span> <span style="color:#d14">redirect</span>;
+  <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/carddav(.*)</span>$ <span style="color:#d14">/remote.php/carddav</span><span style="color:#008080">$1</span> <span style="color:#d14">redirect</span>;
+  <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/webdav(.*)</span>$ <span style="color:#d14">/remote.php/webdav</span><span style="color:#008080">$1</span> <span style="color:#d14">redirect</span>;
+
+  <span style="color:#000;font-weight:bold">index</span> <span style="color:#d14">index.php</span>;
+  <span style="color:#000;font-weight:bold">error_page</span> <span style="color:#099">403</span> = <span style="color:#d14">/core/templates/403.php</span>;
+  <span style="color:#000;font-weight:bold">error_page</span> <span style="color:#099">404</span> = <span style="color:#d14">/core/templates/404.php</span>;
+
+  <span style="color:#000;font-weight:bold">location</span> ~ <span style="color:#009926">^/(data|config|\.ht|db_structure\.xml|README)</span> {
+    <span style="color:#000;font-weight:bold">deny</span> <span style="color:#d14">all</span>;
+  }
+
+  <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/</span> {
+    <span style="color:#998;font-style:italic"># The following 2 rules are only needed with webfinger
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/.well-known/host-meta</span> <span style="color:#d14">/public.php?service=host-meta</span> <span style="color:#d14">last</span>;
+    <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/.well-known/host-meta.json</span> <span style="color:#d14">/public.php?service=host-meta-json</span>
+<span style="color:#d14">last</span>;
+
+    <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/.well-known/carddav</span> <span style="color:#d14">/remote.php/carddav/</span> <span style="color:#d14">redirect</span>;
+    <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/.well-known/caldav</span> <span style="color:#d14">/remote.php/caldav/</span> <span style="color:#d14">redirect</span>;
+
+    <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^(/core/doc/[^\/]+/)</span>$ <span style="color:#008080">$1/index.html</span>;
+
+    <span style="color:#000;font-weight:bold">try_files</span> <span style="color:#008080">$uri</span> <span style="color:#008080">$uri/</span> <span style="color:#d14">index.php</span>;
+  }
+
+  <span style="color:#000;font-weight:bold">location</span> ~ <span style="color:#009926">^(.+?\.php)(/.*)?$</span> {
+    <span style="color:#000;font-weight:bold">try_files</span> <span style="color:#008080">$1</span> = <span style="color:#099">404</span>;
+
+    <span style="color:#000;font-weight:bold">include</span> <span style="color:#d14">fastcgi_params</span>;
+    <span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">PATH_INFO</span> <span style="color:#008080">$2</span>;
+    <span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">HTTPS</span> <span style="color:#008080">on</span>;
+    <span style="color:#998;font-style:italic"># THIS LINE WAS ADDED
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">SCRIPT_FILENAME</span> <span style="color:#008080">$document_root$fastcgi_script_name</span>;
+    <span style="color:#000;font-weight:bold">fastcgi_pass</span> 127.0.0.1:<span style="color:#099">9000</span>;
+    <span style="color:#998;font-style:italic"># Or use unix-socket with &#39;fastcgi_pass unix:/var/run/php5-fpm.sock;&#39;
+</span><span style="color:#998;font-style:italic"></span>  }
+
+  <span style="color:#998;font-style:italic"># Optional: set long EXPIRES header on static assets
+</span><span style="color:#998;font-style:italic"></span>  <span style="color:#000;font-weight:bold">location</span> ~<span style="color:#009926">*</span> <span style="color:#d14">^.+\.(jpg|jpeg|gif|bmp|ico|png|css|js|swf)</span>$ {
+    <span style="color:#000;font-weight:bold">expires</span> <span style="color:#d14">30d</span>;
+    <span style="color:#998;font-style:italic"># Optional: Don&#39;t log access to assets
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">access_log</span> <span style="color:#008080">off</span>;
+  }
+
+}
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/owncloud" term="owncloud" label="owncloud"/></entry><entry><title type="html">Pubsubhubbub With Octopress</title><link href="https://blog.thalheim.io/2013/01/02/pubsubhubbub-with-octopress/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/01/02/pubsubhubbub-with-octopress/</id><published>2013-01-02T00:00:00+00:00</published><updated>2013-01-02T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I explain how to set up octopress with
+<a href="https://en.wikipedia.org/wiki/PubSubHubbub" target="_blank">pubsubhubbub</a>, to get
+push-enabled feeds. In my example I use <a href="http://superfeedr.com/" target="_blank">superfeedr</a>, which is free to use.</p>
+<p>After you signup up a hub, in my case <a href="http://higgsboson.superfeedr.com" target="_blank">higgsboson.superfeedr.com</a>,
+you have to add a hub reference to your atom feed.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#998;font-style:italic"># ....</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#998;font-style:italic"># pubsubhubbub</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#000080">hub_url</span>:<span style="color:#bbb"> </span>http://higgsboson.superfeedr.com/<span style="color:#bbb"> </span><span style="color:#998;font-style:italic"># &lt;--- replace this with your hub</span><span style="color:#bbb">
+</span></code></pre></div><p>Insert this line:</p>
+<p>{% raw %}</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">    {% if site.hub_url %}<span style="color:#000080">&lt;link</span> <span style="color:#008080">href=</span><span style="color:#d14">&#34;{{ site.hub_url }}&#34;</span> <span style="color:#008080">rel=</span><span style="color:#d14">&#34;hub&#34;</span><span style="color:#000080">/&gt;</span>{% endif %}
+</code></pre></div><p>{% endraw %}</p>
+<p>into <code>source/atom.xml</code>. So it looks like this:</p>
+<p>{% raw %}</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#999;font-weight:bold;font-style:italic">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+<span style="color:#000080">&lt;feed</span> <span style="color:#008080">xmlns=</span><span style="color:#d14">&#34;http://www.w3.org/2005/Atom&#34;</span><span style="color:#000080">&gt;</span>
+
+  <span style="color:#000080">&lt;title&gt;</span><span style="color:#999;font-weight:bold;font-style:italic">&lt;![CDATA[{{ site.title }}]]&gt;</span><span style="color:#000080">&lt;/title&gt;</span>
+  <span style="color:#000080">&lt;link</span> <span style="color:#008080">href=</span><span style="color:#d14">&#34;{{ site.url }}/atom.xml&#34;</span> <span style="color:#008080">rel=</span><span style="color:#d14">&#34;self&#34;</span><span style="color:#000080">/&gt;</span>
+  <span style="color:#000080">&lt;link</span> <span style="color:#008080">href=</span><span style="color:#d14">&#34;{{ site.url }}/&#34;</span><span style="color:#000080">/&gt;</span>
+  {% if site.hub_url %}<span style="color:#000080">&lt;link</span> <span style="color:#008080">href=</span><span style="color:#d14">&#34;{{ site.hub_url }}&#34;</span> <span style="color:#008080">rel=</span><span style="color:#d14">&#34;hub&#34;</span><span style="color:#000080">/&gt;</span>{% endif %}
+  <span style="color:#000080">&lt;updated&gt;</span>{{ site.time | date_to_xmlschema }}<span style="color:#000080">&lt;/updated&gt;</span>
+  <span style="color:#000080">&lt;id&gt;</span>{{ site.url }}/<span style="color:#000080">&lt;/id&gt;</span>
+  <span style="color:#000080">&lt;author&gt;</span>
+    <span style="color:#000080">&lt;name&gt;</span><span style="color:#999;font-weight:bold;font-style:italic">&lt;![CDATA[{{ site.author | strip_html }}]]&gt;</span><span style="color:#000080">&lt;/name&gt;</span>
+    {% if site.email %}<span style="color:#000080">&lt;email&gt;</span><span style="color:#999;font-weight:bold;font-style:italic">&lt;![CDATA[{{ site.email }}]]&gt;</span><span style="color:#000080">&lt;/email&gt;</span>{% endif %}
+  <span style="color:#000080">&lt;/author&gt;</span>
+  <span style="color:#000080">&lt;generator</span> <span style="color:#008080">uri=</span><span style="color:#d14">&#34;http://octopress.org/&#34;</span><span style="color:#000080">&gt;</span>Octopress<span style="color:#000080">&lt;/generator&gt;</span>
+
+  {% for post in site.posts limit: 20 %}
+  <span style="color:#000080">&lt;entry&gt;</span>
+    <span style="color:#000080">&lt;title</span> <span style="color:#008080">type=</span><span style="color:#d14">&#34;html&#34;</span><span style="color:#000080">&gt;</span><span style="color:#999;font-weight:bold;font-style:italic">&lt;![CDATA[{{ post.title | cdata_escape }}]]&gt;</span><span style="color:#000080">&lt;/title&gt;</span>
+    <span style="color:#000080">&lt;link</span> <span style="color:#008080">href=</span><span style="color:#d14">&#34;{{ site.url }}{{ post.url }}&#34;</span><span style="color:#000080">/&gt;</span>
+    <span style="color:#000080">&lt;updated&gt;</span>{{ post.date | date_to_xmlschema }}<span style="color:#000080">&lt;/updated&gt;</span>
+    <span style="color:#000080">&lt;id&gt;</span>{{ site.url }}{{ post.id }}<span style="color:#000080">&lt;/id&gt;</span>
+    <span style="color:#000080">&lt;content</span> <span style="color:#008080">type=</span><span style="color:#d14">&#34;html&#34;</span><span style="color:#000080">&gt;</span><span style="color:#999;font-weight:bold;font-style:italic">&lt;![CDATA[{{ post.content | expand_urls: site.url | cdata_escape }}]]&gt;</span><span style="color:#000080">&lt;/content&gt;</span>
+  <span style="color:#000080">&lt;/entry&gt;</span>
+  {% endfor %}
+<span style="color:#000080">&lt;/feed&gt;</span>
+</code></pre></div><p>{% endraw %}</p>
+<p>To push out updates, you have to ping your hub, this is easily done in your
+deploy rake task.</p>
+<p>Add these lines to the end of your deploy task in your Rakefile:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#0086b3">require</span> <span style="color:#d14">&#39;net/http&#39;</span>
+<span style="color:#0086b3">require</span> <span style="color:#d14">&#39;uri&#39;</span>
+hub_url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;higgsboson.superfeedr.com&#34;</span> <span style="color:#998;font-style:italic"># &lt;--- replace this with your hub</span>
+atom_url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;http://blog.higgsboson.tk/atom.xml&#34;</span> <span style="color:#998;font-style:italic"># &lt;--- replace this with your full feed url</span>
+resp, data <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">Net</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">HTTP</span><span style="color:#000;font-weight:bold">.</span>post_form(<span style="color:#008080">URI</span><span style="color:#000;font-weight:bold">.</span>parse(hub_url),
+    {<span style="color:#d14">&#39;hub.mode&#39;</span> <span style="color:#000;font-weight:bold">=&gt;</span> <span style="color:#d14">&#39;publish&#39;</span>,
+    <span style="color:#d14">&#39;hub.url&#39;</span> <span style="color:#000;font-weight:bold">=&gt;</span> atom_url})
+<span style="color:#000;font-weight:bold">raise</span> <span style="color:#d14">&#34;!! Hub notification error: </span><span style="color:#d14">#{</span>resp<span style="color:#000;font-weight:bold">.</span>code<span style="color:#d14">}</span><span style="color:#d14"> </span><span style="color:#d14">#{</span>resp<span style="color:#000;font-weight:bold">.</span>msg<span style="color:#d14">}</span><span style="color:#d14">, </span><span style="color:#d14">#{</span>data<span style="color:#d14">}</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">unless</span> resp<span style="color:#000;font-weight:bold">.</span>code <span style="color:#000;font-weight:bold">==</span> <span style="color:#d14">&#34;204&#34;</span>
+<span style="color:#0086b3">puts</span> <span style="color:#d14">&#34;## Notified hub (&#34;</span> <span style="color:#000;font-weight:bold">+</span> hub_url <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14">&#34;) that feed </span><span style="color:#d14">#{</span>atom_url<span style="color:#d14">}</span><span style="color:#d14"> has been updated&#34;</span>
+</code></pre></div><p>So you end up with something like this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">desc <span style="color:#d14">&#34;Default deploy task&#34;</span>
+task <span style="color:#990073">:deploy</span> <span style="color:#000;font-weight:bold">do</span>
+  <span style="color:#998;font-style:italic"># Check if preview posts exist, which should not be published</span>
+  <span style="color:#000;font-weight:bold">if</span> <span style="color:#008080">File</span><span style="color:#000;font-weight:bold">.</span>exists?(<span style="color:#d14">&#34;.preview-mode&#34;</span>)
+    <span style="color:#0086b3">puts</span> <span style="color:#d14">&#34;## Found posts in preview mode, regenerating files ...&#34;</span>
+    <span style="color:#008080">File</span><span style="color:#000;font-weight:bold">.</span>delete(<span style="color:#d14">&#34;.preview-mode&#34;</span>)
+    <span style="color:#008080">Rake</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">Task</span><span style="color:#000;font-weight:bold">[</span><span style="color:#990073">:generate</span><span style="color:#000;font-weight:bold">].</span>execute
+  <span style="color:#000;font-weight:bold">end</span>
+
+  <span style="color:#008080">Rake</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">Task</span><span style="color:#000;font-weight:bold">[</span><span style="color:#990073">:copydot</span><span style="color:#000;font-weight:bold">].</span>invoke(source_dir, public_dir)
+  <span style="color:#008080">Rake</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">Task</span><span style="color:#000;font-weight:bold">[</span><span style="color:#d14">&#34;</span><span style="color:#d14">#{</span>deploy_default<span style="color:#d14">}</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">].</span>execute
+
+  <span style="color:#0086b3">require</span> <span style="color:#d14">&#39;net/http&#39;</span>
+  <span style="color:#0086b3">require</span> <span style="color:#d14">&#39;uri&#39;</span>
+  hub_url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;higgsboson.superfeedr.com&#34;</span> <span style="color:#998;font-style:italic"># &lt;--- replace this with your hub</span>
+  atom_url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;http://blog.higgsboson.tk/atom.xml&#34;</span> <span style="color:#998;font-style:italic"># &lt;--- replace this with your full feed url</span>
+  resp, data <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">Net</span><span style="color:#000;font-weight:bold">::</span><span style="color:#008080">HTTP</span><span style="color:#000;font-weight:bold">.</span>post_form(<span style="color:#008080">URI</span><span style="color:#000;font-weight:bold">.</span>parse(hub_url),
+                                   {<span style="color:#d14">&#39;hub.mode&#39;</span> <span style="color:#000;font-weight:bold">=&gt;</span> <span style="color:#d14">&#39;publish&#39;</span>,
+                                    <span style="color:#d14">&#39;hub.url&#39;</span> <span style="color:#000;font-weight:bold">=&gt;</span> atom_url})
+  <span style="color:#000;font-weight:bold">raise</span> <span style="color:#d14">&#34;!! Hub notification error: </span><span style="color:#d14">#{</span>resp<span style="color:#000;font-weight:bold">.</span>code<span style="color:#d14">}</span><span style="color:#d14"> </span><span style="color:#d14">#{</span>resp<span style="color:#000;font-weight:bold">.</span>msg<span style="color:#d14">}</span><span style="color:#d14">, </span><span style="color:#d14">#{</span>data<span style="color:#d14">}</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">unless</span> resp<span style="color:#000;font-weight:bold">.</span>code <span style="color:#000;font-weight:bold">==</span> <span style="color:#d14">&#34;204&#34;</span>
+  <span style="color:#0086b3">puts</span> <span style="color:#d14">&#34;## Notified hub (&#34;</span> <span style="color:#000;font-weight:bold">+</span> hub_url <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14">&#34;) that feed </span><span style="color:#d14">#{</span>atom_url<span style="color:#d14">}</span><span style="color:#d14"> has been updated&#34;</span>
+<span style="color:#000;font-weight:bold">end</span>
+</code></pre></div><p>Now whenever you run <code>rake deploy</code>, it will automaticly update your hub.</p>
+<p>If you have a jabber or google talk account, you can easily verify your setup by adding
+<a href="https://push-bot.appspot.com/" target="_blank">push-bot</a> to your contact list and subscribe to
+your feed.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/superfeedr" term="superfeedr" label="superfeedr"/><category scheme="https://blog.thalheim.io/categories/octopress" term="octopress" label="octopress"/><category scheme="https://blog.thalheim.io/categories/pubsubhubbub" term="pubsubhubbub" label="pubsubhubbub"/><category scheme="https://blog.thalheim.io/categories/real-time" term="real-time" label="real-time"/></entry><entry><title type="html">Icinga and Pnp4nagios With Nginx</title><link href="https://blog.thalheim.io/2012/12/09/icinga-and-pnp4nagios-with-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/12/09/icinga-and-pnp4nagios-with-nginx/</id><published>2012-12-09T00:00:00+00:00</published><updated>2012-12-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will show my nginx configuration for the <a href="https://www.icinga.org/" target="_blank">icinga</a> web interface. At the time of writing I installed version 1.8 on ubuntu 12.04 using this <a href="https://launchpad.net/~formorer/&#43;archive/icinga" target="_blank">ppa</a>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">    $ sudo add-apt-repository ppa:formorer/icinga
+    $ sudo add-apt-repository ppa:formorer/icinga-web
+    $ sudo apt-get update
+    # without --no-install-recommends, it will try to install apache
+    $ sudo apt-get --no-install-recommends install icinga-web
+    $ sudo apt-get install icinga-web-pnp # optional: for pnp4nagios
+    $ sudo apt-get install nginx php5-fpm # if not already installed
+</code></pre></div><p>For php I just use php-fpm without a special configuration.
+If you installed icinga from source, you have change the roots to match your installation path (to <code>/usr/local/icinga-web/</code>)</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">upstream</span> <span style="color:#d14">fpm</span> {
+    <span style="color:#000;font-weight:bold">server</span> <span style="color:#d14">unix:/var/run/php5-fpm.sock</span>;
+}
+
+<span style="color:#000;font-weight:bold">server</span> {
+    <span style="color:#000;font-weight:bold">listen</span> <span style="color:#099">80</span>;
+    <span style="color:#000;font-weight:bold">listen</span> <span style="color:#099">443</span> <span style="color:#d14">ssl</span>;
+    <span style="color:#998;font-style:italic"># FIXME
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">server_name</span> <span style="color:#d14">icinga.yourdomain.tld</span>;
+
+    <span style="color:#000;font-weight:bold">access_log</span> <span style="color:#d14">/var/log/nginx/icinga.access.log</span>;
+    <span style="color:#000;font-weight:bold">error_log</span> <span style="color:#d14">/var/log/nginx/icinga.error.log</span>;
+    <span style="color:#998;font-style:italic"># FIXME
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">ssl_certificate</span> <span style="color:#d14">/etc/ssl/private/icinga.yourdomain.tld.crt</span>;
+    <span style="color:#000;font-weight:bold">ssl_certificate_key</span> <span style="color:#d14">/etc/ssl/private/icinga.yourdomain.tld.pem</span>;
+
+    <span style="color:#998;font-style:italic"># Security - Basic configuration
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">location</span> = <span style="color:#d14">/favicon.ico</span> {
+      <span style="color:#000;font-weight:bold">log_not_found</span> <span style="color:#008080">off</span>;
+      <span style="color:#000;font-weight:bold">access_log</span> <span style="color:#008080">off</span>;
+      <span style="color:#000;font-weight:bold">expires</span> <span style="color:#d14">max</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> = <span style="color:#d14">/robots.txt</span> {
+      <span style="color:#000;font-weight:bold">allow</span> <span style="color:#d14">all</span>;
+      <span style="color:#000;font-weight:bold">log_not_found</span> <span style="color:#008080">off</span>;
+      <span style="color:#000;font-weight:bold">access_log</span> <span style="color:#008080">off</span>;
+    }
+
+    <span style="color:#998;font-style:italic"># Deny access to hidden files
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">location</span> ~ <span style="color:#009926">/\.</span> {
+      <span style="color:#000;font-weight:bold">deny</span> <span style="color:#d14">all</span>;
+      <span style="color:#000;font-weight:bold">access_log</span> <span style="color:#008080">off</span>;
+      <span style="color:#000;font-weight:bold">log_not_found</span> <span style="color:#008080">off</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">root</span> <span style="color:#d14">/usr/share/icinga-web/pub</span>;
+
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/icinga-web/styles</span> {
+      <span style="color:#000;font-weight:bold">alias</span> <span style="color:#d14">/usr/share/icinga-web/pub/styles</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/icinga-web/images</span> {
+      <span style="color:#000;font-weight:bold">alias</span> <span style="color:#d14">/usr/share/icinga-web/pub/images</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/icinga-web/js</span> {
+      <span style="color:#000;font-weight:bold">alias</span> <span style="color:#d14">/usr/share/icinga-web/lib</span>;
+    }
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/icinga-web/modules</span> {
+      <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/icinga-web/(.*)</span>$ <span style="color:#d14">/index.php?/</span><span style="color:#008080">$1</span> <span style="color:#d14">last</span>;
+    }
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/icinga-web/web</span> {
+      <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/icinga-web/(.*)</span>$ <span style="color:#d14">/index.php?/</span><span style="color:#008080">$1</span> <span style="color:#d14">last</span>;
+    }
+
+    <span style="color:#998;font-style:italic">#&gt;&gt;&gt; configuration for pnp4nagios
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/pnp4nagios</span> {
+      <span style="color:#000;font-weight:bold">alias</span> <span style="color:#d14">/usr/share/pnp4nagios/html</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> ~ <span style="color:#009926">^(/pnp4nagios.*\.php)(.*)$</span> {
+      <span style="color:#000;font-weight:bold">root</span> <span style="color:#d14">/usr/share/pnp4nagios/html</span>;
+      <span style="color:#000;font-weight:bold">include</span> <span style="color:#d14">fastcgi_params</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_split_path_info</span> <span style="color:#d14">^(.+\.php)(.*)</span>$;
+      <span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">PATH_INFO</span> <span style="color:#008080">$fastcgi_path_info</span>;
+
+      <span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">SCRIPT_FILENAME</span> <span style="color:#008080">$document_root/index.php</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_pass</span> <span style="color:#d14">fpm</span>;
+    }
+    <span style="color:#998;font-style:italic">#&lt;&lt;&lt;
+</span><span style="color:#998;font-style:italic"></span>
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/</span> {
+      <span style="color:#000;font-weight:bold">root</span>   <span style="color:#d14">/usr/share/icinga-web/pub</span>;
+      <span style="color:#000;font-weight:bold">index</span> <span style="color:#d14">index.php</span>;
+      <span style="color:#000;font-weight:bold">location</span> ~<span style="color:#009926">*</span> <span style="color:#d14">^/(robots.txt|static|images)</span> {
+        <span style="color:#000;font-weight:bold">break</span>;
+      }
+
+      <span style="color:#000;font-weight:bold">if</span> <span style="color:#d14">(</span><span style="color:#008080">$uri</span> <span style="color:#d14">!~</span> <span style="color:#d14">&#34;^/(favicon.ico|robots.txt|static|index.php)&#34;)</span> {
+        <span style="color:#000;font-weight:bold">rewrite</span> <span style="color:#d14">^/([^?]*)</span>$ <span style="color:#d14">/index.php?/</span><span style="color:#008080">$1</span> <span style="color:#d14">last</span>;
+      }
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> ~ <span style="color:#009926">\.php$</span> {
+      <span style="color:#000;font-weight:bold">include</span> <span style="color:#d14">/etc/nginx/fastcgi_params</span>;
+
+      <span style="color:#000;font-weight:bold">fastcgi_split_path_info</span> <span style="color:#d14">^(/icinga-web)(/.*)</span>$;
+
+      <span style="color:#000;font-weight:bold">fastcgi_pass</span> <span style="color:#d14">fpm</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_index</span> <span style="color:#d14">index.php</span>;
+      <span style="color:#000;font-weight:bold">include</span> <span style="color:#d14">/etc/nginx/fastcgi_params</span>;
+    }
+}
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/icinga" term="icinga" label="icinga"/><category scheme="https://blog.thalheim.io/categories/pnp4nagios" term="pnp4nagios" label="pnp4nagios"/><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/icinga-web" term="icinga-web" label="icinga-web"/></entry><entry><title type="html">Systemd on Raspbian</title><link href="https://blog.thalheim.io/2012/09/19/systemd-on-raspbian/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/09/19/systemd-on-raspbian/</id><published>2012-09-19T00:00:00+00:00</published><updated>2012-09-19T00:00:00+00:00</updated><content type="html"><![CDATA[<p>As I like the stability and raw speed of systemd, I wanted to leave debian&rsquo;s
+init system behind and switch to systemd.</p>
+<p>The basic installation is pretty easy:</p>
+<pre><code>$ apt-get install systemd
+</code></pre>
+<p>Then you need to tell the kernel to use systemd as the init system:</p>
+<p>To do so, append <code>init=/bin/systemd</code> to the end of <code>/boot/cmdline.txt</code> line</p>
+<pre><code>$ cat /boot/cmdline.txt
+dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd
+</code></pre>
+<p>If you reboot, systemd will be used instead of the default init script.</p>
+<p>Currently debians version of systemd doesn&rsquo;t ship many service files by default. Systemd
+will automaticly fallback to the lsb script, if a service file for a deamon is
+missing. So the speedup isn&rsquo;t as big as on other distributions such as archlinux
+or fedora, which provide a deeper integration.</p>
+<p>To get a quick overview, which services are started nativly, type the following command:</p>
+<pre><code>$ systemctl list-units
+</code></pre>
+<p>All descriptions containing <code>LSB: </code> are launched through lsb scripts.</p>
+<p>Writing your own service files, is straight forward. If you add custom service
+files, put them in /etc/systemd/system, so they will not get overwritten by
+updates.</p>
+<p>To get further information about systemd, I recommend the <a href="https://wiki.archlinux.org/index.php/Systemd" target="_blank">great archlinux wiki article</a>.</p>
+<p>At the end of this article, I provide some basic one, I use. I port them over mostly from archlinux.
+In the most cases, i just have adjusted the path of the binary to get them working. (from /usr/bin to /usr/sbin for ex.)
+It is important, that the service name match with the initscript, so it will be used instead by systemd.
+This will not work in all cases like dhcpcd which contains the specific network device (like dhcpcd@eth0). In this case, you have to remove origin service with <code>update-rc.d</code> and enable the service file with <code>systemctl enable</code>.</p>
+<p>Also avaible as <a href="https://gist.github.com/ac8ab2e84125ededa5c5" target="_blank">gist</a>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain"># IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!
+[Unit]
+Description=dhcpcd on %I
+Wants=network.target
+Before=network.target
+
+[Service]
+Type=forking
+PIDFile=/run/dhcpcd-%I.pid
+ExecStart=/sbin/dhcpcd -A -q -w %I
+ExecStop=/sbin/dhcpcd -k %I
+
+[Install]
+Alias=multi-user.target.wants/dhcpcd@eth0.service
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Unit]
+Description=Pro-active monitoring utility for unix systems
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/monit -I
+ExecStop=/usr/bin/monit quit
+ExecReload=/usr/bin/monit reload
+
+[Install]
+WantedBy=multi-user.target
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Unit]
+Description=Network Time Service
+After=network.target nss-lookup.target
+
+[Service]
+Type=forking
+PrivateTmp=true
+ExecStart=/usr/sbin/ntpd -g -u ntp:ntp
+ControlGroup=cpu:/
+
+[Install]
+WantedBy=multi-user.target
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Unit]
+Description=SSH Key Generation
+ConditionPathExists=|!/etc/ssh/ssh_host_key
+ConditionPathExists=|!/etc/ssh/ssh_host_key.pub
+ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key
+ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key.pub
+ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key
+ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key.pub
+ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key
+ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key.pub
+
+[Service]
+ExecStart=/usr/bin/ssh-keygen -A
+Type=oneshot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Unit]
+Conflicts=ssh.service
+
+[Socket]
+ListenStream=22
+Accept=yes
+
+[Install]
+WantedBy=sockets.target
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Unit]
+Description=SSH Per-Connection Server
+Requires=sshdgenkeys.service
+After=syslog.target
+After=sshdgenkeys.service
+
+[Service]
+ExecStartPre=/bin/mkdir -m700 -p /var/run/sshd
+ExecStart=-/usr/sbin/sshd -i
+ExecReload=/bin/kill -HUP $MAINPID
+StandardInput=socket
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Unit]
+Description=Daemon which acts upon network cable insertion/removal
+
+[Service]
+Type=forking
+PIDFile=/run/ifplugd.%i.pid
+ExecStart=/usr/sbin/ifplugd %i
+SuccessExitStatus=0 1 2
+
+[Install]
+WantedBy=multi-user.target
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/systemd" term="systemd" label="systemd"/><category scheme="https://blog.thalheim.io/categories/raspberry-pie" term="raspberry-pie" label="raspberry pie"/><category scheme="https://blog.thalheim.io/categories/raspbian" term="raspbian" label="raspbian"/></entry><entry><title type="html">Init Script for Pyload on Gentoo</title><link href="https://blog.thalheim.io/2012/06/30/init-script-for-pyload-on-gentoo/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/30/init-script-for-pyload-on-gentoo/</id><published>2012-06-30T00:00:00+00:00</published><updated>2012-06-30T00:00:00+00:00</updated><content type="html"><![CDATA[<blockquote>initscript to run pyload on gentoo as a service</blockquote><p>Because I use a custom installation of <a href="http://pyload.org/" target="_blank">pyload</a> I had to write my own init script.</p>
+<p>my setup:</p>
+<ul>
+<li>runs as a user with its home directory set to /home/pyload</li>
+<li>python files are located in /home/pyload/bin</li>
+<li>configuration files are located in /home/pyload/.pyload</li>
+</ul>
+<p>Here is the init script I use:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">#!/sbin/runscript
+
+depend() {
+    need net
+}
+
+PYLOAD_USER=${PYLOAD_USER:-root}
+PYLOAD_GROUP=${PYLOAD_GROUP:-root}
+PYLOAD_CONFDIR=${PYLOAD_CONFDIR:-/etc/pyload}
+PYLOAD_PIDFILE=${PYLOAD_PIDFILE:-/var/run/${SVCNAME}.pid}
+PYLOAD_EXEC=${PYLOAD_EXEC:-/usr/bin/pyload}
+
+start() {
+  ebegin &#34;Starting pyload&#34;
+  start-stop-daemon --start --exec &#34;${PYLOAD_EXEC}&#34; \
+      --pidfile $PYLOAD_PIDFILE \
+      --user $PYLOAD_USER:$PYLOAD_GROUP \
+      -- -p $PYLOAD_PIDFILE --daemon ${PYLOAD_OPTIONS}
+  eend $? &#34;Failed to start pyload&#34;
+}
+stop() {
+  ebegin &#34;Stopping pyload&#34;
+  start-stop-daemon --stop \
+    --pidfile $PYLOAD_PIDFILE \
+    --exec &#34;${PYLOAD_EXEC}&#34;
+  eend $? &#34;Failed to stop pyload&#34;
+}
+</code></pre></div><p>Here is the configuration:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">PYLOAD_USER=pyload
+PYLOAD_GROUP=pyload
+PYLOAD_EXEC=/home/pyload/bin/pyLoadCore.py
+PYLOAD_CONFDIR=/home/pyload/.pyload
+PYLOAD_PIDFILE=/home/pyload/${SVCNAME}.pid
+PYLOAD_OPTIONS=
+</code></pre></div>]]></content></entry><entry><title type="html">Use Your Ssh Server as a Socks Proxy</title><link href="https://blog.thalheim.io/2012/06/09/use-your-ssh-server-as-a-socks-proxy/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/09/use-your-ssh-server-as-a-socks-proxy/</id><published>2012-06-09T00:00:00+00:00</published><updated>2012-06-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Sometimes for whatever reason you want a secure internet connection. Maybe because you distrust your local network or your network filter some traffic. Openssh is able to speak the <a href="http://en.wikipedia.org/wiki/SOCKS" target="_blank">SOCKS protocol</a>, which does the trick.</p>
+<p>Open you ~/.ssh/config on your local machine and add the following lines:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-apache" data-lang="apache"><span style="color:#0086b3">Host</span> webtunnel
+  <span style="color:#0086b3">HostName</span> domain.tld # replace this with your ip or domain name of your server
+  <span style="color:#0086b3">DynamicForward</span> <span style="color:#099">1080</span>
+  <span style="color:#0086b3">User</span> myuser # replace this with your ssh login name
+</code></pre></div><p>next connect to your server like this</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">ssh webtunnel
+</code></pre></div><p>This opens a socks connection on your local machine on port 1080.
+Now you are able to set up every application to use this proxy.
+These are the common required settings:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">Server: localhost
+Port: 1080
+Proxy-Type: SOCKS5
+</code></pre></div><p>Personally I use <a href="http://getfoxyproxy.org/" target="_blank">FoxProxy Basic</a> extension for firefox to fast setup a connection, whenever needed.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/ssh" term="ssh" label="ssh"/><category scheme="https://blog.thalheim.io/categories/socks-proxy" term="socks-proxy" label="socks proxy"/><category scheme="https://blog.thalheim.io/categories/browser" term="browser" label="browser"/></entry><entry><title type="html">Owncloud 4 and Nginx</title><link href="https://blog.thalheim.io/2012/06/03/owncloud-4-and-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/03/owncloud-4-and-nginx/</id><published>2012-06-03T00:00:00+00:00</published><updated>2012-06-03T00:00:00+00:00</updated><content type="html"><![CDATA[<p><strong>updated at Do 14. Jul 2012</strong></p>
+<p>Short after writing this entry, I discover <a href="http://nblock.org/2012/03/12/nginx-and-owncloud" target="_blank">a good one</a>.</p>
+<p>Nginx don&rsquo;t understand the .htaccess, which is shipped with owncloud.
+So some rewrites, required by the webdav implementation, aren&rsquo;t applied.
+To get owncloud running, some additional options are necessary:</p>
+<h2 id="nginx">Nginx</h2>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">upstream</span> <span style="color:#d14">backend</span> {
+      <span style="color:#000;font-weight:bold">unix:/var/run/php-fpm.sock</span>; <span style="color:#998;font-style:italic"># &lt;--- edit me
+</span><span style="color:#998;font-style:italic"></span>}
+
+<span style="color:#998;font-style:italic"># force https
+</span><span style="color:#998;font-style:italic"></span><span style="color:#000;font-weight:bold">server</span> {
+  <span style="color:#000;font-weight:bold">listen</span>         <span style="color:#099">80</span>;
+  <span style="color:#000;font-weight:bold">server_name</span>    <span style="color:#d14">cloud.site.com</span>;
+  <span style="color:#000;font-weight:bold">rewrite</span>        <span style="color:#d14">^</span> <span style="color:#d14">https://</span><span style="color:#008080">$server_name$request_uri?</span> <span style="color:#d14">permanent</span>;
+}
+
+<span style="color:#000;font-weight:bold">server</span> {
+    <span style="color:#000;font-weight:bold">listen</span> <span style="color:#099">443</span> <span style="color:#d14">ssl</span>;
+    <span style="color:#000;font-weight:bold">ssl_certificate</span> <span style="color:#d14">/etc/ssl/nginx/nginx.crt</span>;
+    <span style="color:#000;font-weight:bold">ssl_certificate_key</span> <span style="color:#d14">/etc/ssl/nginx/nginx.key</span>;
+
+    <span style="color:#000;font-weight:bold">server_name</span> <span style="color:#d14">cloud.site.com</span>; <span style="color:#998;font-style:italic"># &lt;--- edit me
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">root</span> <span style="color:#d14">/var/web/MyOwncloud</span>;   <span style="color:#998;font-style:italic"># &lt;--- edit me
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">index</span> <span style="color:#d14">index.php</span>;
+    <span style="color:#000;font-weight:bold">client_max_body_size</span> <span style="color:#d14">20M</span>; <span style="color:#998;font-style:italic"># set maximum upload size
+</span><span style="color:#998;font-style:italic"></span>
+    <span style="color:#000;font-weight:bold">access_log</span> <span style="color:#d14">/var/log/nginx/cloud.access_log</span> <span style="color:#d14">main</span>;
+    <span style="color:#000;font-weight:bold">error_log</span> <span style="color:#d14">/var/log/nginx/cloud.error_log</span> <span style="color:#d14">info</span>;
+
+    <span style="color:#000;font-weight:bold">location</span> ~<span style="color:#009926">*</span> <span style="color:#d14">^.+.(jpg|jpeg|gif|bmp|ico|png|css|js|swf)</span>$ {
+      <span style="color:#000;font-weight:bold">expires</span> <span style="color:#d14">30d</span>;
+      <span style="color:#000;font-weight:bold">access_log</span> <span style="color:#008080">off</span>;
+    }
+
+    <span style="color:#998;font-style:italic"># deny direct access
+</span><span style="color:#998;font-style:italic"></span>    <span style="color:#000;font-weight:bold">location</span> ~ <span style="color:#009926">^/(data|config|\.ht|db_structure.xml|README)</span> {
+      <span style="color:#000;font-weight:bold">deny</span> <span style="color:#d14">all</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">/</span> {
+      <span style="color:#998;font-style:italic"># these line replace the rewrite made in owncloud .htaccess
+</span><span style="color:#998;font-style:italic"></span>      <span style="color:#000;font-weight:bold">try_files</span> <span style="color:#008080">$uri</span> <span style="color:#008080">$uri/</span> <span style="color:#d14">@webdav</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> <span style="color:#d14">@webdav</span> {
+      <span style="color:#000;font-weight:bold">include</span> <span style="color:#d14">fastcgi_params</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_pass</span> <span style="color:#d14">backend</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">HTTPS</span> <span style="color:#008080">on</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_split_path_info</span> <span style="color:#d14">^(.+\.php)(/.*)</span>$;
+      <span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SCRIPT_FILENAME</span>  <span style="color:#008080">$document_root$fastcgi_script_name</span>;
+    }
+
+    <span style="color:#000;font-weight:bold">location</span> ~ <span style="color:#009926">\.php$</span> {
+      <span style="color:#000;font-weight:bold">include</span> <span style="color:#d14">fastcgi_params</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_pass</span> <span style="color:#d14">backend</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">HTTPS</span> <span style="color:#008080">on</span>;
+      <span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SCRIPT_FILENAME</span>  <span style="color:#008080">$document_root$fastcgi_script_name</span>;
+    }
+}
+</code></pre></div><p>Additionally I added these lines to the default <em>/etc/nginx/fastcgi_params</em>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">PATH_INFO</span>          <span style="color:#008080">$fastcgi_path_info</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">PATH_TRANSLATED</span>    <span style="color:#008080">$document_root$fastcgi_path_info</span>;
+</code></pre></div><p>So it does looks like this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">PATH_INFO</span>          <span style="color:#008080">$fastcgi_path_info</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">PATH_TRANSLATED</span>    <span style="color:#008080">$document_root$fastcgi_path_info</span>;
+
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">QUERY_STRING</span>       <span style="color:#008080">$query_string</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">REQUEST_METHOD</span>     <span style="color:#008080">$request_method</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">CONTENT_TYPE</span>       <span style="color:#008080">$content_type</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">CONTENT_LENGTH</span>     <span style="color:#008080">$content_length</span>;
+
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SCRIPT_NAME</span>        <span style="color:#008080">$fastcgi_script_name</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">REQUEST_URI</span>        <span style="color:#008080">$request_uri</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">DOCUMENT_URI</span>       <span style="color:#008080">$document_uri</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">DOCUMENT_ROOT</span>      <span style="color:#008080">$document_root</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SERVER_PROTOCOL</span>    <span style="color:#008080">$server_protocol</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">HTTPS</span>              <span style="color:#008080">$https</span> <span style="color:#d14">if_not_empty</span>;
+
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">GATEWAY_INTERFACE</span>  <span style="color:#d14">CGI/1.1</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SERVER_SOFTWARE</span>    <span style="color:#d14">nginx/</span><span style="color:#008080">$nginx_version</span>;
+
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">REMOTE_ADDR</span>        <span style="color:#008080">$remote_addr</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">REMOTE_PORT</span>        <span style="color:#008080">$remote_port</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SERVER_ADDR</span>        <span style="color:#008080">$server_addr</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SERVER_PORT</span>        <span style="color:#008080">$server_port</span>;
+<span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">SERVER_NAME</span>        <span style="color:#008080">$server_name</span>;
+
+<span style="color:#998;font-style:italic"># PHP only, required if PHP was built with --enable-force-cgi-redirect
+</span><span style="color:#998;font-style:italic"></span><span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">REDIRECT_STATUS</span>    <span style="color:#099">200</span>;
+</code></pre></div><p>PHP
++++
+If your upload size is still lower than the one set in nginx&rsquo;s configuration, increase the size in the php.ini as described <a href="http://www.radinks.com/upload/config.php" target="_blank">here</a></p>
+<h2 id="referenzes">Referenzes</h2>
+<p><a href="http://nblock.org/2012/03/12/nginx-and-owncloud" target="_blank">Setting up Nginx and Owncloud - nblock.org</a></p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/owncloud" term="owncloud" label="owncloud"/></entry></feed>

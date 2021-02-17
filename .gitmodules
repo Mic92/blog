@@ -1,3 +1,6 @@
 [submodule "themes/hugo-vitae"]
 	path = themes/hugo-vitae
 	url = https://github.com/datacobra/hugo-vitae.git
+[submodule "themes/hugo-atom-feed"]
+	path = themes/hugo-atom-feed
+	url = https://github.com/kaushalmodi/hugo-atom-feed

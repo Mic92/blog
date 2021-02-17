@@ -1,7 +1,9 @@
 baseURL: https://blog.thalheim.io/
 languageCode: en-us
 defaultContentLanguage: en
-theme: hugo-vitae
+theme:
+  - hugo-atom-feed
+  - hugo-vitae
 paginate: 5
 title: ~/git/blog
 author: Mic92
@@ -12,6 +14,24 @@ pygmentscodefences: true
 pygmentscodefencesguesssyntax: true
 enableRobotsTXT: true
 
+outputs:
+  # <domain>/atom.xml
+  home:
+    - HTML
+    - RSS
+    - ATOM
+  # <domain>/posts/atom.xml
+  section:
+    - HTML
+    - RSS
+    - ATOM
+  # <domain>/tags/mytag/atom.xml, <domain>/categories/mycat/atom.xml
+  taxonomy:
+    - HTML
+    - RSS
+    - ATOM
+ignoreErrors:
+  - error-output-taxonomy
 permalinks:
   posts: /:year/:month/:day/:title/
 
@@ -35,7 +55,7 @@ params:
   subtitle: "My brain-dump of random code/configuration."
   social:
     - name: RSS
-      url: /index.html
+      url: /index.xml
       icon: fas fa-rss
     - name: Github
       icon: fab fa-github

@@ -1,4 +1,92 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-11-27T02:23:35+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Solve Vivado Remote Connection Test Failed</title><link href="https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/</id><published>2017-04-13T00:00:00+00:00</published><updated>2017-04-13T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When you are trying to get Vivado Remote Connections working on Ubuntu, you might have an issue to establish the connection.
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-11-27T20:17:28+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Cross compiling and deploying NixOS</title><link href="https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/</id><published>2022-11-27T00:00:00+00:00</published><updated>2022-11-27T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
+<p>Last week I was setting up this RISCv-based HiFive Unmatched board[1] with NixOS. Thanks to <a href="https://github.com/zhaofengli" target="_blank">zhaofengli</a> this was actually pretty straight forward given that his <a href="https://github.com/zhaofengli/nixos-riscv64" target="_blank">repository</a> contained a full walk-through, images and a binary cache. So instead of spending the <a href="https://www.meetup.com/Munich-NixOS-Meetup/" target="_blank">NixOS Munich Meetup</a> hacking on this architecture, I had time to go further.</p>
+<p>One of the thing that becomes quickly apparent while hacking on the board is that although the board is quite beefy with 16GB of RAM and NVME, it cannot keep up with up-to-date x86 machines. This is where cross-compiling NixOS helps.</p>
+<h2 id="goal-of-this-article">Goal of this article</h2>
+<p>In this article I will show you how to use NixOS on a host x86_64 machine to debug and cross-deploy another NixOS machine. And iterate faster doing so.</p>
+<p>We&rsquo;re going to do this with the following steps:</p>
+<ol>
+<li>How to define a cross-compiled nixos configuration in flakes</li>
+<li>How to deploy from cross-compile nixos machine</li>
+<li>Work-around cross-compiling issues with binfmt</li>
+</ol>
+<h2 id="configuring-the-flake">Configuring the flake</h2>
+<p>First we need to find out the architecture we want to build
+on and the architecture to build for.
+The easiest way to find out is using <code>nix repl</code></p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix repl &#39;&lt;nixpkgs&gt;&#39;
+repl&gt; pkgs.system # This is our build architecture
+&#34;x86_64-linux&#34;
+# use tab completion to find the architecture you want to build for
+repl&gt; pkgsCross.&lt;TAB&gt;
+</code></pre></div><p>We are interested in two values here <code>hostPlatform.config</code> and <code>hostPlatform.system</code>. For my board this looks like this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">repl&gt; pkgsCross.riscv64.hostPlatform.system
+&#34;riscv64-linux&#34;
+repl&gt; pkgsCross.riscv64.hostPlatform.config
+&#34;riscv64-unknown-linux-gnu&#34;
+</code></pre></div><p>With information we can define the cross-compiled variant of our nixos machine:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
+  inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:NixOS/nixpkgs/release-22.11&#34;</span>;
+
+  outputs <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> nixpkgs }: {
+    nixosConfigurations <span style="color:#000;font-weight:bold">=</span> {
+      <span style="color:#998;font-style:italic"># Native machine build</span>
+      my-nixos <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>lib<span style="color:#000;font-weight:bold">.</span>nixosSystem {
+        system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-linux&#34;</span>;
+        modules <span style="color:#000;font-weight:bold">=</span> [ <span style="color:#009926">./configuration.nix</span> ];
+      };
+      
+      <span style="color:#998;font-style:italic"># Cross machine build, from x86_64</span>
+      my-nixos-from-x86_64 <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>lib<span style="color:#000;font-weight:bold">.</span>nixosSystem {
+        <span style="color:#998;font-style:italic"># This is the architecture we build from (pkgs.system from above) </span>
+        system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;x86_64-linux&#34;</span>;
+        modules <span style="color:#000;font-weight:bold">=</span> [
+          <span style="color:#009926">./configuration.nix</span>
+          { 
+            nixpkgs<span style="color:#000;font-weight:bold">.</span>crossSystem <span style="color:#000;font-weight:bold">=</span> {
+              <span style="color:#998;font-style:italic"># pkgsCross.&lt;yourtarget&gt;.hostPlatform.config</span>
+              config <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-unknown-linux-gnu&#34;</span>;
+              <span style="color:#998;font-style:italic"># pkgsCross.&lt;youtarget&gt;.hostPlatform.system</span>
+              system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-linux&#34;</span>;
+            }; 
+          }
+        ];
+      };
+    };
+  };
+}
+</code></pre></div><h2 id="deploying-to-the-board">Deploying to the board</h2>
+<p>Now that we have this extended flake configuration, deploying the new system closures to the board becomes easy:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nixos-rebuild switch \
+  --fast \
+  --build-host localhost \
+  --target-host $target_host \
+  --flake .#my-nixos-from-x86_64 
+</code></pre></div><p>nixos-rebuild will (1) build the system on the host machine, and then (2) copy
+the build result onto the board, and finally (3) atomically switch the
+configuration.  The <code>--fast</code> flag here is crucial since it stops <code>nixos-rebuild</code>
+from using the riscv build of nix on the x86_64 machine.</p>
+<h2 id="bonus-work-around-cross-compiling-issues-with-binfmt">(Bonus) Work-around cross-compiling issues with binfmt</h2>
+<p>While many packages cross-compile out-of-the box a few packages
+are not aware of cross compiling and try to execute binaries
+they just have built on the same machine.
+Since it sometimes not feasiable to fix this issues easily,
+one trick is to set platform emulation support based binfmt_misc
+and qemu. This allows to run the binaries directly on the NixOS host
+that are actually compiled for a different architecture.</p>
+<p>It also allows to test and run binaries without having to
+copy them over to the target machine.</p>
+<p>In order to do that, extend the host NixOS configuration</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
+  boot<span style="color:#000;font-weight:bold">.</span>binfmt<span style="color:#000;font-weight:bold">.</span>emulatedSystems <span style="color:#000;font-weight:bold">=</span> [
+    <span style="color:#d14">&#34;riscv64-linux&#34;</span>
+  ];
+}
+</code></pre></div><h2 id="conclusion">Conclusion</h2>
+<p>Cross-compiling has made good progress over the years. While still not a
+first-class citizen in nixpkgs is now in a usable state for deploying nixos
+systems. This helps a lot to get NixOS on little computers and port Nix to new
+architecture are not covered by official hydra builds.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nix" term="nix" label="nix"/><category scheme="https://blog.thalheim.io/categories/cross" term="cross" label="cross"/><category scheme="https://blog.thalheim.io/categories/compiling" term="compiling" label="compiling"/></entry><entry><title type="html">Solve Vivado Remote Connection Test Failed</title><link href="https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/</id><published>2017-04-13T00:00:00+00:00</published><updated>2017-04-13T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When you are trying to get Vivado Remote Connections working on Ubuntu, you might have an issue to establish the connection.
 This can be easily solved by adding a symlink to your bash, called sh. You can do this for example using the following commands:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir -p ~/.local/bin
 $ ln -s /bin/bash ~/.local/bin/sh

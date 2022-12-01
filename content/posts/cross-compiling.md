@@ -35,13 +35,11 @@ repl> pkgs.system # This is our build architecture
 repl> pkgsCross.<TAB>
 ```
 
-We are interested in two values here `hostPlatform.config` and `hostPlatform.system`. For my board this looks like this:
+We are interested in `pkgsCross.<arch>.system` here. For my board this looks like this:
 
 ```console
-repl> pkgsCross.riscv64.hostPlatform.system
+repl> pkgsCross.riscv64.system
 "riscv64-linux"
-repl> pkgsCross.riscv64.hostPlatform.config
-"riscv64-unknown-linux-gnu"
 ```
 
 With information we can define the cross-compiled variant of our nixos machine:
@@ -60,17 +58,13 @@ With information we can define the cross-compiled variant of our nixos machine:
       
       # Cross machine build, from x86_64
       my-nixos-from-x86_64 = nixpkgs.lib.nixosSystem {
-        # This is the architecture we build from (pkgs.system from above) 
-        system = "x86_64-linux";
         modules = [
           ./configuration.nix
           { 
-            nixpkgs.crossSystem = {
-              # pkgsCross.<yourtarget>.hostPlatform.config
-              config = "riscv64-unknown-linux-gnu";
-              # pkgsCross.<youtarget>.hostPlatform.system
-              system = "riscv64-linux";
-            }; 
+            # This is the architecture we build from (pkgs.system from above) 
+            nixpkgs.buildPlatform = "x86_64-linux";
+            # pkgsCross.<yourtarget>.system
+            nixpkgs.hostPlatform = "riscv64-linux";
           }
         ];
       };

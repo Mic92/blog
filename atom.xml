@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-12-01T02:30:24+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Cross compiling and deploying NixOS</title><link href="https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/</id><published>2022-11-27T00:00:00+00:00</published><updated>2022-11-27T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-12-01T18:43:31+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Cross compiling and deploying NixOS</title><link href="https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/</id><published>2022-11-27T00:00:00+00:00</published><updated>2022-11-27T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
 <p>Last week I was setting up this RISCv-based HiFive Unmatched board[1] with NixOS. Thanks to <a href="https://github.com/zhaofengli" target="_blank">zhaofengli</a> this was actually pretty straight forward given that his <a href="https://github.com/zhaofengli/nixos-riscv64" target="_blank">repository</a> contained a full walk-through, images and a binary cache. So instead of spending the <a href="https://www.meetup.com/Munich-NixOS-Meetup/" target="_blank">NixOS Munich Meetup</a> hacking on this architecture, I had time to go further.</p>
 <p>One of the thing that becomes quickly apparent while hacking on the board is that although the board is quite beefy with 16GB of RAM and NVME, it cannot keep up with up-to-date x86 machines. This is where cross-compiling NixOS helps.</p>
 <h2 id="goal-of-this-article">Goal of this article</h2>
@@ -18,11 +18,9 @@ repl&gt; pkgs.system # This is our build architecture
 &#34;x86_64-linux&#34;
 # use tab completion to find the architecture you want to build for
 repl&gt; pkgsCross.&lt;TAB&gt;
-</code></pre></div><p>We are interested in two values here <code>hostPlatform.config</code> and <code>hostPlatform.system</code>. For my board this looks like this:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">repl&gt; pkgsCross.riscv64.hostPlatform.system
+</code></pre></div><p>We are interested in <code>pkgsCross.&lt;arch&gt;.system</code> here. For my board this looks like this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">repl&gt; pkgsCross.riscv64.system
 &#34;riscv64-linux&#34;
-repl&gt; pkgsCross.riscv64.hostPlatform.config
-&#34;riscv64-unknown-linux-gnu&#34;
 </code></pre></div><p>With information we can define the cross-compiled variant of our nixos machine:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
   inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:NixOS/nixpkgs/release-22.11&#34;</span>;
@@ -37,17 +35,13 @@ repl&gt; pkgsCross.riscv64.hostPlatform.config
       
       <span style="color:#998;font-style:italic"># Cross machine build, from x86_64</span>
       my-nixos-from-x86_64 <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>lib<span style="color:#000;font-weight:bold">.</span>nixosSystem {
-        <span style="color:#998;font-style:italic"># This is the architecture we build from (pkgs.system from above) </span>
-        system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;x86_64-linux&#34;</span>;
         modules <span style="color:#000;font-weight:bold">=</span> [
           <span style="color:#009926">./configuration.nix</span>
           { 
-            nixpkgs<span style="color:#000;font-weight:bold">.</span>crossSystem <span style="color:#000;font-weight:bold">=</span> {
-              <span style="color:#998;font-style:italic"># pkgsCross.&lt;yourtarget&gt;.hostPlatform.config</span>
-              config <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-unknown-linux-gnu&#34;</span>;
-              <span style="color:#998;font-style:italic"># pkgsCross.&lt;youtarget&gt;.hostPlatform.system</span>
-              system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-linux&#34;</span>;
-            }; 
+            <span style="color:#998;font-style:italic"># This is the architecture we build from (pkgs.system from above) </span>
+            nixpkgs<span style="color:#000;font-weight:bold">.</span>buildPlatform <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;x86_64-linux&#34;</span>;
+            <span style="color:#998;font-style:italic"># pkgsCross.&lt;yourtarget&gt;.system</span>
+            nixpkgs<span style="color:#000;font-weight:bold">.</span>hostPlatform <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-linux&#34;</span>;
           }
         ];
       };

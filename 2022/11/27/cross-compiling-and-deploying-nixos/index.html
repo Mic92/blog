@@ -8,10 +8,8 @@ repl&gt; pkgs.system # This is our build architecture
 &#34;x86_64-linux&#34;
 # use tab completion to find the architecture you want to build for
 repl&gt; pkgsCross.&lt;TAB&gt;
-</code></pre></div><p>We are interested in two values here <code>hostPlatform.config</code> and <code>hostPlatform.system</code>. For my board this looks like this:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>repl&gt; pkgsCross.riscv64.hostPlatform.system
+</code></pre></div><p>We are interested in <code>pkgsCross.&lt;arch>.system</code> here. For my board this looks like this:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>repl&gt; pkgsCross.riscv64.system
 &#34;riscv64-linux&#34;
-repl&gt; pkgsCross.riscv64.hostPlatform.config
-&#34;riscv64-unknown-linux-gnu&#34;
 </code></pre></div><p>With information we can define the cross-compiled variant of our nixos machine:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix>{
   inputs<span style=color:#000;font-weight:700>.</span>nixpkgs<span style=color:#000;font-weight:700>.</span>url <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;github:NixOS/nixpkgs/release-22.11&#34;</span>;
 
@@ -25,17 +23,13 @@ repl&gt; pkgsCross.riscv64.hostPlatform.config
       
       <span style=color:#998;font-style:italic># Cross machine build, from x86_64</span>
       my-nixos-from-x86_64 <span style=color:#000;font-weight:700>=</span> nixpkgs<span style=color:#000;font-weight:700>.</span>lib<span style=color:#000;font-weight:700>.</span>nixosSystem {
-        <span style=color:#998;font-style:italic># This is the architecture we build from (pkgs.system from above) </span>
-        system <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;x86_64-linux&#34;</span>;
         modules <span style=color:#000;font-weight:700>=</span> [
           <span style=color:#009926>./configuration.nix</span>
           { 
-            nixpkgs<span style=color:#000;font-weight:700>.</span>crossSystem <span style=color:#000;font-weight:700>=</span> {
-              <span style=color:#998;font-style:italic># pkgsCross.&lt;yourtarget&gt;.hostPlatform.config</span>
-              config <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;riscv64-unknown-linux-gnu&#34;</span>;
-              <span style=color:#998;font-style:italic># pkgsCross.&lt;youtarget&gt;.hostPlatform.system</span>
-              system <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;riscv64-linux&#34;</span>;
-            }; 
+            <span style=color:#998;font-style:italic># This is the architecture we build from (pkgs.system from above) </span>
+            nixpkgs<span style=color:#000;font-weight:700>.</span>buildPlatform <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;x86_64-linux&#34;</span>;
+            <span style=color:#998;font-style:italic># pkgsCross.&lt;yourtarget&gt;.system</span>
+            nixpkgs<span style=color:#000;font-weight:700>.</span>hostPlatform <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;riscv64-linux&#34;</span>;
           }
         ];
       };

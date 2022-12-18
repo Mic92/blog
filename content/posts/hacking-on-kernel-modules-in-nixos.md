@@ -151,3 +151,6 @@ Because NixOS does not follow the FHS standard for filesystem layouts, the
 standard kernel hacker tutorials won't fully apply to NixOS. However, by
 leveraging the NixOS configuration we can quickly set up an environment that
 allows us to compile the linux kernel and its modules.
+
+For quicker iterations on building kernels also checkout the [nixos wiki article](https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU)
+that describes how to debug the linux kernel with qemu in NixOS.

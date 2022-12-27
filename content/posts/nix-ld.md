@@ -5,11 +5,12 @@ categories: [ "nixos", "kernel" ]
 draft: true
 ---
 
-One of the key benefits of NixOS is its focus on purity and reproducibility. The
-operating system is designed to ensure that the system configuration and
-installed software are always in a known and predictable state. This is achieved
-through the use of the Nix package manager, which allows users to declaratively
-specify their system configuration and software dependencies.
+One of the key benefits of [NixOS](https://nixos.org/) is its focus on purity
+and reproducibility. The operating system is designed to ensure that the system
+configuration and installed software are always in a known and predictable
+state. This is achieved through the use of the Nix package manager, which allows
+users to declaratively specify their system configuration and software
+dependencies.
 
 However, this focus on purity can make it difficult for users to run
 pre-compiled executables that were not specifically designed for NixOS. These
@@ -42,7 +43,7 @@ $ ls -la ./masterpdfeditor5
 To understand what is going on, we need to look at what happens when an
 executable is run on a Linux operating system. When the shell attempts to run a
 program, it uses a
-[`execve`](https://man7.org/linux/man-pages/man2/execve.2.html) system call to
+[execve](https://man7.org/linux/man-pages/man2/execve.2.html) system call to
 request the operating system to run the program. We can use the tool
 [strace](https://strace.io/) to visualize this:
 

@@ -1,12 +1,28 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-12-27T20:52:42+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Hacking on Kernel Modules in NixOS</title><link href="https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/</id><published>2022-12-17T20:50:21+01:00</published><updated>2022-12-17T20:50:21+01:00</updated><content type="html"><![CDATA[<p>Lately I hacked on some kernel modules to get more debug logs out of a kernel
-module on my NixOS machine. Commonly linux distributions put their kernel
-sources in <code>/usr/src</code> and their kernel modules in <code>/lib/modules/$(uname -r)</code>.
-Like always, NixOS is a special snowflake. However once you get to learn the
-mechanics, it is actually quite pleasant to use.</p>
-<p>In the NixOS configuration the kernel is defined via the option
-<code>boot.kernelPackages</code>. <code>kernelPackages</code> not only defines the kernel, but also
-all out-of-tree kernel modules and other packages that have the kernel as a
-build dependency. The actual linux kernel is accessible in <code>boot.kernelPackages.kernel</code>.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-12-27T20:53:52+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Hacking on Kernel Modules in NixOS</title><link href="https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/</id><published>2022-12-17T20:50:21+01:00</published><updated>2022-12-17T20:50:21+01:00</updated><content type="html"><![CDATA[<p>Lately, I hacked on some kernel modules to get more debug logs out of a kernel
+module on my NixOS machine. Because NixOS does not follow the Filesystem
+Hierarchy Standard (FHS) for filesystem layouts, the standard kernel hacker
+tutorials won&rsquo;t fully apply to NixOS. However, by leveraging the NixOS
+configuration, we can quickly set up an environment that allows us to compile
+the Linux kernel and its modules.</p>
+<h1 id="where-can-you-define-the-kernel">Where can you define the kernel?</h1>
+<p>Commonly, Linux distributions put their kernel sources in <code>/usr/src</code> and their
+kernel modules in <code>/lib/modules/$(uname -r)</code>. Like always, NixOS is a special
+snowflake, but once you get to learn the mechanics, it is actually quite
+pleasant to use.</p>
+<p>In the NixOS configuration, the kernel is defined via the <code>boot.kernelPackages</code>
+option. The former also defines all out-of-tree kernel modules and other
+packages that have the kernel as a build dependency. So, to access the kernel
+only, you should look into <code>boot.kernelPackages.kernel</code>.</p>
+<p>Now that you are familiar with the topic, let&rsquo;s proceed to building kernel
+modules. This article will guide you through the following steps:</p>
+<ol>
+<li>Setting up a development environment with the necessary tools for building a kernel</li>
+<li>Building an out-of-tree kernel</li>
+<li>Building an in-tree kernel</li>
+<li>Bonus: Creating a symbolic link to our NixOS configuration flake for easy
+reference to the kernel configuration used to build the system.</li>
+</ol>
+<h1 id="getting-the-development-environment">Getting the development environment</h1>
 <p>Let&rsquo;s say you have your NixOS configured in <code>flake.nix</code> like this:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
   inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:NixOS/nixpkgs/nixos-unstable-small&#34;</span>;
@@ -14,21 +30,21 @@ build dependency. The actual linux kernel is accessible in <code>boot.kernelPack
   outputs <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> nixpkgs }: {
     nixosConfigurations <span style="color:#000;font-weight:bold">=</span> {
       my-nixos <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>lib<span style="color:#000;font-weight:bold">.</span>nixosSystem {
-        system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;x86_64-linux&#34;</span>;
-        modules <span style="color:#000;font-weight:bold">=</span> [
-          <span style="color:#009926">./configuration.nix</span>
-        ];
-      };
+       system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;x86_64-linux&#34;</span>;
+       modules <span style="color:#000;font-weight:bold">=</span> [ <span style="color:#009926">./configuration.nix</span> ];
+     };
     };
   };
 }
-</code></pre></div><p>To get a development shell that has all dependencies for building a kernel and kernel modules, you can run the below:</p>
+</code></pre></div><p>Let’s assume your NixOS flake is in <code>/etc/nixos</code>. To get a development shell
+that has all the required dependencies for building a kernel and kernel modules,
+you can run the command below. It will add a C compiler and some libraries
+needed for compiling to your shell.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix develop &#34;/etc/nixos#nixosConfigurations.my-nixos.config.boot.kernel&#34;
-</code></pre></div><p>The above example assumes your NixOS flake is in <code>/etc/nixos</code>.</p>
-<p>The command will add a C compiler and some libraries needed for compiling to your shell.</p>
-<p>So, let&rsquo;s build a kernel module with that!
-For this we will also need the kernel development headers found at:
-<code>boot.kernelPackages.kernel.dev</code>.</p>
+</code></pre></div><h1 id="lets-build-a-kernel-module-with-that">Let&rsquo;s build a kernel module with that!</h1>
+<p>Apart from the shell, we will also need the kernel development headers to build
+a kernel module. They can be found in <code>boot.kernelPackages.kernel.dev</code>.</p>
+<p>Let’s clone an example kernel module and build it:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">nix-shell&gt; KERNELDIR=$(nix build --print-out-paths &#34;/etc/nixos/#nixosConfigurations.turingmachine.config.boot.kernelPackages.kernel.dev&#34;)
 nix-shell&gt; git clone https://github.com/Mic92/uptime_hack/
 nix-shell&gt; cd uptime_hack
@@ -41,27 +57,37 @@ make: Entering directory &#39;/nix/store/i7ph759bmlgrlkbz4dj5bjbbq47gx5nw-linux-
   BTF [M] /home/joerg/git/uptime_hack/uptime_hack.ko
 Skipping BTF generation for /home/joerg/git/uptime_hack/uptime_hack.ko due to unavailability of vmlinux
 make: Leaving directory &#39;/nix/store/i7ph759bmlgrlkbz4dj5bjbbq47gx5nw-linux-6.0.12-dev/lib/modules/6.0.12/build&#39;
-</code></pre></div><p>We can also use this for in-tree kernel drivers.</p>
-<p>The shell provided by <code>nix develop</code> has the current kernel source stored in <code>$src</code> that we can unpack like this:</p>
+</code></pre></div><h1 id="in-of-tree-kernel-modules">In-of-tree kernel modules</h1>
+<p>We can also use this algorithm to build in-tree kernel drivers.</p>
+<p>Next, we’ll need to unpack the current kernel source and copy the kernel
+configuration file to our unpacked Linux tree. The current kernel source is
+stored in <code>$src</code> in the shell provided by <code>nix develop</code>. We can unpack the
+kernel like this:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ tar -xvf &#34;$src&#34;
 $ cd linux-*
-</code></pre></div><p>The linux kernel configuration is stored in <code>.config</code>.
-We can copy this file from the kernel.dev package to our unpacked linux tree:</p>
+</code></pre></div><p>Then, the Linux kernel configuration is stored in <code>.config</code>. We can copy this
+file from the kernel.dev package to our unpacked Linux tree:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ cp $KERNELDIR/lib/modules/*/build/.config .config
-</code></pre></div><p>Before we can compile kernel modules, we also need to generate some more files as required by the kernel build system:</p>
+</code></pre></div><p>Next, we will compile the kernel modules. But before, we need to prepare the
+build environment for building kernel modules:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ make scripts prepare modules_prepare
-</code></pre></div><p>This example builds the <code>null_blk</code> block device driver:</p>
+</code></pre></div><p>Now, let’s build the new <code>null_blk</code> block device driver like this:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ make -C . M=drivers/block/null_blk
-</code></pre></div><p>If we actually want to insert any of those drivers into the running system, the
-kernel in the NixOS configuration needs to be the same as kernel as the booted
-system:</p>
+</code></pre></div><h1 id="making-your-nixos-closure-refer-the-closure-it-was-build-from">Making your nixos closure refer the closure it was build from</h1>
+<p>If we actually want to insert any of those drivers into the <strong>running</strong> system,
+the kernel in the NixOS configuration needs to be the same as the kernel of the
+booted system. So, it makes sense to check and compare the kernel versions,
+which you can do like this</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix build --print-out-paths &#34;/etc/nixos/#nixosConfigurations.my-nixos.config.boot.kernelPackages.kernel&#34;
 /nix/store/yyz5jkjsan9q7v8aa4i7697rrivzwmjz-linux-6.0.12
 $ realpath /run/booted-system/kernel
 /nix/store/yyz5jkjsan9q7v8aa4i7697rrivzwmjz-linux-6.0.12/bzImage
-</code></pre></div><p>In this case it matches because I have not updated my linux kernel since I rebooted.
-However there is an even better way: By adding a symlink of our NixOS flake to our NixOS system,
-we can make sure that we can always refer to the flake at the time of boot:</p>
+</code></pre></div><p>In this case, the paths match because I have not updated my Linux kernel since I rebooted.</p>
+<p>However, there is an even better way to replace the drivers with the new ones:
+by adding a symlink of our NixOS flake to our NixOS system. This way, we will
+always be able to refer to the flake at boot time.</p>
+<p>How can you make NixOS closure contain a symlink to its own configuration flake?
+By adding extra lines to <code>system.extraSystemBuilderCmds</code> like this:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
   inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:NixOS/nixpkgs/nixos-unstable-small&#34;</span>;
 
@@ -82,20 +108,19 @@ we can make sure that we can always refer to the flake at the time of boot:</p>
     };
   };
 }
-</code></pre></div><p>After adding the extra lines to <code>system.extraSystemBuilderCmds</code> the NixOS closure will contain a symlink to its own configuration flake.
-Afer a reboot, we can inspect this at <code>/run/booted-system/flake</code>:</p>
+</code></pre></div><p>After a reboot, we can check the symlink was added by looking at <code>/run/booted-system/flake</code>:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ls -la /run/booted-system/flake
 lrwxrwxrwx 2 root root 50 Jan  1  1970 /run/booted-system/flake -&gt; /nix/store/mpqvkfdn46c8b3sd4zcg2fm0y4nsya8v-source
-</code></pre></div><p>Now you can refer to your NixOS configuration like this&hellip;</p>
+</code></pre></div><p>Now you can refer to your NixOS configuration like this…</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix develop &#34;$(realpath /run/booted-system/flake)#nixosConfigurations.$(hostname).config.boot.kernelPackages.kernel&#34;
-</code></pre></div><p>&hellip; and never have to worry and wonder if your system is still in sync with your configuration.</p>
+</code></pre></div><p>… and never have to wonder if your system is still in sync with your
+configuration.</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>Because NixOS does not follow the FHS standard for filesystem layouts, the
-standard kernel hacker tutorials won&rsquo;t fully apply to NixOS. However, by
-leveraging the NixOS configuration we can quickly set up an environment that
-allows us to compile the linux kernel and its modules.</p>
-<p>For quicker iterations on building kernels also checkout the <a href="https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU" target="_blank">nixos wiki article</a>
-that describes how to debug the linux kernel with qemu in NixOS.</p>
+<p>Because things in NixOS are different from what we are used to in regular Linux
+distributions, hacking a kernel needs some special attention. In this tutorial,
+I shared my experience of hacking the NixOS kernel.</p>
+<p>For quicker iterations on building kernels, also check out the <a href="https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU" target="_blank">nixos wiki article</a>
+that describes how to debug the Linux kernel with Qemu in NixOS.</p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/><category scheme="https://blog.thalheim.io/categories/kernel" term="kernel" label="kernel"/></entry><entry><title type="html">Cross compiling and deploying NixOS</title><link href="https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/</id><published>2022-11-27T00:00:00+00:00</published><updated>2022-11-27T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
 <p>Last week I was setting up this RISCv-based HiFive Unmatched board[1] with NixOS. Thanks to <a href="https://github.com/zhaofengli" target="_blank">zhaofengli</a> this was actually pretty straight forward given that his <a href="https://github.com/zhaofengli/nixos-riscv64" target="_blank">repository</a> contained a full walk-through, images and a binary cache. So instead of spending the <a href="https://www.meetup.com/Munich-NixOS-Meetup/" target="_blank">NixOS Munich Meetup</a> hacking on this architecture, I had time to go further.</p>
 <p>One of the thing that becomes quickly apparent while hacking on the board is that although the board is quite beefy with 16GB of RAM and NVME, it cannot keep up with up-to-date x86 machines. This is where cross-compiling NixOS helps.</p>

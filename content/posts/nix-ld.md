@@ -198,10 +198,10 @@ that allows users to specify the necessary libraries for each executable and
 improves the user experience by allowing users to easily run binaries from
 third-party sources and proprietary software. By including the most common
 libraries in the NixOS configuration, nix-ld can provide an even more seamless
-experience for running pre-compiled executables on NixOS. Overall, nix-ld is a
-valuable tool for users who need to run pre-compiled executables on NixOS and
-helps to improve the overall user experience on the operating system.
+experience for running pre-compiled executables on NixOS. 
 
-In the next article, I will introduce [envfs](https://github.com/Mic92/envfs), a
-tool that allows scripts with hardcoded shebangs without having to modify them
-or hurting the composability of NixOS.
+Improve this sentence:
+
+Similar to binaries, scripts with hardcoded shebangs pointing to `/usr/bin` also
+pose a problem on NixOS, which I will address in the next article by introducing
+[envfs](https://github.com/Mic92/envfs).

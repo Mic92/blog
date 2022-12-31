@@ -1,6 +1,6 @@
 ---
 title: "Nix-ld: A clean solution for issues with pre-compiled executives on Nixos"
-date: 2022-12-18T20:17:57+01:00
+date: 2022-12-31T07:37:57+01:00
 categories: [ "nixos", "kernel" ]
 ---
 *No such file or directory: How I stopped worrying and started loving binaries on NixOS.*

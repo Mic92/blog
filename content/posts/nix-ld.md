@@ -1,5 +1,5 @@
 ---
-title: "Nix-ld: A clean solution for issues with pre-compiled executives on Nixos"
+title: "Nix-ld: A clean solution for issues with pre-compiled executables on NixOS"
 date: 2022-12-31T07:37:57+01:00
 categories: [ "nixos", "kernel" ]
 ---

@@ -164,7 +164,7 @@ cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on 
 
 To further improve the user experience, a new feature is available in the latest unstable version of NixOS and the upcoming 23.05 release. It allows the most common libraries to be included in the NixOs configuration as follows:
 
-```
+```nix
 { config, pkgs, ... }: {
   # Enable nix ld
   programs.nix-ld.enable = true;

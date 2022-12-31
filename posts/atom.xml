@@ -1,4 +1,137 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-12-31T01:58:54+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Hacking on Kernel Modules in NixOS</title><link href="https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/</id><published>2022-12-17T20:50:21+01:00</published><updated>2022-12-17T20:50:21+01:00</updated><content type="html"><![CDATA[<p>Lately, I hacked on some kernel modules to get more debug logs out of a kernel
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2022-12-31T06:36:48+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Nix-ld: A clean solution for issues with pre-compiled executives on Nixos</title><link href="https://blog.thalheim.io/2022/12/18/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executives-on-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/18/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executives-on-nixos/</id><published>2022-12-18T20:17:57+01:00</published><updated>2022-12-18T20:17:57+01:00</updated><content type="html"><![CDATA[<p><em>No such file or directory: How I stopped worrying and started loving binaries on NixOS.</em></p>
+<p>In this article, I will discuss the technical issue of running pre-compiled
+executables on NixOS, and how we can improve the user experience
+by making these binaries work seamlessly using <a href="https://github.com/Mic92/nix-ld" target="_blank">nix-ld</a>.</p>
+<p>One of the key benefits of <a href="https://nixos.org/" target="_blank">NixOS</a> is its focus on purity
+and reproducibility. The operating system is designed to ensure that the system
+configuration and installed software are always in a known and predictable
+state. This is achieved through the use of the Nix package manager, which allows
+users to declaratively specify their system configuration and software
+dependencies.</p>
+<p>However, this focus on purity can make it difficult for users to run
+pre-compiled executables that were not specifically designed for NixOS. These
+executables may have dependencies on libraries that are not available in the Nix
+package manager, or may require patching or modification to work correctly on
+the operating system.</p>
+<h2 id="the-problem">The problem</h2>
+<p>If you have used NixOS for a while, you may have encountered an issue when attempting to run a pre-compiled executable. You probably saw something like this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ./masterpdfeditor5
+bash: ./masterpdfeditor5: No such file or directory
+</code></pre></div><p>However, the file clearly exists:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ls -la ./masterpdfeditor5
+-rwxr-xr-x 1 joerg users 27160344 Jul  4 16:22 ./masterpdfeditor5
+</code></pre></div><p>To understand what is going on, we need to look at what happens when an
+executable is run on a Linux operating system. When the shell attempts to run a
+program, it uses an
+<a href="https://man7.org/linux/man-pages/man2/execve.2.html" target="_blank">execve</a> system call to
+request the operating system to run the program. We can use the tool
+<a href="https://strace.io/" target="_blank">strace</a> to visualize this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ strace -f ./masterpdfeditor5
+execve(&#34;./masterpdfeditor5&#34;, [&#34;./masterpdfeditor5&#34;], 0x7fff70350ef8 /* 188 vars */) = -1 ENOENT (No such file or directory)
+strace: exec: No such file or directory
++++ exited with 1 +++
+</code></pre></div><p><code>Strace</code> prints out the system call and its arguments, as well as the return
+code from the operating system. In this case, we can see that bash derived its
+error message (<code>No such file or directory</code>) from the <code>execve</code> system call.</p>
+<p>To understand why the operating system is reporting this error, we need to
+analyze the executable file further. The <a href="https://man7.org/linux/man-pages/man1/file.1.html" target="_blank">file</a> command from the binutils package
+provides more information about the executable file:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ file ./masterpdfeditor5
+masterpdfeditor5: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=406f865023e33cc6a0f9d179cc14a939c4b29fbe, stripped
+</code></pre></div><p>We can see that the executable is a dynamically linked ELF binary that depends
+on libraries found on the system to function. It uses a link-loader program,
+also known as an <code>interpreter</code> to locate and load these libraries.</p>
+<p>Commonly these programs are provided in your system libc, which in most cases is
+<a href="https://www.gnu.org/software/libc/" target="_blank">glibc</a>, and are in a fixed location
+(<code>/lib64/ld-linux-x86-64.so.2</code> if your CPU is x86-based).</p>
+<p>On NixOS, the issue with running pre-compiled executables arises because it
+allows users to mix different libraries, including the glibc package. Unlike Linux, it does not provide a fixed path such as <code>/lib64/ld-linux-x86-64.so.2</code> for the
+link-loader program. Executables packaged with Nix are linked against a specific
+version of glibc. The <a href="https://github.com/Mic92/patchelf" target="_blank">patchelf</a> command can be used to find out exactly which version is being used.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ patchelf --print-interpreter /run/current-system/sw/bin/ls
+/nix/store/ayfr5l52xkqqjn3n4h9jfacgnchz1z7s-glibc-2.35-224/lib/ld-linux-x86-64.so.2
+</code></pre></div><p>When the operating system tries to run an executable, it parses the binary and
+looks for the specified link-loader. If it cannot find it, it returns the
+generic error code <code>ENOENT</code>, which results in an unhelpful error message.</p>
+<h2 id="the-current-solution">The current solution</h2>
+<p>To work around this issue when packaging programs that do not have the source
+code available, such as <code>masterpdfeditor</code>, Nix uses a build function called
+<code>autoPatchelfHook</code> to analyze the binary and resolve any missing dependencies.</p>
+<p>This function rewrites the interpreter path <code>/lib64/ld-linux-x86-64.so.2</code> to a
+specific version of the glibc package, and populates the RPATH field in the
+executable with paths to all necessary libraries for the program to run. The
+link-loader uses this field to locate the libraries at runtime.</p>
+<p>We can use the <a href="https://github.com/NixOS/patchelf" target="_blank">patchelf</a> program to see the
+effect of <code>autoPatchelfHook</code> on the <code>masterpdfeditor</code> program. By using
+<code>nix-shell</code> to load a shell with masterpdfeditor and then printing the RPATH of
+the program, we can see the paths to the necessary libraries encoded in the
+program.</p>
+<p>First, we load up a shell with masterpdfeditor in it.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix-shell -p masterpdfeditor
+</code></pre></div><p>Next, we get the nix path to the program</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">[nix-shell]$ which masterpdfeditor5
+/nix/store/zmdjwbizg4a6cja4darcn2qy9imr336k-masterpdfeditor-5.8.70/bin/masterpdfeditor5
+</code></pre></div><p>The next command prints the RPATH encoded in the program.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">[nix-shell]$ patchelf --print-rpath &#34;/nix/store/zmdjwbizg4a6cja4darcn2qy9imr336k-masterpdfeditor-5.8.70/bin/.masterpdfeditor5-wrapped&#34;
+</code></pre></div><p>It gives this result:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">/nix/store/y4k2206qhks30wspxx1nkmgfqfdmxp0j-sane-backends-1.1.1/lib:/nix/store/zaflwh2nwzj1f0wngd7hqm3nvlf3yhsx-zlib-1.2.13/lib:/nix/store/dgxn688wq7whsvs2fycygq0wn888xnsv-qtsvg-5.15.7/lib:/nix/store/9lcgwnc70f4wj1czklczql7a
+wcv24mi-qtbase-5.15.7/lib:/nix/store/lgfp5762m5qzby9syd21kj04l5qmjg4h-qtdeclarative-5.15.7/lib:/nix/store/ykjcsxdh9c1w664g6v38d86gph8m6mq7-libglvnd-1.5.0/lib:/nix/store/wprxx5zkkk13hpj6k1v6qadjylh3vq9m-gcc-11.3.0-lib/lib
+</code></pre></div><p>While <code>autoPatchelfHook</code> is a useful tool for making many programs usable in Nix,
+there are a few cases where it may not be possible or practical to use it. These include:</p>
+<ul>
+<li>Using binary executables downloaded with third-party package managers (e.g.
+vscode, npm, or pip). With autoPatchelfHook, these would have to be patched on every update</li>
+<li>Executables hidden inside other programs or archives, for example Java JARs might contain executables unpacked at runtime.</li>
+<li>Running a game or proprietary software that verifies its integrity and will not start if the binary has been modified.</li>
+<li>Programs that are too large to be copied to the Nix store (e.g. FPGA IDEs).</li>
+</ul>
+<h2 id="nix-ld-to-the-rescue">Nix-ld to the rescue!</h2>
+<p>To address these cases, <a href="https://github.com/Mic92/nix-ld" target="_blank">nix-ld</a> was created as an alternative to <code>autoPatchelfHook</code>. It allows users to run pre-compiled executables on NixOS without the need to modify the binaries or copy them to the Nix store. This improves the user experience by allowing users to easily run binaries downloaded from third-party sources and proprietary software without patching or modification.</p>
+<p>It is installed in the same location as the link-loader on other Linux
+distributions (i.e. <code>/lib64/ld-linux-x86-64.so.2</code>), and it loads the actual
+link-loader as specified in the <code>NIX_LD</code> environment variable. It also accepts a
+comma-separated list of library lookup paths in <code>NIX_LD_LIBRARY_PATH</code> and
+rewrites this variable to <code>LD_LIBRARY_PATH</code> before passing execution to the
+link-loader. This allows users to specify additional libraries that the
+executable needs to run.</p>
+<p>On a system configured with <code>nix-ld</code>, the error message when attempting to run
+an unpatched binary will be more informative and provide guidance on how to
+address the issue:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ./masterpdfeditor5
+cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on nixos, but you have not configured NIX_LD or NIX_LD_x86_64-linux. See https://github.com/Mic92/nix-ld for more details
+</code></pre></div><p>To further improve the user experience, a new feature is available in the latest unstable version of NixOS and the upcoming 23.05 release. It allows the most common libraries to be included in the NixOs configuration as follows:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">{ config, pkgs, ... }: {
+  # Enable nix ld
+  programs.nix-ld.enable = true;
+
+  # Sets up all the libraries to load
+  programs.nix-ld.libraries = with pkgs; [
+    stdenv.cc.cc
+    zlib
+    fuse3
+    icu
+    zlib
+    nss
+    openssl
+    curl
+    expat
+    # ...
+  ];
+}
+</code></pre></div><p>For a more extensive version of this configuration, see my <a href="https://github.com/Mic92/dotfiles/blob/master/nixos/modules/nix-ld.nix" target="_blank">dotfiles</a>.</p>
+<p>By including the most common libraries in the configuration, nix-ld can provide
+a more seamless experience for users running pre-compiled executables on NixOS. They will not need to manually specify the necessary libraries for each
+executable and can simply run them as they would on other Linux distributions.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In conclusion, nix-ld is a useful tool for running pre-compiled executables on
+NixOS without the need for patching or modification. It provides a shim layer
+that allows users to specify the necessary libraries for each executable and
+improves the user experience by allowing users to easily run binaries from
+third-party sources and proprietary software. By including the most common
+libraries in the NixOS configuration, nix-ld can provide an even more seamless
+experience for running pre-compiled executables on NixOS.</p>
+<p>In my next article, I’ll be looking at a similar issue to the one encountered when working with executable binaries. Scripts that are hardcoded to point to /usr/bin can also cause a problem on NixOS, and I will address this by introducing <a href="https://github.com/Mic92/envfs" target="_blank">envfs</a></p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/><category scheme="https://blog.thalheim.io/categories/kernel" term="kernel" label="kernel"/></entry><entry><title type="html">Hacking on Kernel Modules in NixOS</title><link href="https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/</id><published>2022-12-17T20:50:21+01:00</published><updated>2022-12-17T20:50:21+01:00</updated><content type="html"><![CDATA[<p>Lately, I hacked on some kernel modules to get more debug logs out of a kernel
 module on my NixOS machine. Because NixOS does not follow the Filesystem
 Hierarchy Standard (FHS) for filesystem layouts, the standard kernel hacker
 tutorials won&rsquo;t fully apply to NixOS. However, by leveraging the NixOS

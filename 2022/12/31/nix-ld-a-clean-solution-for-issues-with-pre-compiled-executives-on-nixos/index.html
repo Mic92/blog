@@ -71,13 +71,13 @@ executable needs to run.</p><p>On a system configured with <code>nix-ld</code>, 
 an unpatched binary will be more informative and provide guidance on how to
 address the issue:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ ./masterpdfeditor5
 cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on nixos, but you have not configured NIX_LD or NIX_LD_x86_64-linux. See https://github.com/Mic92/nix-ld for more details
-</code></pre></div><p>To further improve the user experience, a new feature is available in the latest unstable version of NixOS and the upcoming 23.05 release. It allows the most common libraries to be included in the NixOs configuration as follows:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>{ config, pkgs, ... }: {
-  # Enable nix ld
-  programs.nix-ld.enable = true;
+</code></pre></div><p>To further improve the user experience, a new feature is available in the latest unstable version of NixOS and the upcoming 23.05 release. It allows the most common libraries to be included in the NixOs configuration as follows:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix>{ config<span style=color:#000;font-weight:700>,</span> pkgs<span style=color:#000;font-weight:700>,</span> <span style=color:#000;font-weight:700>...</span> }: {
+  <span style=color:#998;font-style:italic># Enable nix ld</span>
+  programs<span style=color:#000;font-weight:700>.</span>nix-ld<span style=color:#000;font-weight:700>.</span>enable <span style=color:#000;font-weight:700>=</span> <span style=color:teal>true</span>;
 
-  # Sets up all the libraries to load
-  programs.nix-ld.libraries = with pkgs; [
-    stdenv.cc.cc
+  <span style=color:#998;font-style:italic># Sets up all the libraries to load</span>
+  programs<span style=color:#000;font-weight:700>.</span>nix-ld<span style=color:#000;font-weight:700>.</span>libraries <span style=color:#000;font-weight:700>=</span> <span style=color:#000;font-weight:700>with</span> pkgs; [
+    stdenv<span style=color:#000;font-weight:700>.</span>cc<span style=color:#000;font-weight:700>.</span>cc
     zlib
     fuse3
     icu
@@ -86,7 +86,7 @@ cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on 
     openssl
     curl
     expat
-    # ...
+    <span style=color:#998;font-style:italic># ...</span>
   ];
 }
 </code></pre></div><p>For a more extensive version of this configuration, see my <a href=https://github.com/Mic92/dotfiles/blob/master/nixos/modules/nix-ld.nix target=_blank>dotfiles</a>.</p><p>By including the most common libraries in the configuration, nix-ld can provide

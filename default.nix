@@ -4,5 +4,6 @@ mkShell {
     bashInteractive
     hugo
     pandoc
+    just
   ];
 }

@@ -42,7 +42,7 @@ menu:
       weight: 1
 
     - name: All Posts
-      url: /post
+      url: /posts
       weight: 2
 
     - name: Categories

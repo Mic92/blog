@@ -1,7 +1,7 @@
 ---
 title: "Use NixOS tests in your own flakes"
 date: 2023-01-08T11:46:06+01:00
-categories: [ "nixos" ]
+categories: ["nixos"]
 ---
 
 This article explains how to utilize the NixOS testing framework to perform full
@@ -12,7 +12,7 @@ In NixOS we have a great test-framework, allows you to create one or more
 virtual machines based on specific NixOS modules and test their desired state
 using a snippet of Python code. These tests provide end-to-end integration
 testing and are useful for catching regressions and incompatible configurations
-that may occur after an upgrade. 
+that may occur after an upgrade.
 
 While the testing framework is easy to use within nixpkgs, there is currently a
 lack of documentation on how to use it from outside of nixpkgs. In the article,
@@ -22,15 +22,16 @@ for accessing the virtual machines interactively for troubleshooting.
 # Defining nixos tests in your flake
 
 To define nixos tests in your flake, you can refer to the [manual chapter](https://github.com/NixOS/nixpkgs/blob/master/nixos/doc/manual/development/writing-nixos-tests.section.md)
-on writing nixos tests to understand the structure. 
+on writing nixos tests to understand the structure.
 
 Previously, there was no stable API to import the testing framework into
 projects outside of nixpkgs, but this has changed thanks to
 [Robert Hensing](https://github.com/NixOS/nixpkgs/pull/191540) who created a new modular
-interface for it. 
+interface for it.
 
 As an example, let's say you have a project with a `flake.nix` file that exposes
-a nixos module to run a simple web server serving a hello world website:
+a nixos module to run a simple web server serving a hello world website (the
+full code of this example can be also found [here](https://github.com/Mic92/nixos-test-example)).
 
 ```nix
 # flake.nix
@@ -122,7 +123,7 @@ in
   # optional to speed up to evaluation by skipping evaluating documentation
   defaults.documentation.enable = lib.mkDefault false;
   # This makes `self` available in the nixos configuration of our virtual machines.
-  # This is useful for referencing modules or packages from your own flake 
+  # This is useful for referencing modules or packages from your own flake
   # as well as importing from other flakes.
   node.specialArgs = { inherit self; };
   imports = [ test ];
@@ -212,7 +213,6 @@ us an interactive shell where we can execute our code instead of the test script
 This provides a great way to shorten the feedback loop as we execute commands on
 our virtual machines i.e. to dump logs or to check the content of files.
 
-
 When you run `nix flake check`, nix will run the test driver in its own build
 sandbox. The test driver provides an API for the test script to set up virtual
 machines and run a series of tests to check if the nixos modules are functioning
@@ -296,7 +296,7 @@ In this article, we explained how you can leverage the NixOS testing framework
 for full integration tests of nixos modules in your own projects outside of the
 nixpkgs repository. We demonstrated how to define a nixos test in a flake and
 exposed it through the checks output, making it run when executing the `nix
-flake check -L` command.  We also showed how you can interactively execute nixos
+flake check -L` command. We also showed how you can interactively execute nixos
 tests to troubleshoot and debug complex tests, using either the `--interactive`
 flag or breakpoints in your test script. By using these techniques, you can
 improve the quality and reliability of your nixos modules and ensure that they

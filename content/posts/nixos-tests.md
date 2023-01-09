@@ -226,15 +226,15 @@ To start the `hello-world-server` test in interactive mode, you first need to
 build the test driver and then start it manually by providing the `--interactive`
 flag.
 
-```
+```console
 # Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
 $ nix build .#check.x86_64-linux
 ```
 
 This will write out `result` symlink pointing to the test driver that we can run like this:
 
-```
-./result/bin/nixos-test-driver --interactive
+```console
+$ ./result/bin/nixos-test-driver --interactive
 ```
 
 Note that running the nixos test this way will also potentially allow the
@@ -245,7 +245,7 @@ feedback and code completion for faster iteration cycles.
 
 For example:
 
-```
+```console
 >>> node1.wait_for_unit("hello-world-server")
 ```
 
@@ -268,7 +268,7 @@ the virtual machine after a certain step in execution. In these cases, you can
 use the `breakpoint()` function in your test script and run the test-driver
 without the `--interactive` flag:
 
-```
+```nix
 # shortend example ./tests/hello-world-server.nix from above
 (import ./lib.nix) {
   # ...
@@ -283,7 +283,7 @@ without the `--interactive` flag:
 }
 ```
 
-```
+```console
 $ nix build .#check.x86_64-linux.hello-world-server
 $ ./result/bin/nixos-test-driver
 >>> print(output)

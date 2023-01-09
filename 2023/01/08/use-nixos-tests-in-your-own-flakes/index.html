@@ -154,7 +154,7 @@ kill vlan (pid 7)
 the test, making it easier to follow.</p><p>Our <code>hello-world-server</code> nixos module now has a proper test. For more complex,
 real-world examples, you may sometimes struggle to understand why a test is not
 behaving properly. This brings us to the second part on how to interactively
-execute nixos tests.</p><h1 id=interactivly-executing-nixos-tests>Interactivly executing NixOS tests</h1><p>When we run <code>nix flake check</code>, nix will run the so called test driver in its own build sandbox.
+execute nixos tests.</p><h1 id=interactively-executing-nixos-tests>Interactively executing NixOS tests</h1><p>When we run <code>nix flake check</code>, nix will run the so called test driver in its own build sandbox.
 The test driver provides an API for the test script to setup virtual machines, followed
 by a series of tests to check if the nixos modules are functioning as intended.
 However it is also possible to start the test driver in a python <code>REPL</code>, which gives

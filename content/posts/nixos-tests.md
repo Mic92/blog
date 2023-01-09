@@ -203,7 +203,7 @@ real-world examples, you may sometimes struggle to understand why a test is not
 behaving properly. This brings us to the second part on how to interactively
 execute nixos tests.
 
-# Interactivly executing NixOS tests
+# Interactively executing NixOS tests
 
 When we run `nix flake check`, nix will run the so called test driver in its own build sandbox.
 The test driver provides an API for the test script to setup virtual machines, followed

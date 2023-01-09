@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-09T12:27:50+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Use NixOS tests in your own flakes</title><link href="https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/</id><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>This article explains how to utilize the NixOS testing framework to perform full
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-09T12:33:24+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Use NixOS tests in your own flakes</title><link href="https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/</id><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>This article explains how to utilize the NixOS testing framework to perform full
 integration tests on nixos modules in your own projects outside of the nixpkgs
 repository.</p>
 <p>In NixOS we have a great test-framework, allows you to create one or more
@@ -18,7 +18,8 @@ projects outside of nixpkgs, but this has changed thanks to
 <a href="https://github.com/NixOS/nixpkgs/pull/191540" target="_blank">Robert Hensing</a> who created a new modular
 interface for it.</p>
 <p>As an example, let&rsquo;s say you have a project with a <code>flake.nix</code> file that exposes
-a nixos module to run a simple web server serving a hello world website:</p>
+a nixos module to run a simple web server serving a hello world website (the
+full code of this example can be also found <a href="https://github.com/Mic92/nixos-test-example" target="_blank">here</a>).</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># flake.nix</span>
 {
   inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:nixos/nixpkgs/nixpkgs-unstable&#34;</span>;
@@ -96,7 +97,7 @@ test:
   <span style="color:#998;font-style:italic"># optional to speed up to evaluation by skipping evaluating documentation</span>
   defaults<span style="color:#000;font-weight:bold">.</span>documentation<span style="color:#000;font-weight:bold">.</span>enable <span style="color:#000;font-weight:bold">=</span> lib<span style="color:#000;font-weight:bold">.</span>mkDefault <span style="color:#008080">false</span>;
   <span style="color:#998;font-style:italic"># This makes `self` available in the nixos configuration of our virtual machines.</span>
-  <span style="color:#998;font-style:italic"># This is useful for referencing modules or packages from your own flake </span>
+  <span style="color:#998;font-style:italic"># This is useful for referencing modules or packages from your own flake</span>
   <span style="color:#998;font-style:italic"># as well as importing from other flakes.</span>
   node<span style="color:#000;font-weight:bold">.</span>specialArgs <span style="color:#000;font-weight:bold">=</span> { <span style="color:#000;font-weight:bold">inherit</span> self; };
   imports <span style="color:#000;font-weight:bold">=</span> [ test ];
@@ -227,7 +228,7 @@ $ ./result/bin/nixos-test-driver
 <p>In this article, we explained how you can leverage the NixOS testing framework
 for full integration tests of nixos modules in your own projects outside of the
 nixpkgs repository. We demonstrated how to define a nixos test in a flake and
-exposed it through the checks output, making it run when executing the <code>nix flake check -L</code> command.  We also showed how you can interactively execute nixos
+exposed it through the checks output, making it run when executing the <code>nix flake check -L</code> command. We also showed how you can interactively execute nixos
 tests to troubleshoot and debug complex tests, using either the <code>--interactive</code>
 flag or breakpoints in your test script. By using these techniques, you can
 improve the quality and reliability of your nixos modules and ensure that they

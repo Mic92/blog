@@ -15,7 +15,8 @@ on writing nixos tests to understand the structure.</p><p>Previously, there was 
 projects outside of nixpkgs, but this has changed thanks to
 <a href=https://github.com/NixOS/nixpkgs/pull/191540 target=_blank>Robert Hensing</a> who created a new modular
 interface for it.</p><p>As an example, let&rsquo;s say you have a project with a <code>flake.nix</code> file that exposes
-a nixos module to run a simple web server serving a hello world website:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=color:#998;font-style:italic># flake.nix</span>
+a nixos module to run a simple web server serving a hello world website (the
+full code of this example can be also found <a href=https://github.com/Mic92/nixos-test-example target=_blank>here</a>).</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=color:#998;font-style:italic># flake.nix</span>
 {
   inputs<span style=color:#000;font-weight:700>.</span>nixpkgs<span style=color:#000;font-weight:700>.</span>url <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;github:nixos/nixpkgs/nixpkgs-unstable&#34;</span>;
   outputs <span style=color:#000;font-weight:700>=</span> { self<span style=color:#000;font-weight:700>,</span> nixpkgs<span style=color:#000;font-weight:700>,</span> <span style=color:#000;font-weight:700>...</span>}: {
@@ -89,7 +90,7 @@ test:
   <span style=color:#998;font-style:italic># optional to speed up to evaluation by skipping evaluating documentation</span>
   defaults<span style=color:#000;font-weight:700>.</span>documentation<span style=color:#000;font-weight:700>.</span>enable <span style=color:#000;font-weight:700>=</span> lib<span style=color:#000;font-weight:700>.</span>mkDefault <span style=color:teal>false</span>;
   <span style=color:#998;font-style:italic># This makes `self` available in the nixos configuration of our virtual machines.</span>
-  <span style=color:#998;font-style:italic># This is useful for referencing modules or packages from your own flake </span>
+  <span style=color:#998;font-style:italic># This is useful for referencing modules or packages from your own flake</span>
   <span style=color:#998;font-style:italic># as well as importing from other flakes.</span>
   node<span style=color:#000;font-weight:700>.</span>specialArgs <span style=color:#000;font-weight:700>=</span> { <span style=color:#000;font-weight:700>inherit</span> self; };
   imports <span style=color:#000;font-weight:700>=</span> [ test ];

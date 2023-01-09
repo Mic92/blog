@@ -1,4 +1,238 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-09T02:04:00+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Nix-ld: A clean solution for issues with pre-compiled executables on NixOS</title><link href="https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/</id><published>2022-12-31T07:37:57+01:00</published><updated>2022-12-31T07:37:57+01:00</updated><content type="html"><![CDATA[<p><em>No such file or directory: How I stopped worrying and started loving binaries on NixOS.</em></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-09T09:38:29+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Use NixOS tests in your own flakes</title><link href="https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/</id><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>This article explains how to utilize the NixOS testing framework to perform full
+integration tests on nixos modules in your own projects outside of the nixpkgs
+repository.</p>
+<p>In NixOS we have a great test-framework, allows you to create one or more
+virtual machines based on specific NixOS modules and test their desired state
+using a snippet of Python code. These tests provide end-to-end integration
+testing and are useful for catching regressions and incompatible configurations
+that may occur after an upgrade.</p>
+<p>While the testing framework is easy to use within nixpkgs, there is currently a
+lack of documentation on how to use it from outside of nixpkgs. In the article,
+we will cover how to use this interface with flakes and provide tips and tricks
+for accessing the virtual machines interactively for troubleshooting.</p>
+<h1 id="defining-nixos-tests-in-your-flake">Defining nixos tests in your flake</h1>
+<p>To define nixos tests in your flake, you can refer to the <a href="https://github.com/NixOS/nixpkgs/blob/master/nixos/doc/manual/development/writing-nixos-tests.section.md" target="_blank">manual chapter</a>
+on writing nixos tests to understand the structure.</p>
+<p>Previously, there was no stable API to import the testing framework into
+projects outside of nixpkgs, but this has changed thanks to
+<a href="https://github.com/NixOS/nixpkgs/pull/191540" target="_blank">Robert Hensing</a> who created a new modular
+interface for it.</p>
+<p>As an example, let&rsquo;s say you have a project with a <code>flake.nix</code> file that exposes
+a nixos module to run a simple web server serving a hello world website:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># flake.nix</span>
+{
+  inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:nixos/nixpkgs/nixpkgs-unstable&#34;</span>;
+  outputs <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> nixpkgs<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span>}: {
+    nixosModules<span style="color:#000;font-weight:bold">.</span>hello-world-server <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./hello-world-server.nix</span> {};
+  };
+}
+</code></pre></div><p>The definition of the hello-world-server nixos module can be found in <code>./hello-world-server.nix</code>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># hello-world-server.nix</span>
+{ pkgs<span style="color:#000;font-weight:bold">,</span> lib<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span> }:
+<span style="color:#000;font-weight:bold">let</span>
+  hello-world-server <span style="color:#000;font-weight:bold">=</span> pkgs<span style="color:#000;font-weight:bold">.</span>runCommand <span style="color:#d14">&#34;hello-world-server&#34;</span> {} <span style="color:#d14">&#39;&#39;
+</span><span style="color:#d14">    mkdir -p $out/{bin,/share/webroot}
+</span><span style="color:#d14">    cat &gt; $out/share/webroot/index.html &lt;&lt;EOF
+</span><span style="color:#d14">    &lt;html&gt;&lt;head&gt;&lt;title&gt;Hello world&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;h1&gt;Hello World!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;
+</span><span style="color:#d14">    EOF
+</span><span style="color:#d14">    cat &gt; $out/bin/hello-world-server &lt;&lt;EOF
+</span><span style="color:#d14">    #!</span><span style="color:#d14">${</span>pkgs<span style="color:#000;font-weight:bold">.</span>runtimeShell<span style="color:#d14">}</span><span style="color:#d14">
+</span><span style="color:#d14">    exec </span><span style="color:#d14">${</span>lib<span style="color:#000;font-weight:bold">.</span>getExe pkgs<span style="color:#000;font-weight:bold">.</span>python3<span style="color:#d14">}</span><span style="color:#d14"> -m http.server 8000 --dir &#34;$out/share/webroot&#34;
+</span><span style="color:#d14">    EOF
+</span><span style="color:#d14">    chmod +x $out/bin/hello-world-server
+</span><span style="color:#d14">  &#39;&#39;</span>;
+<span style="color:#000;font-weight:bold">in</span> {
+  systemd<span style="color:#000;font-weight:bold">.</span>services<span style="color:#000;font-weight:bold">.</span>hello-world-server <span style="color:#000;font-weight:bold">=</span> {
+    after <span style="color:#000;font-weight:bold">=</span> [ <span style="color:#d14">&#34;network.target&#34;</span> ];
+    wantedBy <span style="color:#000;font-weight:bold">=</span> [ <span style="color:#d14">&#34;multi-user.target&#34;</span> ];
+
+    serviceConfig <span style="color:#000;font-weight:bold">=</span> {
+      DynamicUser <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">true</span>;
+      ExecStart <span style="color:#000;font-weight:bold">=</span> lib<span style="color:#000;font-weight:bold">.</span>getExe hello-world-server;
+    };
+  };
+}
+</code></pre></div><p>Now that we have our nixos module, we can write a nixos test to check if we can
+reach the &ldquo;hello world&rdquo; application. To expose the test in our flake, we will
+add an attribute under the <code>checks</code> output in the <code>flake.nix</code> file. This will make
+the test run when you execute the <code>nix flake check -L</code> command. The test uses the
+hello-world-server nixos module and checks if the application can be reached.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># flake.nix</span>
+{
+  inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:nixos/nixpkgs/nixpkgs-unstable&#34;</span>;
+  outputs <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> nixpkgs<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span>}: <span style="color:#000;font-weight:bold">let</span>
+    <span style="color:#998;font-style:italic"># expose systems for `x86_64-linux` and `aarch64-linux`</span>
+    forAllSystems <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>lib<span style="color:#000;font-weight:bold">.</span>genAttrs [ <span style="color:#d14">&#34;x86_64-linux&#34;</span> <span style="color:#d14">&#34;aarch64-linux&#34;</span> ];
+  <span style="color:#000;font-weight:bold">in</span> {
+    nixosModules<span style="color:#000;font-weight:bold">.</span>hello-world-server <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./hello-world-server.nix</span>;
+    checks <span style="color:#000;font-weight:bold">=</span> forAllSystems (system: <span style="color:#000;font-weight:bold">let</span>
+      checkArgs <span style="color:#000;font-weight:bold">=</span> {
+        <span style="color:#998;font-style:italic"># reference to nixpkgs for the current system</span>
+        pkgs <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>legacyPackages<span style="color:#000;font-weight:bold">.</span><span style="color:#d14">${</span>system<span style="color:#d14">}</span>;
+        <span style="color:#998;font-style:italic"># this gives us a reference to our flake but also all flake inputs</span>
+        <span style="color:#000;font-weight:bold">inherit</span> self;
+      };
+    <span style="color:#000;font-weight:bold">in</span> {
+      <span style="color:#998;font-style:italic"># import our test</span>
+      hello-world-server <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./tests/hello-world-server.nix</span> checkArgs;
+    });
+  };
+}
+</code></pre></div><p>Before defining the test, we will also use a helper function that can be used
+across different nixos tests defined in our flake. This helper function will
+import the test framework from nixpkgs and pass through any inputs and outputs
+defined in our flake by extending <code>specialArgs</code>. Save it as <code>./tests/lib.nix</code>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># tests/lib.nix</span>
+<span style="color:#998;font-style:italic"># The first argument to this function is the test module itself</span>
+test:
+<span style="color:#998;font-style:italic"># These arguments are provided by `flake.nix` on import, see checkArgs</span>
+{ pkgs<span style="color:#000;font-weight:bold">,</span> self}:
+<span style="color:#000;font-weight:bold">let</span>
+  <span style="color:#000;font-weight:bold">inherit</span> (pkgs) lib;
+  nixos-lib <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> (pkgs<span style="color:#000;font-weight:bold">.</span>path <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14">&#34;/nixos/lib&#34;</span>) {};
+<span style="color:#000;font-weight:bold">in</span>
+(nixos-lib<span style="color:#000;font-weight:bold">.</span>runTest {
+  hostPkgs <span style="color:#000;font-weight:bold">=</span> pkgs;
+  <span style="color:#998;font-style:italic"># optional to speed up to evaluation by skipping evaluating documentation</span>
+  defaults<span style="color:#000;font-weight:bold">.</span>documentation<span style="color:#000;font-weight:bold">.</span>enable <span style="color:#000;font-weight:bold">=</span> lib<span style="color:#000;font-weight:bold">.</span>mkDefault <span style="color:#008080">false</span>;
+  <span style="color:#998;font-style:italic"># This makes `self` available in the nixos configuration of our virtual machines.</span>
+  <span style="color:#998;font-style:italic"># This is useful for referencing modules or packages from your own flake </span>
+  <span style="color:#998;font-style:italic"># as well as importing from other flakes.</span>
+  node<span style="color:#000;font-weight:bold">.</span>specialArgs <span style="color:#000;font-weight:bold">=</span> { <span style="color:#000;font-weight:bold">inherit</span> self; };
+  imports <span style="color:#000;font-weight:bold">=</span> [ test ];
+})<span style="color:#000;font-weight:bold">.</span>config<span style="color:#000;font-weight:bold">.</span>result
+</code></pre></div><p>This is the actual test that tests the hello-world-server service (<code>./tests/hello-world-server.nix</code>):</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># ./tests/hello-world-server.nix</span>
+(<span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./lib.nix</span>) {
+  name <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;from-nixos&#34;</span>;
+  nodes <span style="color:#000;font-weight:bold">=</span> {
+    <span style="color:#998;font-style:italic"># `self` here is set by using specialArgs in `lib.nix`</span>
+    node1 <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> pkgs<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span> }: {
+      imports <span style="color:#000;font-weight:bold">=</span> [ self<span style="color:#000;font-weight:bold">.</span>nixosModules<span style="color:#000;font-weight:bold">.</span>hello-world-server ];
+      environment<span style="color:#000;font-weight:bold">.</span>systemPackages <span style="color:#000;font-weight:bold">=</span> [ pkgs<span style="color:#000;font-weight:bold">.</span>curl ];
+    };
+  };
+  <span style="color:#998;font-style:italic"># This is the test code that will check if our service is running correctly:</span>
+  testScript <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#39;&#39;
+</span><span style="color:#d14">    start_all()
+</span><span style="color:#d14">    # wait for our service to start
+</span><span style="color:#d14">    node1.wait_for_unit(&#34;hello-world-server&#34;)
+</span><span style="color:#d14">    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+</span><span style="color:#d14">    # Check if our webserver returns the expected result
+</span><span style="color:#d14">    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+</span><span style="color:#d14">  &#39;&#39;</span>;
+}
+</code></pre></div><p>To verify that everything works, run:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix flake check -L
+start all VLans
+start vlan
+running vlan (pid 7; ctl /build/vde1.ctl)
+(finished: start all VLans, in 0.00 seconds)
+run the VM test script
+additionally exposed symbols:
+    node1,
+    vlan1,
+    start_all, test_script, machines, vlans, driver, log, os, create_machine, subtest, run_tests, join_all, retry, serial_stdout_off, serial_stdout_on, polling_condition, Machine
+start all VMs
+node1: starting vm
+node1: waiting for monitor prompt
+node1 # Formatting &#39;/build/vm-state-node1/node1.qcow2&#39;, fmt=qcow2 cluster_size=65536 extended_l2=off compression_type=zlib size=1073741824 lazy_refcounts=off refcount_bits=16
+(finished: waiting for monitor prompt, in 0.02 seconds)
+node1: QEMU running (pid 8)
+(finished: start all VMs, in 0.05 seconds)
+node1: waiting for unit hello-world-server
+node1: waiting for the VM to finish booting
+...
+(finished: waiting for unit hello-world-server, in 7.02 seconds)
+node1: must succeed: curl localhost:8000/index.html
+node1 #   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+node1 #                                  Dload  Upload   Total   Spent    Left  Speed
+node1 #   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0[    6.668081] hello-world-server[824]: 127.0.0.1 - - [08/Jan/2023 19:59:47] &#34;GET /index.html HTTP/1
+.1&#34; 200 -
+node1 # 100    87  100    87    0     0   4034      0 --:--:-- --:--:-- --:--:--  4350
+(finished: must succeed: curl localhost:8000/index.html, in 0.07 seconds)
+(finished: run the VM test script, in 7.15 seconds)
+test script finished in 7.18s
+cleanup
+kill machine (pid 8)
+node1 # qemu-kvm: terminating on signal 15 from pid 6 (/nix/store/al6g1zbk8li6p8mcyp0h60d08jaahf8c-python3-3.10.9/bin/python3.10)
+(finished: cleanup, in 0.04 seconds)
+kill vlan (pid 7)
+</code></pre></div><p>The <code>-L</code> parameter here will make the build output all logs that occur during
+the test, making it easier to follow.</p>
+<p>Our <code>hello-world-server</code> nixos module now has a proper test. For more complex,
+real-world examples, you may sometimes struggle to understand why a test is not
+behaving properly. This brings us to the second part on how to interactively
+execute nixos tests.</p>
+<h1 id="interactivly-executing-nixos-tests">Interactivly executing NixOS tests</h1>
+<p>When we run <code>nix flake check</code>, nix will run the so called test driver in its own build sandbox.
+The test driver provides an API for the test script to setup virtual machines, followed
+by a series of tests to check if the nixos modules are functioning as intended.
+However it is also possible to start the test driver in a python <code>REPL</code>, which gives
+us an interactive shell where we can execute our code instead of the test script.
+This provides a great way to shorten the feedback loop as we execute commands on
+our virtual machines i.e. to dump logs or to check the content of files.</p>
+<p>When you run <code>nix flake check</code>, nix will run the test driver in its own build
+sandbox. The test driver provides an API for the test script to set up virtual
+machines and run a series of tests to check if the nixos modules are functioning
+as intended. However, it is also possible to start the test driver in a python
+REPL, which gives you an interactive shell where you can execute your code
+instead of the test script. This provides a great way to shorten the feedback
+loop as you can execute commands on the virtual machines to check logs or the
+content of files.</p>
+<p>To start the <code>hello-world-server</code> test in interactive mode, you first need to
+build the test driver and then start it manually by providing the <code>--interactive</code>
+flag.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
+$ nix build .#check.x86_64-linux
+</code></pre></div><p>This will write out <code>result</code> symlink pointing to the test driver that we can run like this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">./result/bin/nixos-test-driver --interactive
+</code></pre></div><p>Note that running the nixos test this way will also potentially allow the
+virtual machine to access the internet, which may make some services work that
+were failing before in the nix build sandbox. Inside the REPL, you can type out
+the python commands defined in <code>testScript</code>, but you will get intermediate
+feedback and code completion for faster iteration cycles.</p>
+<p>For example:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">&gt;&gt;&gt; node1.wait_for_unit(&#34;hello-world-server&#34;)
+</code></pre></div><p>The API of the test driver also gives you direct shell access. The function
+<code>&lt;yourmachine&gt;.shell_interact()</code> gives you access to a shell running inside the
+guest. Replace <code>&lt;yourmachine&gt;</code> with the name of a virtual machine defined in the
+test, i.e. <code>node1</code>.</p>
+<p>This is how the article ends:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-py" data-lang="py"><span style="color:#000;font-weight:bold">&gt;&gt;&gt;</span> node1<span style="color:#000;font-weight:bold">.</span>shell_interact()
+node1: Terminal <span style="color:#000;font-weight:bold">is</span> ready (there <span style="color:#000;font-weight:bold">is</span> no initial prompt):
+<span style="color:#a61717;background-color:#e3d2d2">$</span> hostname
+node1
+</code></pre></div><p>For complex tests, you may need to execute certain test code and only inspect
+the virtual machine after a certain step in execution. In these cases, you can
+use the <code>breakpoint()</code> function in your test script and run the test-driver
+without the <code>--interactive</code> flag:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># shortend example ./tests/hello-world-server.nix from above
+(import ./lib.nix) {
+  # ...
+  testScript = &#39;&#39;
+    start_all()
+    node1.wait_for_unit(&#34;hello-world-server&#34;)
+    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+    # Test will stop at this line, giving you control.
+    breakpoint()
+    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+  &#39;&#39;;
+}
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix build .#check.x86_64-linux.hello-world-server
+$ ./result/bin/nixos-test-driver
+&gt;&gt;&gt; print(output)
+&gt;&gt;&gt; node1.execute(&#34;systemctl status hello-world-server&#34;)
+</code></pre></div><h2 id="conclusion">Conclusion</h2>
+<p>In this article, we explained how you can leverage the NixOS testing framework
+for full integration tests of nixos modules in your own projects outside of the
+nixpkgs repository. We demonstrated how to define a nixos test in a flake and
+exposed it through the checks output, making it run when executing the <code>nix flake check -L</code> command.  We also showed how you can interactively execute nixos
+tests to troubleshoot and debug complex tests, using either the <code>--interactive</code>
+flag or breakpoints in your test script. By using these techniques, you can
+improve the quality and reliability of your nixos modules and ensure that they
+are functioning correctly.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/></entry><entry><title type="html">Nix-ld: A clean solution for issues with pre-compiled executables on NixOS</title><link href="https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/</id><published>2022-12-31T07:37:57+01:00</published><updated>2022-12-31T07:37:57+01:00</updated><content type="html"><![CDATA[<p><em>No such file or directory: How I stopped worrying and started loving binaries on NixOS.</em></p>
 <p>In this article, I will discuss the technical issue of running pre-compiled
 executables on NixOS, and how we can improve the user experience
 by making these binaries work seamlessly using <a href="https://github.com/Mic92/nix-ld" target="_blank">nix-ld</a>.</p>

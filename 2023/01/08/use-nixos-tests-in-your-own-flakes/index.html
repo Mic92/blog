@@ -170,7 +170,7 @@ content of files.</p><p>To start the <code>hello-world-server</code> test in int
 build the test driver and then start it manually by providing the <code>--interactive</code>
 flag.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
 $ nix build .#check.x86_64-linux
-</code></pre></div><p>This will write out <code>result</code> symlink pointing to the test driver that we can run like this:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>./result/bin/nixos-test-driver --interactive
+</code></pre></div><p>This will write out <code>result</code> symlink pointing to the test driver that we can run like this:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ ./result/bin/nixos-test-driver --interactive
 </code></pre></div><p>Note that running the nixos test this way will also potentially allow the
 virtual machine to access the internet, which may make some services work that
 were failing before in the nix build sandbox. Inside the REPL, you can type out
@@ -186,17 +186,17 @@ node1
 </code></pre></div><p>For complex tests, you may need to execute certain test code and only inspect
 the virtual machine after a certain step in execution. In these cases, you can
 use the <code>breakpoint()</code> function in your test script and run the test-driver
-without the <code>--interactive</code> flag:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># shortend example ./tests/hello-world-server.nix from above
-(import ./lib.nix) {
-  # ...
-  testScript = &#39;&#39;
-    start_all()
-    node1.wait_for_unit(&#34;hello-world-server&#34;)
-    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
-    # Test will stop at this line, giving you control.
-    breakpoint()
-    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
-  &#39;&#39;;
+without the <code>--interactive</code> flag:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=color:#998;font-style:italic># shortend example ./tests/hello-world-server.nix from above</span>
+(<span style=color:#000;font-weight:700>import</span> <span style=color:#009926>./lib.nix</span>) {
+  <span style=color:#998;font-style:italic># ...</span>
+  testScript <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#39;&#39;
+</span><span style=color:#d14>    start_all()
+</span><span style=color:#d14>    node1.wait_for_unit(&#34;hello-world-server&#34;)
+</span><span style=color:#d14>    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+</span><span style=color:#d14>    # Test will stop at this line, giving you control.
+</span><span style=color:#d14>    breakpoint()
+</span><span style=color:#d14>    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+</span><span style=color:#d14>  &#39;&#39;</span>;
 }
 </code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ nix build .#check.x86_64-linux.hello-world-server
 $ ./result/bin/nixos-test-driver

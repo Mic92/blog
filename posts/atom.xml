@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-09T09:39:04+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Use NixOS tests in your own flakes</title><link href="https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/</id><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>This article explains how to utilize the NixOS testing framework to perform full
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-09T12:27:50+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Use NixOS tests in your own flakes</title><link href="https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/</id><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>This article explains how to utilize the NixOS testing framework to perform full
 integration tests on nixos modules in your own projects outside of the nixpkgs
 repository.</p>
 <p>In NixOS we have a great test-framework, allows you to create one or more
@@ -186,7 +186,7 @@ flag.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
 $ nix build .#check.x86_64-linux
 </code></pre></div><p>This will write out <code>result</code> symlink pointing to the test driver that we can run like this:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">./result/bin/nixos-test-driver --interactive
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ./result/bin/nixos-test-driver --interactive
 </code></pre></div><p>Note that running the nixos test this way will also potentially allow the
 virtual machine to access the internet, which may make some services work that
 were failing before in the nix build sandbox. Inside the REPL, you can type out
@@ -207,17 +207,17 @@ node1
 the virtual machine after a certain step in execution. In these cases, you can
 use the <code>breakpoint()</code> function in your test script and run the test-driver
 without the <code>--interactive</code> flag:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># shortend example ./tests/hello-world-server.nix from above
-(import ./lib.nix) {
-  # ...
-  testScript = &#39;&#39;
-    start_all()
-    node1.wait_for_unit(&#34;hello-world-server&#34;)
-    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
-    # Test will stop at this line, giving you control.
-    breakpoint()
-    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
-  &#39;&#39;;
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># shortend example ./tests/hello-world-server.nix from above</span>
+(<span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./lib.nix</span>) {
+  <span style="color:#998;font-style:italic"># ...</span>
+  testScript <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#39;&#39;
+</span><span style="color:#d14">    start_all()
+</span><span style="color:#d14">    node1.wait_for_unit(&#34;hello-world-server&#34;)
+</span><span style="color:#d14">    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+</span><span style="color:#d14">    # Test will stop at this line, giving you control.
+</span><span style="color:#d14">    breakpoint()
+</span><span style="color:#d14">    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+</span><span style="color:#d14">  &#39;&#39;</span>;
 }
 </code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix build .#check.x86_64-linux.hello-world-server
 $ ./result/bin/nixos-test-driver

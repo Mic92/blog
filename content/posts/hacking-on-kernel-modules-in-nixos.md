@@ -2,6 +2,7 @@
 title: "Hacking on Kernel Modules in NixOS"
 date: 2022-12-17T20:50:21+01:00
 categories: [ "nixos", "kernel" ]
+author: ["Jörg Thalheim and Alex A. Renoire"]
 ---
 
 Lately, I hacked on some kernel modules to get more debug logs out of a kernel

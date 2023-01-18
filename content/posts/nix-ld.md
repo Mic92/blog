@@ -2,6 +2,7 @@
 title: "Nix-ld: A clean solution for issues with pre-compiled executables on NixOS"
 date: 2022-12-31T07:37:57+01:00
 categories: [ "nixos", "kernel" ]
+author: ["Jörg Thalheim and Jill Thornhill"]
 ---
 *No such file or directory: How I stopped worrying and started loving binaries on NixOS.*
 

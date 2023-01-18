@@ -17,8 +17,8 @@ in advance all the regressions and incompatible configurations arising from the
 updates you introduced.
 
 One of the framework's upsides is that it's extremely fast — maybe the fastest
-of its kind: setting up VMs and running tests doesn't take much time thanks to
-sharing files with it's host nix store.
+of its kind: setting up VMs and running tests does not take much time thanks to
+sharing files with the nix store on the host.
 
 But previously, there was no stable API to import the testing framework into
 projects, therefore it was hard to test anything that's outside NixOS. The

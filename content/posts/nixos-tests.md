@@ -5,8 +5,6 @@ categories: ["nixos"]
 author: ["Jörg Thalheim and Alex A. Renoire"]
 ---
 
-*Written by Jörg Thalheim and Alex A. Renoire*
-
 In this article, I will explain how to perform full integration tests with
 flakes outside nixpkgs.
 

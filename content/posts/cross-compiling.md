@@ -6,8 +6,6 @@ Categories = [ "nix", "cross", "compiling" ]
 author = ["Jörg Thalheim and Alex A. Renoire"]
 +++
 
-*Written by Jörg Thalheim and Alex A. Renoire*
-
 ## Background
 
 Last week I was setting up this RISCv-based HiFive Unmatched board[1] with NixOS. Thanks to [zhaofengli](https://github.com/zhaofengli) this was actually pretty straight forward given that his [repository](https://github.com/zhaofengli/nixos-riscv64) contained a full walk-through, images and a binary cache. So instead of spending the [NixOS Munich Meetup](https://www.meetup.com/Munich-NixOS-Meetup/) hacking on this architecture, I had time to go further.

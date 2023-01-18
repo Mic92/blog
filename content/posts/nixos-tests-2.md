@@ -76,7 +76,7 @@ For complex modules, you may need to execute certain tests and only then inspect
 the virtual machine. In such case, you can use the `breakpoint()` function in
 your test script and run the test-driver without the `--interactive` flag:
 
-```
+```nix
 # shortend example ./tests/hello-world-server.nix from above
 
 (import ./lib.nix) {
@@ -84,19 +84,17 @@ your test script and run the test-driver without the `--interactive` flag:
  # ...
 
  testScript = ''
+   start_all()
 
- start_all()
+   node1.wait_for_unit("hello-world-server")
 
- node1.wait_for_unit("hello-world-server")
+   output = node1.succeed("curl localhost:8000/index.html")
 
- output = node1.succeed("curl localhost:8000/index.html")
+   # The test will stop at this line, giving you control over execution.
 
- # The test will stop at this line, giving you control over execution.
+   breakpoint()
 
- breakpoint()
-
- assert "Hello world" in output, f"'{output}' does not contain 'Hello world'"
-
+   assert "Hello world" in output, f"'{output}' does not contain 'Hello world'"
  '';
 
 }

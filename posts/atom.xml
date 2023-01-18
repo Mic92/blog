@@ -1,25 +1,131 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-18T02:08:51+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">Use NixOS tests in your own flakes</title><link href="https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/use-nixos-tests-in-your-own-flakes/</id><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>This article explains how to utilize the NixOS testing framework to perform full
-integration tests on nixos modules in your own projects outside of the nixpkgs
-repository.</p>
-<p>In NixOS we have a great test-framework, allows you to create one or more
-virtual machines based on specific NixOS modules and test their desired state
-using a snippet of Python code. These tests provide end-to-end integration
-testing and are useful for catching regressions and incompatible configurations
-that may occur after an upgrade.</p>
-<p>While the testing framework is easy to use within nixpkgs, there is currently a
-lack of documentation on how to use it from outside of nixpkgs. In the article,
-we will cover how to use this interface with flakes and provide tips and tricks
-for accessing the virtual machines interactively for troubleshooting.</p>
-<h1 id="defining-nixos-tests-in-your-flake">Defining nixos tests in your flake</h1>
-<p>To define nixos tests in your flake, you can refer to the <a href="https://github.com/NixOS/nixpkgs/blob/master/nixos/doc/manual/development/writing-nixos-tests.section.md" target="_blank">manual chapter</a>
-on writing nixos tests to understand the structure.</p>
-<p>Previously, there was no stable API to import the testing framework into
-projects outside of nixpkgs, but this has changed thanks to
-<a href="https://github.com/NixOS/nixpkgs/pull/191540" target="_blank">Robert Hensing</a> who created a new modular
-interface for it.</p>
-<p>As an example, let&rsquo;s say you have a project with a <code>flake.nix</code> file that exposes
-a nixos module to run a simple web server serving a hello world website (the
-full code of this example can be also found <a href="https://github.com/Mic92/nixos-test-example" target="_blank">here</a>).</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">Posts on ~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/posts/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/posts/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-18T08:25:01+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/posts/</id><entry><title type="html">How to execute NixOS tests interactively for debugging</title><link href="https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t
+behaving properly. To gain more insight, you may want to check the debug output.
+This leads me to discuss how to execute NixOS tests interactively.</p>
+<h1 id="problem-statement">Problem statement</h1>
+<p>In a <a href="nixos-tests.md">standard way of running tests</a>, you can&rsquo;t interfere with
+the process to explore what&rsquo;s gone wrong.</p>
+<p>But there&rsquo;s a trick: you can start the test driver in a python REPL loop, which
+will provide an interactive shell where you can execute your tests. This is a
+great way to shorten the feedback loop, as we can execute commands on our VMs.
+For instance, we can tell a VM to dump logs or to display the contents of files.</p>
+<p>So, let&rsquo;s explore how to run tests interactively.</p>
+<h1 id="running-tests-interactively">Running tests interactively</h1>
+<p>To start the hello-world-server test in the interactive mode, you first need to
+build the test driver and then start it manually by providing the
+<code>--interactive</code> flag. Here&rsquo;s how you do it:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
+
+$ nix build .#check.x86_64-linux
+</code></pre></div><p>This will write out result symlink (all files are created in the nix store and
+we don&rsquo;t want to copy them outside) pointing to the test driver. We can run the
+test driver like this:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">./result/bin/nixos-test-driver --interactive
+</code></pre></div><p><strong>Note:</strong> <em>Usually when running tests there&rsquo;s no Internet access because you
+want things to be reproducible and self-contained. Running NixOS tests this way
+will allow the VM to access the Internet, which will make some services work
+that didn&rsquo;t work previously in the nix build sandbox. Therefore, some tests will
+pass that were failing previously.</em></p>
+<p>Inside the REPL, you can type out the Python commands to test your module. For
+example:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">&gt;&gt;&gt;</span> node1<span style="color:#000;font-weight:bold">.</span>wait_for_unit(<span style="color:#d14">&#34;hello-world-server&#34;</span>)
+</code></pre></div><h2 id="direct-shell-access">Direct shell access</h2>
+<p>The API of the test driver gives you direct shell access with
+<code>&lt;yourmachine&gt;.shell_interact()</code>, so you can access the shell running inside the
+guest machine.</p>
+<p>To try it out, let&rsquo;s replace the placeholder with the name of the VM defined in
+the test &mdash; node1:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-py" data-lang="py"><span style="color:#000;font-weight:bold">&gt;&gt;&gt;</span> node1<span style="color:#000;font-weight:bold">.</span>shell_interact()
+node1: Terminal <span style="color:#000;font-weight:bold">is</span> ready (there <span style="color:#000;font-weight:bold">is</span> no initial prompt):
+<span style="color:#a61717;background-color:#e3d2d2">$</span> hostname
+node1
+</code></pre></div><h2 id="breakpoints">Breakpoints</h2>
+<p>For complex modules, you may need to execute certain tests and only then inspect
+the virtual machine. In such case, you can use the <code>breakpoint()</code> function in
+your test script and run the test-driver without the <code>--interactive</code> flag:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># shortend example ./tests/hello-world-server.nix from above</span>
+
+(<span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./lib.nix</span>) {
+
+ <span style="color:#998;font-style:italic"># ...</span>
+
+ testScript <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#39;&#39;
+</span><span style="color:#d14">   start_all()
+</span><span style="color:#d14">
+</span><span style="color:#d14">   node1.wait_for_unit(&#34;hello-world-server&#34;)
+</span><span style="color:#d14">
+</span><span style="color:#d14">   output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+</span><span style="color:#d14">
+</span><span style="color:#d14">   # The test will stop at this line, giving you control over execution.
+</span><span style="color:#d14">
+</span><span style="color:#d14">   breakpoint()
+</span><span style="color:#d14">
+</span><span style="color:#d14">   assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+</span><span style="color:#d14"> &#39;&#39;</span>;
+
+}
+</code></pre></div><p>Here, we stopped the test flow and are looking at the value of <code>output</code> and
+checking the status of the module with <code>systemctl</code>.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix build .#check.x86_64-linux.hello-world-server
+$ ./result/bin/nixos-test-driver
+&gt;&gt;&gt; print(output)
+&gt;&gt;&gt; node1.execute(&#34;systemctl status hello-world-server&#34;)
+</code></pre></div><h1 id="conclusion">Conclusion</h1>
+<p>In this article, we showed how you can interactively execute NixOS tests for
+easier troubleshooting and debugging. In short, you can do so using either the
+<code>--interactive</code> flag or breakpoints in your test script. In comparison to
+running tests in a sandbox, you can get immediate feedback and code completion,
+and look at the intermediate results.</p>
+<p>By employing these techniques, you can improve the quality and reliability of
+your NixOS modules and ensure that they are functioning correctly.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/></entry><entry><title type="html">How to use NixOS testing framework with flakes</title><link href="https://blog.thalheim.io/2023/01/08/how-to-use-nixos-testing-framework-with-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/how-to-use-nixos-testing-framework-with-flakes/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>In this article, I will explain how to perform full integration tests with
+flakes outside nixpkgs.</p>
+<p>With <a href="https://nixos.wiki/wiki/NixOS_Testing_library" target="_blank">NixOS testing framework</a>,
+you can
+<a href="https://nix.dev/tutorials/integration-testing-using-virtual-machines" target="_blank">create end-to-end integration tests</a>
+easily. It all comes down to starting a virtual machine based on your custom
+modules and testing its state with a Python script. This way, you can identify
+in advance all the regressions and incompatible configurations arising from the
+updates you introduced.</p>
+<p>One of the framework&rsquo;s upsides is that it&rsquo;s extremely fast — maybe the fastest
+of its kind: setting up VMs and running tests doesn&rsquo;t take much time thanks to
+sharing files with it&rsquo;s host nix store.</p>
+<p>But previously, there was no stable API to import the testing framework into
+projects, therefore it was hard to test anything that&rsquo;s outside NixOS. The
+situation has changed thanks to Robert Hensing, who [created a new modular
+interface] for testing.</p>
+<p>But there&rsquo;s still a problem with documentation. Of course, you can refer to the
+corresponding
+<a href="https://github.com/NixOS/nixpkgs/blob/master/nixos/doc/manual/development/writing-nixos-tests.section.md" target="_blank">manual chapter</a>
+to explore NixOS testing framework. But many topics aren&rsquo;t explained in detail,
+so I decided to write a brief intro to testing NixOS modules with flakes.</p>
+<h1 id="intro-to-testing-in-nixos">Intro to testing in NixOS</h1>
+<p>Let me give you some info on how tests are executed, and how to incorporate them
+into your project. If you&rsquo;re new to NixOS, this info may be helpful.</p>
+<p>So, how are tests executed in NixOS? To verify that the flake can be evaluated
+successfully, we run the
+<a href="https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-flake-check.html" target="_blank">flake check</a>
+command. Under the hood, nix will run the so-called test driver in its own build
+sandbox. The test driver provides an API for the test script to setup virtual
+machines. When the VMs are ready, a series of tests are executed to check if
+NixOS modules are functioning as intended.</p>
+<p>That&rsquo;s a very broad outlook on how tests work. But how do you write tests?
+First, if you are testing a module outside NixOS, i.e. in your own project, you
+have to import <code>nixpkgs</code>, the biggest repository of Nix packages where the
+testing library is located.</p>
+<p>There are several ways to import <code>nixpkgs</code> in your code. One way is via
+<code>fetchTarball</code>:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
+  nixpkgs <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">fetchTarball</span> <span style="color:#d14">&#34;https://github.com/NixOS/nixpkgs/archive/....tar.gz&#34;</span>;
+  pkgs <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> nixpkgs {};
+}
+</code></pre></div><p>But <code>fetchTarball</code> is a builtin, which means that <code>nixpkgs</code> will be downloaded
+during evaluation. Another way is to load <code>nixpkgs</code> using a
+<a href="https://nixos.wiki/wiki/Flakes" target="_blank">flake</a>. It&rsquo;s more convenient, because this way
+you can update the dependencies easily. I&rsquo;ll use this approach in my example.</p>
+<p>Let&rsquo;s move to the coding part now.</p>
+<h1 id="defining-a-flake-to-be-tested">Defining a flake to be tested</h1>
+<p>As an example, I’ll take a simple project that runs a web server returning a
+“Hello world!” string. First, let’s specify the flake:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># flake.nix</span>
 {
   inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:nixos/nixpkgs/nixpkgs-unstable&#34;</span>;
@@ -27,37 +133,62 @@ full code of this example can be also found <a href="https://github.com/Mic92/ni
     nixosModules<span style="color:#000;font-weight:bold">.</span>hello-world-server <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./hello-world-server.nix</span> {};
   };
 }
-</code></pre></div><p>The definition of the hello-world-server nixos module can be found in <code>./hello-world-server.nix</code>:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># hello-world-server.nix</span>
-{ pkgs<span style="color:#000;font-weight:bold">,</span> lib<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span> }:
+</code></pre></div><p>This flake exposes the module <code>./hello-world-server.nix</code>. You can find the file
+in the repository <a href="https://github.com/Mic92/nixos-test-example" target="_blank">here</a>. What it
+does is it creates a simple HTML page and starts a server on the port 8000. The
+correct behavior would be if the module returns a “Hello world!” string. Any
+other output will be incorrect.</p>
+<h1 id="writing-the-tests">Writing the tests</h1>
+<p>Now that we have our flake and module, we can write a test to check if we can
+reach the server.</p>
+<p>But before that, we will create a helper function in <code>./tests/lib.nix</code>, which
+will import the testing framework from nixpkgs. Extending <code>specialArgs</code> will
+allow us to pass through any flake inputs and outputs.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># tests/lib.nix</span>
+<span style="color:#998;font-style:italic"># The first argument to this function is the test module itself</span>
+test:
+<span style="color:#998;font-style:italic"># These arguments are provided by `flake.nix` on import, see checkArgs</span>
+{ pkgs<span style="color:#000;font-weight:bold">,</span> self}:
 <span style="color:#000;font-weight:bold">let</span>
-  hello-world-server <span style="color:#000;font-weight:bold">=</span> pkgs<span style="color:#000;font-weight:bold">.</span>runCommand <span style="color:#d14">&#34;hello-world-server&#34;</span> {} <span style="color:#d14">&#39;&#39;
-</span><span style="color:#d14">    mkdir -p $out/{bin,/share/webroot}
-</span><span style="color:#d14">    cat &gt; $out/share/webroot/index.html &lt;&lt;EOF
-</span><span style="color:#d14">    &lt;html&gt;&lt;head&gt;&lt;title&gt;Hello world&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;h1&gt;Hello World!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;
-</span><span style="color:#d14">    EOF
-</span><span style="color:#d14">    cat &gt; $out/bin/hello-world-server &lt;&lt;EOF
-</span><span style="color:#d14">    #!</span><span style="color:#d14">${</span>pkgs<span style="color:#000;font-weight:bold">.</span>runtimeShell<span style="color:#d14">}</span><span style="color:#d14">
-</span><span style="color:#d14">    exec </span><span style="color:#d14">${</span>lib<span style="color:#000;font-weight:bold">.</span>getExe pkgs<span style="color:#000;font-weight:bold">.</span>python3<span style="color:#d14">}</span><span style="color:#d14"> -m http.server 8000 --dir &#34;$out/share/webroot&#34;
-</span><span style="color:#d14">    EOF
-</span><span style="color:#d14">    chmod +x $out/bin/hello-world-server
-</span><span style="color:#d14">  &#39;&#39;</span>;
-<span style="color:#000;font-weight:bold">in</span> {
-  systemd<span style="color:#000;font-weight:bold">.</span>services<span style="color:#000;font-weight:bold">.</span>hello-world-server <span style="color:#000;font-weight:bold">=</span> {
-    after <span style="color:#000;font-weight:bold">=</span> [ <span style="color:#d14">&#34;network.target&#34;</span> ];
-    wantedBy <span style="color:#000;font-weight:bold">=</span> [ <span style="color:#d14">&#34;multi-user.target&#34;</span> ];
-
-    serviceConfig <span style="color:#000;font-weight:bold">=</span> {
-      DynamicUser <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">true</span>;
-      ExecStart <span style="color:#000;font-weight:bold">=</span> lib<span style="color:#000;font-weight:bold">.</span>getExe hello-world-server;
+  <span style="color:#000;font-weight:bold">inherit</span> (pkgs) lib;
+  <span style="color:#998;font-style:italic"># this imports the nixos library that contains our testing framework</span>
+  nixos-lib <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> (pkgs<span style="color:#000;font-weight:bold">.</span>path <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14">&#34;/nixos/lib&#34;</span>) {};
+<span style="color:#000;font-weight:bold">in</span>
+(nixos-lib<span style="color:#000;font-weight:bold">.</span>runTest {
+  hostPkgs <span style="color:#000;font-weight:bold">=</span> pkgs;
+  <span style="color:#998;font-style:italic"># This speeds up the evaluation by skipping evaluating documentation (optional)</span>
+  defaults<span style="color:#000;font-weight:bold">.</span>documentation<span style="color:#000;font-weight:bold">.</span>enable <span style="color:#000;font-weight:bold">=</span> lib<span style="color:#000;font-weight:bold">.</span>mkDefault <span style="color:#008080">false</span>;
+  <span style="color:#998;font-style:italic"># This makes `self` available in the NixOS configuration of our virtual machines.</span>
+  <span style="color:#998;font-style:italic"># This is useful for referencing modules or packages from your own flake</span>
+  <span style="color:#998;font-style:italic"># as well as importing from other flakes.</span>
+  node<span style="color:#000;font-weight:bold">.</span>specialArgs <span style="color:#000;font-weight:bold">=</span> { <span style="color:#000;font-weight:bold">inherit</span> self; };
+  imports <span style="color:#000;font-weight:bold">=</span> [ test ];
+})<span style="color:#000;font-weight:bold">.</span>config<span style="color:#000;font-weight:bold">.</span>result
+</code></pre></div><p>You can use this helper function across different NixOS tests in your project.</p>
+<p>Now, let’s create the test:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># ./tests/hello-world-server.nix</span>
+(<span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./lib.nix</span>) {
+  name <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;from-nixos&#34;</span>;
+  nodes <span style="color:#000;font-weight:bold">=</span> {
+    <span style="color:#998;font-style:italic"># `self` here is set by using specialArgs in `lib.nix`</span>
+    node1 <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> pkgs<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span> }: {
+      imports <span style="color:#000;font-weight:bold">=</span> [ self<span style="color:#000;font-weight:bold">.</span>nixosModules<span style="color:#000;font-weight:bold">.</span>hello-world-server ];
+      environment<span style="color:#000;font-weight:bold">.</span>systemPackages <span style="color:#000;font-weight:bold">=</span> [ pkgs<span style="color:#000;font-weight:bold">.</span>curl ];
     };
   };
+  <span style="color:#998;font-style:italic"># This is the test code that will check if our service is running correctly:</span>
+  testScript <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#39;&#39;
+</span><span style="color:#d14">    start_all()
+</span><span style="color:#d14">    # wait for our service to start
+</span><span style="color:#d14">    node1.wait_for_unit(&#34;hello-world-server&#34;)
+</span><span style="color:#d14">    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+</span><span style="color:#d14">    # Check if our webserver returns the expected result
+</span><span style="color:#d14">    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+</span><span style="color:#d14">  &#39;&#39;</span>;
 }
-</code></pre></div><p>Now that we have our nixos module, we can write a nixos test to check if we can
-reach the &ldquo;hello world&rdquo; application. To expose the test in our flake, we will
-add an attribute under the <code>checks</code> output in the <code>flake.nix</code> file. This will make
-the test run when you execute the <code>nix flake check -L</code> command. The test uses the
-hello-world-server nixos module and checks if the application can be reached.</p>
+</code></pre></div><p>To expose the test in our flake, we will import it in the checks output in the
+<code>flake.nix</code> file. This will make the test run when you execute the
+<code>nix flake check -L</code> command.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># flake.nix</span>
 {
   inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:nixos/nixpkgs/nixpkgs-unstable&#34;</span>;
@@ -79,68 +210,42 @@ hello-world-server nixos module and checks if the application can be reached.</p
     });
   };
 }
-</code></pre></div><p>Before defining the test, we will also use a helper function that can be used
-across different nixos tests defined in our flake. This helper function will
-import the test framework from nixpkgs and pass through any inputs and outputs
-defined in our flake by extending <code>specialArgs</code>. Save it as <code>./tests/lib.nix</code>:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># tests/lib.nix</span>
-<span style="color:#998;font-style:italic"># The first argument to this function is the test module itself</span>
-test:
-<span style="color:#998;font-style:italic"># These arguments are provided by `flake.nix` on import, see checkArgs</span>
-{ pkgs<span style="color:#000;font-weight:bold">,</span> self}:
-<span style="color:#000;font-weight:bold">let</span>
-  <span style="color:#000;font-weight:bold">inherit</span> (pkgs) lib;
-  nixos-lib <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> (pkgs<span style="color:#000;font-weight:bold">.</span>path <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14">&#34;/nixos/lib&#34;</span>) {};
-<span style="color:#000;font-weight:bold">in</span>
-(nixos-lib<span style="color:#000;font-weight:bold">.</span>runTest {
-  hostPkgs <span style="color:#000;font-weight:bold">=</span> pkgs;
-  <span style="color:#998;font-style:italic"># optional to speed up to evaluation by skipping evaluating documentation</span>
-  defaults<span style="color:#000;font-weight:bold">.</span>documentation<span style="color:#000;font-weight:bold">.</span>enable <span style="color:#000;font-weight:bold">=</span> lib<span style="color:#000;font-weight:bold">.</span>mkDefault <span style="color:#008080">false</span>;
-  <span style="color:#998;font-style:italic"># This makes `self` available in the nixos configuration of our virtual machines.</span>
-  <span style="color:#998;font-style:italic"># This is useful for referencing modules or packages from your own flake</span>
-  <span style="color:#998;font-style:italic"># as well as importing from other flakes.</span>
-  node<span style="color:#000;font-weight:bold">.</span>specialArgs <span style="color:#000;font-weight:bold">=</span> { <span style="color:#000;font-weight:bold">inherit</span> self; };
-  imports <span style="color:#000;font-weight:bold">=</span> [ test ];
-})<span style="color:#000;font-weight:bold">.</span>config<span style="color:#000;font-weight:bold">.</span>result
-</code></pre></div><p>This is the actual test that tests the hello-world-server service (<code>./tests/hello-world-server.nix</code>):</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># ./tests/hello-world-server.nix</span>
-(<span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./lib.nix</span>) {
-  name <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;from-nixos&#34;</span>;
-  nodes <span style="color:#000;font-weight:bold">=</span> {
-    <span style="color:#998;font-style:italic"># `self` here is set by using specialArgs in `lib.nix`</span>
-    node1 <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> pkgs<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span> }: {
-      imports <span style="color:#000;font-weight:bold">=</span> [ self<span style="color:#000;font-weight:bold">.</span>nixosModules<span style="color:#000;font-weight:bold">.</span>hello-world-server ];
-      environment<span style="color:#000;font-weight:bold">.</span>systemPackages <span style="color:#000;font-weight:bold">=</span> [ pkgs<span style="color:#000;font-weight:bold">.</span>curl ];
-    };
+</code></pre></div><p>Now that we have our nixos module, we can write a nixos test to check if we can
+reach the &ldquo;hello world&rdquo; application. To expose the test in our flake, we will
+add an attribute under the <code>checks</code> output in the <code>flake.nix</code> file. This will
+make the test run when you execute the <code>nix flake check -L</code> command. The test
+uses the hello-world-server nixos module and checks if the application can be
+reached.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># flake.nix</span>
+{
+  inputs<span style="color:#000;font-weight:bold">.</span>nixpkgs<span style="color:#000;font-weight:bold">.</span>url <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;github:nixos/nixpkgs/nixpkgs-unstable&#34;</span>;
+  outputs <span style="color:#000;font-weight:bold">=</span> { self<span style="color:#000;font-weight:bold">,</span> nixpkgs<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span>}: <span style="color:#000;font-weight:bold">let</span>
+    <span style="color:#998;font-style:italic"># expose systems for `x86_64-linux` and `aarch64-linux`</span>
+    forAllSystems <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>lib<span style="color:#000;font-weight:bold">.</span>genAttrs [ <span style="color:#d14">&#34;x86_64-linux&#34;</span> <span style="color:#d14">&#34;aarch64-linux&#34;</span> ];
+  <span style="color:#000;font-weight:bold">in</span> {
+    nixosModules<span style="color:#000;font-weight:bold">.</span>hello-world-server <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./hello-world-server.nix</span>;
+    checks <span style="color:#000;font-weight:bold">=</span> forAllSystems (system: <span style="color:#000;font-weight:bold">let</span>
+      checkArgs <span style="color:#000;font-weight:bold">=</span> {
+        <span style="color:#998;font-style:italic"># reference to nixpkgs for the current system</span>
+        pkgs <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>legacyPackages<span style="color:#000;font-weight:bold">.</span><span style="color:#d14">${</span>system<span style="color:#d14">}</span>;
+        <span style="color:#998;font-style:italic"># this gives us a reference to our flake but also all flake inputs</span>
+        <span style="color:#000;font-weight:bold">inherit</span> self;
+      };
+    <span style="color:#000;font-weight:bold">in</span> {
+      <span style="color:#998;font-style:italic"># import our test</span>
+      hello-world-server <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./tests/hello-world-server.nix</span> checkArgs;
+    });
   };
-  <span style="color:#998;font-style:italic"># This is the test code that will check if our service is running correctly:</span>
-  testScript <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#39;&#39;
-</span><span style="color:#d14">    start_all()
-</span><span style="color:#d14">    # wait for our service to start
-</span><span style="color:#d14">    node1.wait_for_unit(&#34;hello-world-server&#34;)
-</span><span style="color:#d14">    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
-</span><span style="color:#d14">    # Check if our webserver returns the expected result
-</span><span style="color:#d14">    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
-</span><span style="color:#d14">  &#39;&#39;</span>;
 }
-</code></pre></div><p>To verify that everything works, run:</p>
+</code></pre></div><h1 id="running-the-tests">Running the tests</h1>
+<p>To verify that everything works as expected, run:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix flake check -L
-start all VLans
-start vlan
-running vlan (pid 7; ctl /build/vde1.ctl)
-(finished: start all VLans, in 0.00 seconds)
-run the VM test script
-additionally exposed symbols:
-    node1,
-    vlan1,
-    start_all, test_script, machines, vlans, driver, log, os, create_machine, subtest, run_tests, join_all, retry, serial_stdout_off, serial_stdout_on, polling_condition, Machine
+</code></pre></div><p>The -L parameter here tells the testing framework to print all logs that occur
+during the test, making it easier to follow.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">start all VLans
+...
 start all VMs
-node1: starting vm
-node1: waiting for monitor prompt
-node1 # Formatting &#39;/build/vm-state-node1/node1.qcow2&#39;, fmt=qcow2 cluster_size=65536 extended_l2=off compression_type=zlib size=1073741824 lazy_refcounts=off refcount_bits=16
-(finished: waiting for monitor prompt, in 0.02 seconds)
-node1: QEMU running (pid 8)
-(finished: start all VMs, in 0.05 seconds)
+...
 node1: waiting for unit hello-world-server
 node1: waiting for the VM to finish booting
 ...
@@ -154,89 +259,25 @@ node1 # 100    87  100    87    0     0   4034      0 --:--:-- --:--:-- --:--:--
 (finished: must succeed: curl localhost:8000/index.html, in 0.07 seconds)
 (finished: run the VM test script, in 7.15 seconds)
 test script finished in 7.18s
-cleanup
-kill machine (pid 8)
-node1 # qemu-kvm: terminating on signal 15 from pid 6 (/nix/store/al6g1zbk8li6p8mcyp0h60d08jaahf8c-python3-3.10.9/bin/python3.10)
-(finished: cleanup, in 0.04 seconds)
-kill vlan (pid 7)
-</code></pre></div><p>The <code>-L</code> parameter here will make the build output all logs that occur during
-the test, making it easier to follow.</p>
-<p>Our <code>hello-world-server</code> nixos module now has a proper test. For more complex,
-real-world examples, you may sometimes struggle to understand why a test is not
-behaving properly. This brings us to the second part on how to interactively
-execute nixos tests.</p>
-<h1 id="interactively-executing-nixos-tests">Interactively executing NixOS tests</h1>
-<p>When we run <code>nix flake check</code>, nix will run the so called test driver in its own build sandbox.
-The test driver provides an API for the test script to setup virtual machines, followed
-by a series of tests to check if the nixos modules are functioning as intended.
-However it is also possible to start the test driver in a python <code>REPL</code>, which gives
-us an interactive shell where we can execute our code instead of the test script.
-This provides a great way to shorten the feedback loop as we execute commands on
-our virtual machines i.e. to dump logs or to check the content of files.</p>
-<p>When you run <code>nix flake check</code>, nix will run the test driver in its own build
-sandbox. The test driver provides an API for the test script to set up virtual
-machines and run a series of tests to check if the nixos modules are functioning
-as intended. However, it is also possible to start the test driver in a python
-REPL, which gives you an interactive shell where you can execute your code
-instead of the test script. This provides a great way to shorten the feedback
-loop as you can execute commands on the virtual machines to check logs or the
-content of files.</p>
-<p>To start the <code>hello-world-server</code> test in interactive mode, you first need to
-build the test driver and then start it manually by providing the <code>--interactive</code>
-flag.</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
-$ nix build .#check.x86_64-linux
-</code></pre></div><p>This will write out <code>result</code> symlink pointing to the test driver that we can run like this:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ./result/bin/nixos-test-driver --interactive
-</code></pre></div><p>Note that running the nixos test this way will also potentially allow the
-virtual machine to access the internet, which may make some services work that
-were failing before in the nix build sandbox. Inside the REPL, you can type out
-the python commands defined in <code>testScript</code>, but you will get intermediate
-feedback and code completion for faster iteration cycles.</p>
-<p>For example:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">&gt;&gt;&gt; node1.wait_for_unit(&#34;hello-world-server&#34;)
-</code></pre></div><p>The API of the test driver also gives you direct shell access. The function
-<code>&lt;yourmachine&gt;.shell_interact()</code> gives you access to a shell running inside the
-guest. Replace <code>&lt;yourmachine&gt;</code> with the name of a virtual machine defined in the
-test, i.e. <code>node1</code>.</p>
-<p>This is how the article ends:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-py" data-lang="py"><span style="color:#000;font-weight:bold">&gt;&gt;&gt;</span> node1<span style="color:#000;font-weight:bold">.</span>shell_interact()
-node1: Terminal <span style="color:#000;font-weight:bold">is</span> ready (there <span style="color:#000;font-weight:bold">is</span> no initial prompt):
-<span style="color:#a61717;background-color:#e3d2d2">$</span> hostname
-node1
-</code></pre></div><p>For complex tests, you may need to execute certain test code and only inspect
-the virtual machine after a certain step in execution. In these cases, you can
-use the <code>breakpoint()</code> function in your test script and run the test-driver
-without the <code>--interactive</code> flag:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># shortend example ./tests/hello-world-server.nix from above</span>
-(<span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./lib.nix</span>) {
-  <span style="color:#998;font-style:italic"># ...</span>
-  testScript <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#39;&#39;
-</span><span style="color:#d14">    start_all()
-</span><span style="color:#d14">    node1.wait_for_unit(&#34;hello-world-server&#34;)
-</span><span style="color:#d14">    output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
-</span><span style="color:#d14">    # Test will stop at this line, giving you control.
-</span><span style="color:#d14">    breakpoint()
-</span><span style="color:#d14">    assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
-</span><span style="color:#d14">  &#39;&#39;</span>;
-}
-</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix build .#check.x86_64-linux.hello-world-server
-$ ./result/bin/nixos-test-driver
-&gt;&gt;&gt; print(output)
-&gt;&gt;&gt; node1.execute(&#34;systemctl status hello-world-server&#34;)
-</code></pre></div><h2 id="conclusion">Conclusion</h2>
+...
+</code></pre></div><p>Here, the testing framework creates a virtual network and a virtual machine with
+our module in it, then it waits for the hello-world-server to start and checks
+if its output is valid. Here, the output is “Hello world!”, so we passed the
+test.</p>
+<p>Now our hello-world-server NixOS module has a proper test!</p>
+<h1 id="conclusion">Conclusion</h1>
 <p>In this article, we explained how you can leverage the NixOS testing framework
-for full integration tests of nixos modules in your own projects outside of the
-nixpkgs repository. We demonstrated how to define a nixos test in a flake and
-exposed it through the checks output, making it run when executing the <code>nix flake check -L</code> command. We also showed how you can interactively execute nixos
-tests to troubleshoot and debug complex tests, using either the <code>--interactive</code>
-flag or breakpoints in your test script. By using these techniques, you can
-improve the quality and reliability of your nixos modules and ensure that they
-are functioning correctly.</p>
-]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/></entry><entry><title type="html">Nix-ld: A clean solution for issues with pre-compiled executables on NixOS</title><link href="https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/</id><published>2022-12-31T07:37:57+01:00</published><updated>2022-12-31T07:37:57+01:00</updated><content type="html"><![CDATA[<p><em>No such file or directory: How I stopped worrying and started loving binaries on NixOS.</em></p>
+for your projects while importing the nixpkgs repository. In particular, we
+defined a NixOS test in a flake and exposed it through the checks output, making
+it run when executing the <code>nix flake check -L</code> command.</p>
+<p>But often you need to run your tests interactively to check the debug output and
+gain more insight into why a test isn’t behaving the way you expected. That’s
+what I explore in a <a href="nixos-tests-2.md">twin article</a>.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/></entry><entry><title type="html">Nix-ld: A clean solution for issues with pre-compiled executables on NixOS</title><link href="https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/</id><author><name>Jörg Thalheim and Jill Thornhill</name></author><published>2022-12-31T07:37:57+01:00</published><updated>2022-12-31T07:37:57+01:00</updated><content type="html"><![CDATA[<p><em>No such file or directory: How I stopped worrying and started loving binaries
+on NixOS.</em></p>
 <p>In this article, I will discuss the technical issue of running pre-compiled
-executables on NixOS, and how we can improve the user experience
-by making these binaries work seamlessly using <a href="https://github.com/Mic92/nix-ld" target="_blank">nix-ld</a>.</p>
+executables on NixOS, and how we can improve the user experience by making these
+binaries work seamlessly using <a href="https://github.com/Mic92/nix-ld" target="_blank">nix-ld</a>.</p>
 <p>One of the key benefits of <a href="https://nixos.org/" target="_blank">NixOS</a> is its focus on purity
 and reproducibility. The operating system is designed to ensure that the system
 configuration and installed software are always in a known and predictable
@@ -249,7 +290,9 @@ executables may have dependencies on libraries that are not available in the Nix
 package manager, or may require patching or modification to work correctly on
 the operating system.</p>
 <h2 id="the-problem">The problem</h2>
-<p>If you have used NixOS for a while, you may have encountered an issue when attempting to run a pre-compiled executable. You probably saw something like this:</p>
+<p>If you have used NixOS for a while, you may have encountered an issue when
+attempting to run a pre-compiled executable. You probably saw something like
+this:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ./masterpdfeditor5
 bash: ./masterpdfeditor5: No such file or directory
 </code></pre></div><p>However, the file clearly exists:</p>
@@ -269,8 +312,9 @@ strace: exec: No such file or directory
 code from the operating system. In this case, we can see that bash derived its
 error message (<code>No such file or directory</code>) from the <code>execve</code> system call.</p>
 <p>To understand why the operating system is reporting this error, we need to
-analyze the executable file further. The <a href="https://man7.org/linux/man-pages/man1/file.1.html" target="_blank">file</a> command from the binutils package
-provides more information about the executable file:</p>
+analyze the executable file further. The
+<a href="https://man7.org/linux/man-pages/man1/file.1.html" target="_blank">file</a> command from the
+binutils package provides more information about the executable file:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ file ./masterpdfeditor5
 masterpdfeditor5: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=406f865023e33cc6a0f9d179cc14a939c4b29fbe, stripped
 </code></pre></div><p>We can see that the executable is a dynamically linked ELF binary that depends
@@ -280,9 +324,11 @@ also known as an <code>interpreter</code> to locate and load these libraries.</p
 <a href="https://www.gnu.org/software/libc/" target="_blank">glibc</a>, and are in a fixed location
 (<code>/lib64/ld-linux-x86-64.so.2</code> if your CPU is x86-based).</p>
 <p>On NixOS, the issue with running pre-compiled executables arises because it
-allows users to mix different libraries, including the glibc package. Unlike Linux, it does not provide a fixed path such as <code>/lib64/ld-linux-x86-64.so.2</code> for the
-link-loader program. Executables packaged with Nix are linked against a specific
-version of glibc. The <a href="https://github.com/Mic92/patchelf" target="_blank">patchelf</a> command can be used to find out exactly which version is being used.</p>
+allows users to mix different libraries, including the glibc package. Unlike
+Linux, it does not provide a fixed path such as <code>/lib64/ld-linux-x86-64.so.2</code>
+for the link-loader program. Executables packaged with Nix are linked against a
+specific version of glibc. The <a href="https://github.com/Mic92/patchelf" target="_blank">patchelf</a>
+command can be used to find out exactly which version is being used.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ patchelf --print-interpreter /run/current-system/sw/bin/ls
 /nix/store/ayfr5l52xkqqjn3n4h9jfacgnchz1z7s-glibc-2.35-224/lib/ld-linux-x86-64.so.2
 </code></pre></div><p>When the operating system tries to run an executable, it parses the binary and
@@ -311,17 +357,26 @@ program.</p>
 </code></pre></div><p>It gives this result:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">/nix/store/y4k2206qhks30wspxx1nkmgfqfdmxp0j-sane-backends-1.1.1/lib:/nix/store/zaflwh2nwzj1f0wngd7hqm3nvlf3yhsx-zlib-1.2.13/lib:/nix/store/dgxn688wq7whsvs2fycygq0wn888xnsv-qtsvg-5.15.7/lib:/nix/store/9lcgwnc70f4wj1czklczql7a
 wcv24mi-qtbase-5.15.7/lib:/nix/store/lgfp5762m5qzby9syd21kj04l5qmjg4h-qtdeclarative-5.15.7/lib:/nix/store/ykjcsxdh9c1w664g6v38d86gph8m6mq7-libglvnd-1.5.0/lib:/nix/store/wprxx5zkkk13hpj6k1v6qadjylh3vq9m-gcc-11.3.0-lib/lib
-</code></pre></div><p>While <code>autoPatchelfHook</code> is a useful tool for making many programs usable in Nix,
-there are a few cases where it may not be possible or practical to use it. These include:</p>
+</code></pre></div><p>While <code>autoPatchelfHook</code> is a useful tool for making many programs usable in
+Nix, there are a few cases where it may not be possible or practical to use it.
+These include:</p>
 <ul>
 <li>Using binary executables downloaded with third-party package managers (e.g.
-vscode, npm, or pip). With autoPatchelfHook, these would have to be patched on every update</li>
-<li>Executables hidden inside other programs or archives, for example Java JARs might contain executables unpacked at runtime.</li>
-<li>Running a game or proprietary software that verifies its integrity and will not start if the binary has been modified.</li>
+vscode, npm, or pip). With autoPatchelfHook, these would have to be patched on
+every update</li>
+<li>Executables hidden inside other programs or archives, for example Java JARs
+might contain executables unpacked at runtime.</li>
+<li>Running a game or proprietary software that verifies its integrity and will
+not start if the binary has been modified.</li>
 <li>Programs that are too large to be copied to the Nix store (e.g. FPGA IDEs).</li>
 </ul>
 <h2 id="nix-ld-to-the-rescue">Nix-ld to the rescue!</h2>
-<p>To address these cases, <a href="https://github.com/Mic92/nix-ld" target="_blank">nix-ld</a> was created as an alternative to <code>autoPatchelfHook</code>. It allows users to run pre-compiled executables on NixOS without the need to modify the binaries or copy them to the Nix store. This improves the user experience by allowing users to easily run binaries downloaded from third-party sources and proprietary software without patching or modification.</p>
+<p>To address these cases, <a href="https://github.com/Mic92/nix-ld" target="_blank">nix-ld</a> was created as
+an alternative to <code>autoPatchelfHook</code>. It allows users to run pre-compiled
+executables on NixOS without the need to modify the binaries or copy them to the
+Nix store. This improves the user experience by allowing users to easily run
+binaries downloaded from third-party sources and proprietary software without
+patching or modification.</p>
 <p>It is installed in the same location as the link-loader on other Linux
 distributions (i.e. <code>/lib64/ld-linux-x86-64.so.2</code>), and it loads the actual
 link-loader as specified in the <code>NIX_LD</code> environment variable. It also accepts a
@@ -334,7 +389,9 @@ an unpatched binary will be more informative and provide guidance on how to
 address the issue:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ./masterpdfeditor5
 cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on nixos, but you have not configured NIX_LD or NIX_LD_x86_64-linux. See https://github.com/Mic92/nix-ld for more details
-</code></pre></div><p>To further improve the user experience, a new feature is available in the latest unstable version of NixOS and the upcoming 23.05 release. It allows the most common libraries to be included in the NixOs configuration as follows:</p>
+</code></pre></div><p>To further improve the user experience, a new feature is available in the latest
+unstable version of NixOS and the upcoming 23.05 release. It allows the most
+common libraries to be included in the NixOs configuration as follows:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{ config<span style="color:#000;font-weight:bold">,</span> pkgs<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">...</span> }: {
   <span style="color:#998;font-style:italic"># Enable nix ld</span>
   programs<span style="color:#000;font-weight:bold">.</span>nix-ld<span style="color:#000;font-weight:bold">.</span>enable <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">true</span>;
@@ -353,9 +410,11 @@ cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on 
     <span style="color:#998;font-style:italic"># ...</span>
   ];
 }
-</code></pre></div><p>For a more extensive version of this configuration, see my <a href="https://github.com/Mic92/dotfiles/blob/master/nixos/modules/nix-ld.nix" target="_blank">dotfiles</a>.</p>
+</code></pre></div><p>For a more extensive version of this configuration, see my
+<a href="https://github.com/Mic92/dotfiles/blob/master/nixos/modules/nix-ld.nix" target="_blank">dotfiles</a>.</p>
 <p>By including the most common libraries in the configuration, nix-ld can provide
-a more seamless experience for users running pre-compiled executables on NixOS. They will not need to manually specify the necessary libraries for each
+a more seamless experience for users running pre-compiled executables on NixOS.
+They will not need to manually specify the necessary libraries for each
 executable and can simply run them as they would on other Linux distributions.</p>
 <h2 id="conclusion">Conclusion</h2>
 <p>In conclusion, nix-ld is a useful tool for running pre-compiled executables on
@@ -365,8 +424,11 @@ improves the user experience by allowing users to easily run binaries from
 third-party sources and proprietary software. By including the most common
 libraries in the NixOS configuration, nix-ld can provide an even more seamless
 experience for running pre-compiled executables on NixOS.</p>
-<p>In my next article, I’ll be looking at a similar issue to the one encountered when working with executable binaries. Scripts that are hardcoded to point to /usr/bin can also cause a problem on NixOS, and I will address this by introducing <a href="https://github.com/Mic92/envfs" target="_blank">envfs</a></p>
-]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/><category scheme="https://blog.thalheim.io/categories/kernel" term="kernel" label="kernel"/></entry><entry><title type="html">Hacking on Kernel Modules in NixOS</title><link href="https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/</id><published>2022-12-17T20:50:21+01:00</published><updated>2022-12-17T20:50:21+01:00</updated><content type="html"><![CDATA[<p>Lately, I hacked on some kernel modules to get more debug logs out of a kernel
+<p>In my next article, I’ll be looking at a similar issue to the one encountered
+when working with executable binaries. Scripts that are hardcoded to point to
+/usr/bin can also cause a problem on NixOS, and I will address this by
+introducing <a href="https://github.com/Mic92/envfs" target="_blank">envfs</a></p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/><category scheme="https://blog.thalheim.io/categories/kernel" term="kernel" label="kernel"/></entry><entry><title type="html">Hacking on Kernel Modules in NixOS</title><link href="https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/12/17/hacking-on-kernel-modules-in-nixos/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2022-12-17T20:50:21+01:00</published><updated>2022-12-17T20:50:21+01:00</updated><content type="html"><![CDATA[<p>Lately, I hacked on some kernel modules to get more debug logs out of a kernel
 module on my NixOS machine. Because NixOS does not follow the Filesystem
 Hierarchy Standard (FHS) for filesystem layouts, the standard kernel hacker
 tutorials won&rsquo;t fully apply to NixOS. However, by leveraging the NixOS
@@ -384,7 +446,8 @@ only, you should look into <code>boot.kernelPackages.kernel</code>.</p>
 <p>Now that you are familiar with the topic, let&rsquo;s proceed to building kernel
 modules. This article will guide you through the following steps:</p>
 <ol>
-<li>Setting up a development environment with the necessary tools for building a kernel</li>
+<li>Setting up a development environment with the necessary tools for building a
+kernel</li>
 <li>Building an out-of-tree kernel</li>
 <li>Building an in-tree kernel</li>
 <li>Bonus: Creating a symbolic link to our NixOS configuration flake for easy
@@ -450,7 +513,8 @@ which you can do like this</p>
 /nix/store/yyz5jkjsan9q7v8aa4i7697rrivzwmjz-linux-6.0.12
 $ realpath /run/booted-system/kernel
 /nix/store/yyz5jkjsan9q7v8aa4i7697rrivzwmjz-linux-6.0.12/bzImage
-</code></pre></div><p>In this case, the paths match because I have not updated my Linux kernel since I rebooted.</p>
+</code></pre></div><p>In this case, the paths match because I have not updated my Linux kernel since I
+rebooted.</p>
 <p>However, there is an even better way to replace the drivers with the new ones:
 by adding a symlink of our NixOS flake to our NixOS system. This way, we will
 always be able to refer to the flake at boot time.</p>
@@ -476,7 +540,8 @@ By adding extra lines to <code>system.extraSystemBuilderCmds</code> like this:</
     };
   };
 }
-</code></pre></div><p>After a reboot, we can check the symlink was added by looking at <code>/run/booted-system/flake</code>:</p>
+</code></pre></div><p>After a reboot, we can check the symlink was added by looking at
+<code>/run/booted-system/flake</code>:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ls -la /run/booted-system/flake
 lrwxrwxrwx 2 root root 50 Jan  1  1970 /run/booted-system/flake -&gt; /nix/store/mpqvkfdn46c8b3sd4zcg2fm0y4nsya8v-source
 </code></pre></div><p>Now you can refer to your NixOS configuration like this…</p>
@@ -487,13 +552,23 @@ configuration.</p>
 <p>Because things in NixOS are different from what we are used to in regular Linux
 distributions, hacking a kernel needs some special attention. In this tutorial,
 I shared my experience of hacking the NixOS kernel.</p>
-<p>For quicker iterations on building kernels, also check out the <a href="https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU" target="_blank">nixos wiki article</a>
-that describes how to debug the Linux kernel with Qemu in NixOS.</p>
-]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/><category scheme="https://blog.thalheim.io/categories/kernel" term="kernel" label="kernel"/></entry><entry><title type="html">Cross compiling and deploying NixOS</title><link href="https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/</id><published>2022-11-27T00:00:00+00:00</published><updated>2022-11-27T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
-<p>Last week I was setting up this RISCv-based HiFive Unmatched board[1] with NixOS. Thanks to <a href="https://github.com/zhaofengli" target="_blank">zhaofengli</a> this was actually pretty straight forward given that his <a href="https://github.com/zhaofengli/nixos-riscv64" target="_blank">repository</a> contained a full walk-through, images and a binary cache. So instead of spending the <a href="https://www.meetup.com/Munich-NixOS-Meetup/" target="_blank">NixOS Munich Meetup</a> hacking on this architecture, I had time to go further.</p>
-<p>One of the thing that becomes quickly apparent while hacking on the board is that although the board is quite beefy with 16GB of RAM and NVME, it cannot keep up with up-to-date x86 machines. This is where cross-compiling NixOS helps.</p>
+<p>For quicker iterations on building kernels, also check out the
+<a href="https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU" target="_blank">nixos wiki article</a> that
+describes how to debug the Linux kernel with Qemu in NixOS.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/><category scheme="https://blog.thalheim.io/categories/kernel" term="kernel" label="kernel"/></entry><entry><title type="html">Cross compiling and deploying NixOS</title><link href="https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2022-11-27T00:00:00+00:00</published><updated>2022-11-27T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
+<p>Last week I was setting up this RISCv-based HiFive Unmatched board[1] with
+NixOS. Thanks to <a href="https://github.com/zhaofengli" target="_blank">zhaofengli</a> this was actually
+pretty straight forward given that his
+<a href="https://github.com/zhaofengli/nixos-riscv64" target="_blank">repository</a> contained a full
+walk-through, images and a binary cache. So instead of spending the
+<a href="https://www.meetup.com/Munich-NixOS-Meetup/" target="_blank">NixOS Munich Meetup</a> hacking on
+this architecture, I had time to go further.</p>
+<p>One of the thing that becomes quickly apparent while hacking on the board is
+that although the board is quite beefy with 16GB of RAM and NVME, it cannot keep
+up with up-to-date x86 machines. This is where cross-compiling NixOS helps.</p>
 <h2 id="goal-of-this-article">Goal of this article</h2>
-<p>In this article I will show you how to use NixOS on a host x86_64 machine to debug and cross-deploy another NixOS machine. And iterate faster doing so.</p>
+<p>In this article I will show you how to use NixOS on a host x86_64 machine to
+debug and cross-deploy another NixOS machine. And iterate faster doing so.</p>
 <p>We&rsquo;re going to do this with the following steps:</p>
 <ol>
 <li>How to define a cross-compiled nixos configuration in flakes</li>
@@ -501,15 +576,15 @@ that describes how to debug the Linux kernel with Qemu in NixOS.</p>
 <li>Work-around cross-compiling issues with binfmt</li>
 </ol>
 <h2 id="configuring-the-flake">Configuring the flake</h2>
-<p>First we need to find out the architecture we want to build
-on and the architecture to build for.
-The easiest way to find out is using <code>nix repl</code></p>
+<p>First we need to find out the architecture we want to build on and the
+architecture to build for. The easiest way to find out is using <code>nix repl</code></p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nix repl &#39;&lt;nixpkgs&gt;&#39;
 repl&gt; pkgs.system # This is our build architecture
 &#34;x86_64-linux&#34;
 # use tab completion to find the architecture you want to build for
 repl&gt; pkgsCross.&lt;TAB&gt;
-</code></pre></div><p>We are interested in <code>pkgsCross.&lt;arch&gt;.system</code> here. For my board this looks like this:</p>
+</code></pre></div><p>We are interested in <code>pkgsCross.&lt;arch&gt;.system</code> here. For my board this looks
+like this:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">repl&gt; pkgsCross.riscv64.system
 &#34;riscv64-linux&#34;
 </code></pre></div><p>With information we can define the cross-compiled variant of our nixos machine:</p>
@@ -523,13 +598,13 @@ repl&gt; pkgsCross.&lt;TAB&gt;
         system <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-linux&#34;</span>;
         modules <span style="color:#000;font-weight:bold">=</span> [ <span style="color:#009926">./configuration.nix</span> ];
       };
-      
+
       <span style="color:#998;font-style:italic"># Cross machine build, from x86_64</span>
       my-nixos-from-x86_64 <span style="color:#000;font-weight:bold">=</span> nixpkgs<span style="color:#000;font-weight:bold">.</span>lib<span style="color:#000;font-weight:bold">.</span>nixosSystem {
         modules <span style="color:#000;font-weight:bold">=</span> [
           <span style="color:#009926">./configuration.nix</span>
-          { 
-            <span style="color:#998;font-style:italic"># This is the architecture we build from (pkgs.system from above) </span>
+          {
+            <span style="color:#998;font-style:italic"># This is the architecture we build from (pkgs.system from above)</span>
             nixpkgs<span style="color:#000;font-weight:bold">.</span>buildPlatform <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;x86_64-linux&#34;</span>;
             <span style="color:#998;font-style:italic"># pkgsCross.&lt;yourtarget&gt;.system</span>
             nixpkgs<span style="color:#000;font-weight:bold">.</span>hostPlatform <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;riscv64-linux&#34;</span>;
@@ -540,26 +615,26 @@ repl&gt; pkgsCross.&lt;TAB&gt;
   };
 }
 </code></pre></div><h2 id="deploying-to-the-board">Deploying to the board</h2>
-<p>Now that we have this extended flake configuration, deploying the new system closures to the board becomes easy:</p>
+<p>Now that we have this extended flake configuration, deploying the new system
+closures to the board becomes easy:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ nixos-rebuild switch \
   --fast \
   --build-host localhost \
   --target-host $target_host \
-  --flake .#my-nixos-from-x86_64 
+  --flake .#my-nixos-from-x86_64
 </code></pre></div><p>nixos-rebuild will (1) build the system on the host machine, and then (2) copy
 the build result onto the board, and finally (3) atomically switch the
-configuration.  The <code>--fast</code> flag here is crucial since it stops <code>nixos-rebuild</code>
+configuration. The <code>--fast</code> flag here is crucial since it stops <code>nixos-rebuild</code>
 from using the riscv build of nix on the x86_64 machine.</p>
 <h2 id="bonus-work-around-cross-compiling-issues-with-binfmt">(Bonus) Work-around cross-compiling issues with binfmt</h2>
-<p>While many packages cross-compile out-of-the box a few packages
-are not aware of cross compiling and try to execute binaries
-they just have built on the same machine.
-Since it sometimes not feasiable to fix this issues easily,
-one trick is to set platform emulation support based binfmt_misc
-and qemu. This allows to run the binaries directly on the NixOS host
-that are actually compiled for a different architecture.</p>
-<p>It also allows to test and run binaries without having to
-copy them over to the target machine.</p>
+<p>While many packages cross-compile out-of-the box a few packages are not aware of
+cross compiling and try to execute binaries they just have built on the same
+machine. Since it sometimes not feasiable to fix this issues easily, one trick
+is to set platform emulation support based binfmt_misc and qemu. This allows to
+run the binaries directly on the NixOS host that are actually compiled for a
+different architecture.</p>
+<p>It also allows to test and run binaries without having to copy them over to the
+target machine.</p>
 <p>In order to do that, extend the host NixOS configuration</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
   boot<span style="color:#000;font-weight:bold">.</span>binfmt<span style="color:#000;font-weight:bold">.</span>emulatedSystems <span style="color:#000;font-weight:bold">=</span> [
@@ -571,14 +646,136 @@ copy them over to the target machine.</p>
 first-class citizen in nixpkgs is now in a usable state for deploying nixos
 systems. This helps a lot to get NixOS on little computers and port Nix to new
 architecture are not covered by official hydra builds.</p>
-]]></content><category scheme="https://blog.thalheim.io/categories/nix" term="nix" label="nix"/><category scheme="https://blog.thalheim.io/categories/cross" term="cross" label="cross"/><category scheme="https://blog.thalheim.io/categories/compiling" term="compiling" label="compiling"/></entry><entry><title type="html">Solve Vivado Remote Connection Test Failed</title><link href="https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/</id><published>2017-04-13T00:00:00+00:00</published><updated>2017-04-13T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When you are trying to get Vivado Remote Connections working on Ubuntu, you might have an issue to establish the connection.
-This can be easily solved by adding a symlink to your bash, called sh. You can do this for example using the following commands:</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/nix" term="nix" label="nix"/><category scheme="https://blog.thalheim.io/categories/cross" term="cross" label="cross"/><category scheme="https://blog.thalheim.io/categories/compiling" term="compiling" label="compiling"/></entry><entry><title type="html">Deploykit 1.0: A Python library for parallel deployment and maintaince task over ssh and locally</title><link href="https://blog.thalheim.io/2022/01/30/deploykit-1.0-a-python-library-for-parallel-deployment-and-maintaince-task-over-ssh-and-locally/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/01/30/deploykit-1.0-a-python-library-for-parallel-deployment-and-maintaince-task-over-ssh-and-locally/</id><published>2022-01-30T00:00:00+00:00</published><updated>2022-01-30T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When I started working on a growing fleet of NixOS machines, I eventually gained
+the need for running automating smaller maintenance tasks in parallel on a
+number of machines. I found a bunch of tools that seemed to fit the bill:
+ansible, fabric, <!-- raw HTML omitted -->.</p>
+<p>While ansible seemed like the closest to my feature set it had a slow startup
+and a lot of unneccessary features, since NixOS already covers most of the
+configuration management part. Also it would captures the output of my remote
+processes until they finish, while quite often when deploying NixOS machines I
+rather prefer to get output as quickly as possible to see if something goes
+wrong during system activation. Another limitation in most of these tools I
+found, that they do not allow to run local commands in parallel. I.e. for my
+nixos machines, I often upload the nixos configuration with rsync in order to
+activate it on the remote machine.</p>
+<p>After fighting against limitations of the existing tools for a while, I decided
+to just write a simple python wrapper around ssh that spawns a number of thread.
+For a long time this simple wrapper was just copied into every project where I
+needed to deploy nixos machines.</p>
+<p>With each new project the code also matured to the point where I had give it its
+own repository, so that I can manage these modifications in central place.
+<a href="https://github.com/numtide/deploykit" target="_blank">Deploykit</a> was born.</p>
+<p>Here is a simple example on what its API, looks like</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">from</span> <span style="color:#555">deploykit</span> <span style="color:#000;font-weight:bold">import</span> parse_hosts
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">subprocess</span>
+
+hosts <span style="color:#000;font-weight:bold">=</span> parse_hosts(<span style="color:#d14">&#34;server1,server2,server3&#34;</span>)
+runs <span style="color:#000;font-weight:bold">=</span> hosts<span style="color:#000;font-weight:bold">.</span>run(<span style="color:#d14">&#34;uptime&#34;</span>, stdout<span style="color:#000;font-weight:bold">=</span>subprocess<span style="color:#000;font-weight:bold">.</span>PIPE)
+<span style="color:#000;font-weight:bold">for</span> r <span style="color:#000;font-weight:bold">in</span> runs:
+    <span style="color:#000;font-weight:bold">print</span>(f<span style="color:#d14">&#34;The uptime of {r.host.hostname} is {r.result.stdout}&#34;</span>)
+</code></pre></div><p>I often use <code>deploykit</code> in combination with <a href="">pyinvoke</a>. Which gives me a
+simple commandline to run these tasks:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">inv reboot --hosts somehost
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">from</span> <span style="color:#555">invoke</span> <span style="color:#000;font-weight:bold">import</span> task
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">deploykit</span> <span style="color:#000;font-weight:bold">import</span> DeployHost, DeployGroup
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">subprocess</span>
+
+<span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">wait_for_host</span>(host: <span style="color:#0086b3">str</span>, shutdown: <span style="color:#0086b3">bool</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#999">False</span>) <span style="color:#000;font-weight:bold">-&gt;</span> <span style="color:#999">None</span>:
+    <span style="color:#000;font-weight:bold">import</span> <span style="color:#555">socket</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#555">time</span>
+
+    <span style="color:#998;font-style:italic"># Ping until the host is no longer reachable on shutdown and up when booting.</span>
+    <span style="color:#000;font-weight:bold">while</span> <span style="color:#999">True</span>:
+        res <span style="color:#000;font-weight:bold">=</span> subprocess<span style="color:#000;font-weight:bold">.</span>run(
+            [<span style="color:#d14">&#34;ping&#34;</span>, <span style="color:#d14">&#34;-q&#34;</span>, <span style="color:#d14">&#34;-c&#34;</span>, <span style="color:#d14">&#34;1&#34;</span>, <span style="color:#d14">&#34;-w&#34;</span>, <span style="color:#d14">&#34;2&#34;</span>, host], stdout<span style="color:#000;font-weight:bold">=</span>subprocess<span style="color:#000;font-weight:bold">.</span>DEVNULL
+        )
+        <span style="color:#000;font-weight:bold">if</span> shutdown:
+            <span style="color:#000;font-weight:bold">if</span> res<span style="color:#000;font-weight:bold">.</span>returncode <span style="color:#000;font-weight:bold">==</span> <span style="color:#099">1</span>:
+                <span style="color:#000;font-weight:bold">break</span>
+        <span style="color:#000;font-weight:bold">else</span>:
+            <span style="color:#000;font-weight:bold">if</span> res<span style="color:#000;font-weight:bold">.</span>returncode <span style="color:#000;font-weight:bold">==</span> <span style="color:#099">0</span>:
+                <span style="color:#000;font-weight:bold">break</span>
+        time<span style="color:#000;font-weight:bold">.</span>sleep(<span style="color:#099">1</span>)
+        sys<span style="color:#000;font-weight:bold">.</span>stdout<span style="color:#000;font-weight:bold">.</span>write(<span style="color:#d14">&#34;.&#34;</span>)
+        sys<span style="color:#000;font-weight:bold">.</span>stdout<span style="color:#000;font-weight:bold">.</span>flush()
+
+
+<span style="color:#3c5d5d;font-weight:bold">@task</span>
+<span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">reboot</span>(c, hosts<span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;&#34;</span>):
+    <span style="color:#d14">&#34;&#34;&#34;
+</span><span style="color:#d14">    Reboot hosts. example usage: inv reboot --hosts somehost
+</span><span style="color:#d14">    &#34;&#34;&#34;</span>
+    deploy_hosts <span style="color:#000;font-weight:bold">=</span> [DeployHost(h, user<span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;root&#34;</span>) <span style="color:#000;font-weight:bold">for</span> h <span style="color:#000;font-weight:bold">in</span> hosts<span style="color:#000;font-weight:bold">.</span>split(<span style="color:#d14">&#34;,&#34;</span>)]
+    <span style="color:#000;font-weight:bold">for</span> h <span style="color:#000;font-weight:bold">in</span> deploy_hosts:
+        h<span style="color:#000;font-weight:bold">.</span>run(<span style="color:#d14">&#34;reboot &amp;&#34;</span>)
+
+        <span style="color:#000;font-weight:bold">print</span>(f<span style="color:#d14">&#34;Wait for {h.host} to shutdown&#34;</span>, end<span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;&#34;</span>)
+        sys<span style="color:#000;font-weight:bold">.</span>stdout<span style="color:#000;font-weight:bold">.</span>flush()
+        wait_for_host(h<span style="color:#000;font-weight:bold">.</span>host, shutdown<span style="color:#000;font-weight:bold">=</span><span style="color:#999">True</span>)
+        <span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14">&#34;&#34;</span>)
+
+        <span style="color:#000;font-weight:bold">print</span>(f<span style="color:#d14">&#34;Wait for {h.host} to start&#34;</span>, end<span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;&#34;</span>)
+        sys<span style="color:#000;font-weight:bold">.</span>stdout<span style="color:#000;font-weight:bold">.</span>flush()
+        wait_for_host(h<span style="color:#000;font-weight:bold">.</span>host)
+        <span style="color:#000;font-weight:bold">print</span>(<span style="color:#d14">&#34;&#34;</span>)
+</code></pre></div><p>Lastly my own personal use case is evolves mostly around deploying new
+configuration to nixos machines. As you can see in this example, deploykit not
+only allows to run a simple command in parallel on multiple hosts, but also
+python functions, which allows for more flexibility i.e. by incorperating host
+specific parameters into remote commands.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">def deploy_nixos(hosts: List[DeployHost]) -&gt; None:
+    &#34;&#34;&#34;
+    Deploy to all hosts in parallel
+    &#34;&#34;&#34;
+    g = DeployGroup(hosts)
+
+    def deploy(h: DeployHost) -&gt; None:
+        h.run_local(
+            f&#34;rsync -vaF --delete -e ssh . {h.user}@{h.host}:/etc/nixos&#34;
+        )
+
+        flake_path = &#34;/etc/nixos&#34;
+        flake_attr = h.meta.get(&#34;flake_attr&#34;)
+        if flake_attr:
+            flake_path += &#34;#&#34; + flake_attr
+        target_host = h.meta.get(&#34;target_host&#34;, &#34;localhost&#34;)
+        h.run(
+            f&#34;nixos-rebuild switch --option accept-flake-config true --build-host localhost --target-host {target_host} --flake {flake_path}&#34;
+        )
+
+    g.run_function(deploy)
+
+HOSTS = [
+    &#34;host1&#34;,
+    &#34;host2&#34;,
+    # ....
+]
+
+@task
+def deploy(c):
+    &#34;&#34;&#34;
+    Deploy to servers
+    &#34;&#34;&#34;
+    deploy_nixos([DeployHost(h, user=&#34;root&#34;) for h in HOSTS])
+</code></pre></div><p>That&rsquo;s all for today. I consider my work deploykit finished. I consider its API
+stable and only plan to add smaller bugfixes and features to it.</p>
+<p>If you like to use <code>deploykit</code> in your project, either consider downloading the
+library from pypi, or use the nix flakes if case you are using the nix package
+manager.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/python" term="python" label="python"/><category scheme="https://blog.thalheim.io/categories/devops" term="devops" label="devops"/><category scheme="https://blog.thalheim.io/categories/ssh" term="ssh" label="ssh"/></entry><entry><title type="html">Solve Vivado Remote Connection Test Failed</title><link href="https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2017/04/13/solve-vivado-remote-connection-test-failed/</id><published>2017-04-13T00:00:00+00:00</published><updated>2017-04-13T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When you are trying to get Vivado Remote Connections working on Ubuntu, you
+might have an issue to establish the connection. This can be easily solved by
+adding a symlink to your bash, called sh. You can do this for example using the
+following commands:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir -p ~/.local/bin
 $ ln -s /bin/bash ~/.local/bin/sh
-</code></pre></div><p>Thanks to ole2 for providing this solution in the xilinx forum, which you can find here:
+</code></pre></div><p>Thanks to ole2 for providing this solution in the xilinx forum, which you can
+find here:
 <a href="https://forums.xilinx.com/t5/Installation-and-Licensing/Vivado-2013-2-Launching-jobs-on-a-remote-host/td-p/396861" target="_blank">forum post</a></p>
-<p>As he points out, this seem to be a bug in Vivado. Vivado seems to call a script with #!/bin/sh and expects a bash to be executed. But for Ubuntu, /bin/sh points to /bin/dash per default. An alternative solution is to re-configure this link using:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ sudo dpkg-reconfigure dash 
+<p>As he points out, this seem to be a bug in Vivado. Vivado seems to call a script
+with #!/bin/sh and expects a bash to be executed. But for Ubuntu, /bin/sh points
+to /bin/dash per default. An alternative solution is to re-configure this link
+using:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ sudo dpkg-reconfigure dash
 </code></pre></div><p>I had this issue in Vivado 2016.4 and Ubuntu 16.04 LTS.</p>
 ]]></content></entry><entry><title type="html">Rooting Intel Based Tablets on Linux Slash Mac Os X</title><link href="https://blog.thalheim.io/2015/12/25/rooting-intel-based-tablets-on-linux-slash-mac-os-x/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/12/25/rooting-intel-based-tablets-on-linux-slash-mac-os-x/</id><published>2015-12-25T00:00:00+00:00</published><updated>2015-12-25T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will explain how to root Intel-CPU based android Devices on
 Linux/Mac OS X. The instructions are based on this
@@ -587,24 +784,24 @@ I used this code to root a Medion LIFETAB P8912. However this should also apply
 to all devices mentioned in this forum post.</p>
 <p>The first thing to do, is install
 <a href="http://lifehacker.com/the-easiest-way-to-install-androids-adb-and-fastboot-to-1586992378" target="_blank">fastboot and adb</a>
-on your PC/Mac.
-Make sure that you have enabled the development option on your android device
-and are able to connect to it via adb.</p>
-<p>Then place the update, you want to install on the sdcard on your device.
-In case you want to install the root patch, you can download the latest
-<a href="http://download.chainfire.eu/supersu" target="_blank">SuperSU</a>. <strong>Note</strong> that you will be not able
-to install custom roms, if your bootloader is locked. If the signature missmatch
-it will refuse to boot.</p>
+on your PC/Mac. Make sure that you have enabled the development option on your
+android device and are able to connect to it via adb.</p>
+<p>Then place the update, you want to install on the sdcard on your device. In case
+you want to install the root patch, you can download the latest
+<a href="http://download.chainfire.eu/supersu" target="_blank">SuperSU</a>. <strong>Note</strong> that you will be not
+able to install custom roms, if your bootloader is locked. If the signature
+missmatch it will refuse to boot.</p>
 <p>The next thing to do is to download and extract
-<a href="https://www.androidfilehost.com/?fid=24052804347782876" target="_blank">IntelAndroid-FBRL-07-24-2015.7z</a> mentioned in the post.
-It contains a recovery images for CWM or TWRP and some custom trigger code to
-start a temporary CWM Recovery Session on the device. After reboot this session
-will be gone. But you can apply updates during the session such as SuperSU.
-You will <strong>not</strong> be able to follow the exact instructions from this forum post, because it contains a
-windows specific batch file and windows executables. However these are just
-fancy wrappers around adb and fastboot, so you can still use the contained images/launch code.</p>
-<p>To reboot your device into the bootloader, connect it to your computer and
-run, while it is turned on:</p>
+<a href="https://www.androidfilehost.com/?fid=24052804347782876" target="_blank">IntelAndroid-FBRL-07-24-2015.7z</a>
+mentioned in the post. It contains a recovery images for CWM or TWRP and some
+custom trigger code to start a temporary CWM Recovery Session on the device.
+After reboot this session will be gone. But you can apply updates during the
+session such as SuperSU. You will <strong>not</strong> be able to follow the exact
+instructions from this forum post, because it contains a windows specific batch
+file and windows executables. However these are just fancy wrappers around adb
+and fastboot, so you can still use the contained images/launch code.</p>
+<p>To reboot your device into the bootloader, connect it to your computer and run,
+while it is turned on:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ adb reboot-bootloader
 </code></pre></div><p>Within the boot loader, we will first put the alternate rescue image on the
 device along with some custom launcher code. I first tried TWRP on my device,
@@ -613,8 +810,8 @@ but my touchscreen didn&rsquo;t work with it, so I sticked to CWM:</p>
 $ fastboot flash /tmp/recovery.zip FB_RecoveryLauncher/cwm.zip
 $ fastboot flash /tmp/recovery.launcher FB_RecoveryLauncher/recovery.launcher
 </code></pre></div><p>The next thing to do is to trigger the device via fastboot to start our
-recovery. The forum post contained 4 alternatives approaches based on the android
-device. The following (T4) was working for me:</p>
+recovery. The forum post contained 4 alternatives approaches based on the
+android device. The following (T4) was working for me:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ fastboot oem start_partitioning; fastboot flash /system/bin/logcat FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
 </code></pre></div><p>This temporary replace logcat with a launcher. It is important to execute all
 commands in one shot. Otherwise fastboot will fail to flash logcat.</p>
@@ -626,10 +823,10 @@ $ fastboot flash /system/bin/cp FB_RecoveryLauncher/fbrl.trigger; fastboot oem b
 # T3
 $ fastboot flash /sbin/partlink FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
 </code></pre></div><p>If everything works it should start the recovery image.</p>
-]]></content></entry><entry><title type="html">Cgi Like Python Scripts With Systemd Socket Activation</title><link href="https://blog.thalheim.io/2015/06/25/cgi-like-python-scripts-with-systemd-socket-activation/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/06/25/cgi-like-python-scripts-with-systemd-socket-activation/</id><published>2015-06-25T00:00:00+00:00</published><updated>2015-06-25T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Lets say you want to trigger remote the start of a python script.
-But you don&rsquo;t want to have a service running all the time waiting for requests.</p>
-<p>What you can do, is using socket-unit in systemd, which is waiting on a tcp port for connections
-and starts the service, if somebody is requesting it.</p>
+]]></content></entry><entry><title type="html">Cgi Like Python Scripts With Systemd Socket Activation</title><link href="https://blog.thalheim.io/2015/06/25/cgi-like-python-scripts-with-systemd-socket-activation/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/06/25/cgi-like-python-scripts-with-systemd-socket-activation/</id><published>2015-06-25T00:00:00+00:00</published><updated>2015-06-25T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Lets say you want to trigger remote the start of a python script. But you don&rsquo;t
+want to have a service running all the time waiting for requests.</p>
+<p>What you can do, is using socket-unit in systemd, which is waiting on a tcp port
+for connections and starts the service, if somebody is requesting it.</p>
 <p>The systemd configuration could look like this:</p>
 <ul>
 <li>Listens on tcp port 3000 (both ipv4 and ipv6)</li>
@@ -685,11 +882,11 @@ and starts the service, if somebody is requesting it.</p>
         systemd_socket_response()
    <span style="color:#998;font-style:italic"># here your own code begins</span>
    do_work()
-</code></pre></div><p>This still lacks of authentication and does not take any arguments.
-You could protect this port using a frontend webserver with http authentication,
-or you pass the listen socket to an python http server, which add some token
-passed authentication. Systemd will ensure, that your service will not run more
-than once at the time.</p>
+</code></pre></div><p>This still lacks of authentication and does not take any arguments. You could
+protect this port using a frontend webserver with http authentication, or you
+pass the listen socket to an python http server, which add some token passed
+authentication. Systemd will ensure, that your service will not run more than
+once at the time.</p>
 ]]></content></entry><entry><title type="html">Fix Sshd Socket Activation When Using Tmux Slash Screen</title><link href="https://blog.thalheim.io/2015/04/13/fix-sshd-socket-activation-when-using-tmux-slash-screen/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/04/13/fix-sshd-socket-activation-when-using-tmux-slash-screen/</id><published>2015-04-13T00:00:00+00:00</published><updated>2015-04-13T00:00:00+00:00</updated><content type="html"><![CDATA[<p>When using sshd.socket to start sshd on demand, detaching from a tmux/screen
 session will not work. The reason is once the ssh session is closed, systemd
 will terminate all remaining processes in the sshd cgroups, which affects also
@@ -697,19 +894,22 @@ the tmux/screen background process. However this behaviour can be changed using
 the following drop-in file:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">[Service]
 KillMode=process
-</code></pre></div>]]></content></entry><entry><title type="html">Ipv6 Configuration on Digitalocean on Freebsd</title><link href="https://blog.thalheim.io/2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd/</id><published>2015-01-19T00:00:00+00:00</published><updated>2015-01-19T00:00:00+00:00</updated><content type="html"><![CDATA[<p>By default Digitalocean add some custom rc.d scripts for network configuration to your droplet.</p>
-<p>You can just append the content of <code>/etc/rc.digitalocean.d/droplet.conf</code> to your <code>/etc/rc.conf</code>
-In my case the public ipv4 address is <code>188.166.0.1</code> and my first ipv6 address
-is <code>2a03:b0c0:2:d0::2a5:f001</code>.</p>
+</code></pre></div>]]></content></entry><entry><title type="html">Ipv6 Configuration on Digitalocean on Freebsd</title><link href="https://blog.thalheim.io/2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd/</id><published>2015-01-19T00:00:00+00:00</published><updated>2015-01-19T00:00:00+00:00</updated><content type="html"><![CDATA[<p>By default Digitalocean add some custom rc.d scripts for network configuration
+to your droplet.</p>
+<p>You can just append the content of <code>/etc/rc.digitalocean.d/droplet.conf</code> to your
+<code>/etc/rc.conf</code> In my case the public ipv4 address is <code>188.166.0.1</code> and my first
+ipv6 address is <code>2a03:b0c0:2:d0::2a5:f001</code>.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#008080">defaultrouter</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;188.166.0.1&#34;</span>
 <span style="color:#998;font-style:italic"># ipv6 address are shortend for readability</span>
 <span style="color:#008080">ipv6_defaultrouter</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;2a03:b0c0:2:d0::1&#34;</span>
 <span style="color:#008080">ifconfig_vtnet0</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;inet 188.166.16.37 netmask 255.255.192.0&#34;</span>
 <span style="color:#008080">ifconfig_vtnet0_ipv6</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;inet6 2a03:b0c0:2:d0::2a5:f001 prefixlen 64&#34;</span>
-</code></pre></div><p>Digitalocean provides these days for native Ipv6 for the most of its datacenters.
-Unlike other hoster they are very spare, when distributing Ipv6
-Addresses and only route 16 addresses per droplet (xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxx1 until xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxf).
-To make use of these additional ip addresses they have to be assigned to your network interface <code>vtnet0</code>:</p>
+</code></pre></div><p>Digitalocean provides these days for native Ipv6 for the most of its
+datacenters. Unlike other hoster they are very spare, when distributing Ipv6
+Addresses and only route 16 addresses per droplet
+(xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxx1 until xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxf).
+To make use of these additional ip addresses they have to be assigned to your
+network interface <code>vtnet0</code>:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#008080">ifconfig_vtnet0_aliases</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;\
 </span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f002 prefixlen 64 \
 </span><span style="color:#d14">                      inet6 2a03:b0c0:2:d0::2a5:f003 prefixlen 64 \
@@ -750,7 +950,8 @@ series:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ sudo service netif restart; sudo /etc/rc.d/routing restart
 </code></pre></div><p>The second command is important because it adds the ipv4 gateway back. Otherwise
 you will not reach your droplet via ipv4 without rebooting.</p>
-<p>If everything still works, you can remove, the following files leftover from cloudflare&rsquo;s provisioning:</p>
+<p>If everything still works, you can remove, the following files leftover from
+cloudflare&rsquo;s provisioning:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ rm /etc/rc.d/digitalocean
 $ rm -r /etc/rc.digitalocean.d
 $ rm -r /usr/local/bsd-cloudinit/
@@ -777,8 +978,9 @@ group default qlen 1000
        valid_lft forever preferred_lft forever
 
 </code></pre></div><p>which is <code>02:8a:03:43:02:2a</code> in my case.</p>
-]]></content><category scheme="https://blog.thalheim.io/categories/linux" term="linux" label="linux"/><category scheme="https://blog.thalheim.io/categories/bananapi" term="bananapi" label="bananapi"/><category scheme="https://blog.thalheim.io/categories/network" term="network" label="network"/></entry><entry><title type="html">Remove Current Binding Dot Pry From Pry</title><link href="https://blog.thalheim.io/2014/11/14/remove-current-binding-dot-pry-from-pry/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/11/14/remove-current-binding-dot-pry-from-pry/</id><published>2014-11-14T00:00:00+00:00</published><updated>2014-11-14T00:00:00+00:00</updated><content type="html"><![CDATA[<p>If you are a ruby user and find it annoying to remove <a href="http://pryrepl.org/" target="_blank">binding.pry</a> by hand, you may
-find the following snippet useful. (Put it in your ~/.pryrc to use it)</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/linux" term="linux" label="linux"/><category scheme="https://blog.thalheim.io/categories/bananapi" term="bananapi" label="bananapi"/><category scheme="https://blog.thalheim.io/categories/network" term="network" label="network"/></entry><entry><title type="html">Remove Current Binding Dot Pry From Pry</title><link href="https://blog.thalheim.io/2014/11/14/remove-current-binding-dot-pry-from-pry/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/11/14/remove-current-binding-dot-pry-from-pry/</id><published>2014-11-14T00:00:00+00:00</published><updated>2014-11-14T00:00:00+00:00</updated><content type="html"><![CDATA[<p>If you are a ruby user and find it annoying to remove
+<a href="http://pryrepl.org/" target="_blank">binding.pry</a> by hand, you may find the following snippet
+useful. (Put it in your ~/.pryrc to use it)</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#008080">Pry</span><span style="color:#000;font-weight:bold">.</span>config<span style="color:#000;font-weight:bold">.</span>commands<span style="color:#000;font-weight:bold">.</span>command <span style="color:#d14">&#34;remove-pry&#34;</span>, <span style="color:#d14">&#34;Remove current pry&#34;</span> <span style="color:#000;font-weight:bold">do</span>
   <span style="color:#0086b3">require</span> <span style="color:#d14">&#39;pry/commands/edit/file_and_line_locator&#39;</span>
   file_name, remove_line <span style="color:#000;font-weight:bold">=</span>
@@ -812,7 +1014,7 @@ find the following snippet useful. (Put it in your ~/.pryrc to use it)</p>
   a_shiny_method
 <span style="color:#000;font-weight:bold">end</span>
 <span style="color:#998;font-style:italic"># ...</span>
-</code></pre></div>]]></content></entry><entry><title type="html">Ferm Rules for Docker</title><link href="https://blog.thalheim.io/2014/11/01/ferm-rules-for-docker/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/11/01/ferm-rules-for-docker/</id><published>2014-11-01T00:00:00+00:00</published><updated>2014-11-01T00:00:00+00:00</updated><content type="html"><![CDATA[<p>The Docker daemon add his own custom rules by default to iptables.  If you use
+</code></pre></div>]]></content></entry><entry><title type="html">Ferm Rules for Docker</title><link href="https://blog.thalheim.io/2014/11/01/ferm-rules-for-docker/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/11/01/ferm-rules-for-docker/</id><published>2014-11-01T00:00:00+00:00</published><updated>2014-11-01T00:00:00+00:00</updated><content type="html"><![CDATA[<p>The Docker daemon add his own custom rules by default to iptables. If you use
 <a href="http://ferm.foo-projects.org/" target="_blank">ferm</a> to manage your iptables rules, it is a
 good idea to prepopulate rules for docker. Otherwise they will be overwritten by
 ferm as it restarts.</p>
@@ -839,14 +1041,19 @@ ferm as it restarts.</p>
 }
 </code></pre></div><p>In my case docker&rsquo;s subnet is <code>172.17.0.0/16</code> and uses <code>docker0</code> as bridge
 device.</p>
-]]></content></entry><entry><title type="html">Gathering Crash Reports and User Feedback for Your Android App</title><link href="https://blog.thalheim.io/2014/06/10/gathering-crash-reports-and-user-feedback-for-your-android-app/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/06/10/gathering-crash-reports-and-user-feedback-for-your-android-app/</id><published>2014-06-10T00:00:00+00:00</published><updated>2014-06-10T00:00:00+00:00</updated><content type="html"><![CDATA[<p><strong>tl;dr:</strong> How-to use ACRA and a PHP-script for getting <strong>fairly pretty crash-reports and
-user-feedback via email</strong> (without ugly Android email-Intents)</p>
+]]></content></entry><entry><title type="html">Gathering Crash Reports and User Feedback for Your Android App</title><link href="https://blog.thalheim.io/2014/06/10/gathering-crash-reports-and-user-feedback-for-your-android-app/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/06/10/gathering-crash-reports-and-user-feedback-for-your-android-app/</id><published>2014-06-10T00:00:00+00:00</published><updated>2014-06-10T00:00:00+00:00</updated><content type="html"><![CDATA[<p><strong>tl;dr:</strong> How-to use ACRA and a PHP-script for getting <strong>fairly pretty
+crash-reports and user-feedback via email</strong> (without ugly Android email-Intents)</p>
 <h2 id="introduction">Introduction</h2>
-<p>I&rsquo;m the developer of <a href="https://github.com/chaosbastler/opentraining" target="_blank">OpenTraining</a>, an open source Android app for fitness training.
-I recently looked for a possibility to add a simple feedback system to my app.
-There&rsquo;s an open source framework for crash reports named <a href="https://github.com/ACRA" target="_blank">ACRA</a> that I decided to use for both crash reports and user feedback.</p>
-<p>The Google Play Store offers a crash report system as well, but if you deploy your app on multiple app stores you might want a central instance for collecting crash reports.
-For user feedback many apps simply open an email-Intent but I don&rsquo;t think this offers a good user experience.</p>
+<p>I&rsquo;m the developer of
+<a href="https://github.com/chaosbastler/opentraining" target="_blank">OpenTraining</a>, an open source
+Android app for fitness training. I recently looked for a possibility to add a
+simple feedback system to my app. There&rsquo;s an open source framework for crash
+reports named <a href="https://github.com/ACRA" target="_blank">ACRA</a> that I decided to use for both
+crash reports and user feedback.</p>
+<p>The Google Play Store offers a crash report system as well, but if you deploy
+your app on multiple app stores you might want a central instance for collecting
+crash reports. For user feedback many apps simply open an email-Intent but I
+don&rsquo;t think this offers a good user experience.</p>
 <p>This is how the user feedback dialog and the generated mail look like:</p>
 <p><figure>
   <img src="/downloads/android_feedback.jpg" alt="Android feedback dialog and feedback mail"  title="Android feedback dialog and feedback mail"  />
@@ -862,17 +1069,28 @@ For user feedback many apps simply open an email-Intent but I don&rsquo;t think 
 <ul>
 <li>does not scale (e.g. if you have 50.000+ users)</li>
 </ul>
-<p>If your project is pretty large you should consider another <a href="https://github.com/ACRA/acra/wiki/Backends" target="_blank">ACRA-backend</a>. I tried some of them, but as long as I get &lt; 20 emails per week I&rsquo;ll use the PHP backend.</p>
-<p>This How-to is based on <a href="https://github.com/ACRA" target="_blank">ACRA</a> and <a href="https://github.com/d-a-n/acra-mailer" target="_blank">ACRA-mailer</a>.</p>
+<p>If your project is pretty large you should consider another
+<a href="https://github.com/ACRA/acra/wiki/Backends" target="_blank">ACRA-backend</a>. I tried some of
+them, but as long as I get &lt; 20 emails per week I&rsquo;ll use the PHP backend.</p>
+<p>This How-to is based on <a href="https://github.com/ACRA" target="_blank">ACRA</a> and
+<a href="https://github.com/d-a-n/acra-mailer" target="_blank">ACRA-mailer</a>.</p>
 <h2 id="how-to">How-To</h2>
-<p>The most important changes I had to apply to my project for adding the feedback-feature can be seen in <a href="https://github.com/chaosbastler/opentraining/commit/19e52b76b8370e78b9d67e4110d04463d1cd2ad6" target="_blank">this commit</a> on GitHub (but there have been some more commits concerning ACRA).</p>
+<p>The most important changes I had to apply to my project for adding the
+feedback-feature can be seen in
+<a href="https://github.com/chaosbastler/opentraining/commit/19e52b76b8370e78b9d67e4110d04463d1cd2ad6" target="_blank">this commit</a>
+on GitHub (but there have been some more commits concerning ACRA).</p>
 <h3 id="1-add-acra-to-your-project">1. Add ACRA to your project</h3>
 <ul>
 <li>Open your Eclipse project</li>
-<li>Add the file <a href="http://search.maven.org/remotecontent?filepath=ch/acra/acra/4.5.0/acra-4.5.0.jar" target="_blank">acra-4.X.Y.jar</a> to the libs folder</li>
+<li>Add the file
+<a href="http://search.maven.org/remotecontent?filepath=ch/acra/acra/4.5.0/acra-4.5.0.jar" target="_blank">acra-4.X.Y.jar</a>
+to the libs folder</li>
 <li>Right-click on the jar file -&gt; add to build path</li>
 </ul>
-<p>If you have any problems with this step have a look at the <a href="https://github.com/ACRA/acra/wiki/BasicSetup" target="_blank">ACRA documentation</a>. There&rsquo;s also a description for <a href="https://github.com/ACRA/acra/wiki/AdvancedUsage#integrating-as-a-dependency-with-maven-or-gradle" target="_blank">Gradle integration</a>.</p>
+<p>If you have any problems with this step have a look at the
+<a href="https://github.com/ACRA/acra/wiki/BasicSetup" target="_blank">ACRA documentation</a>. There&rsquo;s also
+a description for
+<a href="https://github.com/ACRA/acra/wiki/AdvancedUsage#integrating-as-a-dependency-with-maven-or-gradle" target="_blank">Gradle integration</a>.</p>
 <h3 id="2-use-the-acra-library">2. Use the ACRA library</h3>
 <p>Create a new class that extends Application:</p>
 <pre><code>import org.acra.*;
@@ -887,7 +1105,7 @@ import android.app.Application;
 
 
 public class YourApplication extends Application{
- 
+
     @Override
      public void onCreate() {
          super.onCreate();
@@ -905,45 +1123,62 @@ public class YourApplication extends Application{
 <li>In the Application tab, click on the Browse button next to the Name field</li>
 <li>Select your newly created Application class</li>
 </ul>
-<p>Make sure that your application requests the permission <strong>&lsquo;android.permission.INTERNET&rsquo;</strong>.</p>
+<p>Make sure that your application requests the permission
+<strong>&lsquo;android.permission.INTERNET&rsquo;</strong>.</p>
 <h3 id="3-add-reportsender">3. Add ReportSender</h3>
 <p>I use 2 different implementations of ReportSender:</p>
 <ul>
-<li>one to report crashes: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/ACRACrashReportMailer.java" target="_blank">ACRACrashReportMailer</a></li>
-<li>one to report feedback: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/ACRAFeedbackMailer.java" target="_blank">ACRAFeedbackMailer</a></li>
+<li>one to report crashes:
+<a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/ACRACrashReportMailer.java" target="_blank">ACRACrashReportMailer</a></li>
+<li>one to report feedback:
+<a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/ACRAFeedbackMailer.java" target="_blank">ACRAFeedbackMailer</a></li>
 </ul>
-<p>The crash reporter sends nearly all data that&rsquo;s available, the feedback reporter sends the user message, the date and the app version. Add both to your project.</p>
-<p>Remember to change the &lsquo;BASE_URL&rsquo;. Use HTTPS if your server supports it (mine doesn&rsquo;t).</p>
+<p>The crash reporter sends nearly all data that&rsquo;s available, the feedback reporter
+sends the user message, the date and the app version. Add both to your project.</p>
+<p>Remember to change the &lsquo;BASE_URL&rsquo;. Use HTTPS if your server supports it (mine
+doesn&rsquo;t).</p>
 <h3 id="4-add-php-scripts">4. Add PHP scripts</h3>
 <p>There are 2 PHP scripts as well:</p>
 <ul>
-<li>one to report crashes: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/acra_crash.php" target="_blank">acra_crash.php</a></li>
-<li>one to report feedback: <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/acra_feedback.php" target="_blank">acra_feedback.php</a></li>
+<li>one to report crashes:
+<a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/acra_crash.php" target="_blank">acra_crash.php</a></li>
+<li>one to report feedback:
+<a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/acra_feedback.php" target="_blank">acra_feedback.php</a></li>
 </ul>
-<p>You will also need the <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/mail_template.txt" target="_blank">mail template</a>.
-Change the destination email and add the files to the webspace/server of your choice (e.g. <a href="https://uberspace.de/" target="_blank">uberspace</a>). If you want you can change the &ldquo;shared_secret&rdquo;, but remember to do this in the Java class as well.</p>
+<p>You will also need the
+<a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/server/mail_template.txt" target="_blank">mail template</a>.
+Change the destination email and add the files to the webspace/server of your
+choice (e.g. <a href="https://uberspace.de/" target="_blank">uberspace</a>). If you want you can change the
+&ldquo;shared_secret&rdquo;, but remember to do this in the Java class as well.</p>
 <h3 id="5-test-receiving-feedback">5. Test receiving feedback</h3>
 <p>Now you should have a try and test sending feedback to yourself:</p>
 <pre><code>ACRA.getErrorReporter().setReportSender(new ACRAFeedbackMailer());
 ACRA.getErrorReporter().putCustomData(&quot;User message&quot;, &quot;Some Text here&quot;);
 ACRA.getErrorReporter().handleSilentException(new NullPointerException(&quot;Test&quot;));
 </code></pre>
-<p>If this works you need a suitable spot for your user feedback. In most cases a <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/create_workout/SendExerciseFeedbackDialogFragment.java" target="_blank">dialog</a> should be fine.</p>
-<p>Consider to write your <a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/RequestExerciseUpdate.java" target="_blank">own class(es)</a> that extend(s) Exception.
-Your PHP script could do further processing with this information.</p>
+<p>If this works you need a suitable spot for your user feedback. In most cases a
+<a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/create_workout/SendExerciseFeedbackDialogFragment.java" target="_blank">dialog</a>
+should be fine.</p>
+<p>Consider to write your
+<a href="https://github.com/chaosbastler/opentraining/blob/71db0726607885fb815e230886dcebeb93817371/app/src/de/skubware/opentraining/activity/acra/RequestExerciseUpdate.java" target="_blank">own class(es)</a>
+that extend(s) Exception. Your PHP script could do further processing with this
+information.</p>
 <h2 id="ideas-for-further-improvements">Ideas for further improvements</h2>
 <h3 id="improve-the-email-formatting">Improve the email formatting</h3>
-<p>As you have a server-side script it is very easy to change the formatting of the emails.
-Highlighting the user comments or the type of exception may be a good first step.</p>
+<p>As you have a server-side script it is very easy to change the formatting of the
+emails. Highlighting the user comments or the type of exception may be a good
+first step.</p>
 <h3 id="usage-for-larger-projects">Usage for larger projects</h3>
-<p>With the use of two different implementations of ReportSender it is also possible to use email only for sending feedback and send crash reports to another backend that is better suited for bug tracking.
-For larger projects this approach is recommended.</p>
+<p>With the use of two different implementations of ReportSender it is also
+possible to use email only for sending feedback and send crash reports to
+another backend that is better suited for bug tracking. For larger projects this
+approach is recommended.</p>
 <p><em>by Christian Skubich</em></p>
 <p>eMail: <a href="mailto:christian@skubware.de">christian@skubware.de</a></p>
 <p>Twitter: <a href="https://twitter.com/chaosbastler" target="_blank">@chaosbastler</a></p>
 ]]></content></entry><entry><title type="html">Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq</title><link href="https://blog.thalheim.io/2014/02/08/internet-sharing-ipv4-and-ipv6-on-archlinux-using-dnsmasq/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/02/08/internet-sharing-ipv4-and-ipv6-on-archlinux-using-dnsmasq/</id><published>2014-02-08T00:00:00+00:00</published><updated>2014-02-08T00:00:00+00:00</updated><content type="html"><![CDATA[<p><strong>Update:</strong> Added adhoc wlan network</p>
-<p>A guide to connect with a different machine using a ethernet cable for
-internet sharing or just transferring files:</p>
+<p>A guide to connect with a different machine using a ethernet cable for internet
+sharing or just transferring files:</p>
 <ol>
 <li>
 <p>Install dnsmasq and iproute2</p>
@@ -959,14 +1194,15 @@ internet sharing or just transferring files:</p>
 <p>$ sudo systemctl start internet-sharing@<!-- raw HTML omitted -->.service</p>
 </li>
 </ol>
-<p>After that the other machine can connect via dhcp. It will get an ipv4
-address from the <strong>10.20.0.0/24</strong> subnet and a ipv6 address from the <strong>fd21:30c2:dd2f::</strong>
-subnet. Your host will be reachable via <strong>10.20.0.1</strong> or <strong>fd21:30c2:dd2f::1</strong>.
-Thanks to ipv6 router advertising, an AAAA record for each host is automatically set based on the hostname.
-This means if your hostname is <em>foo</em>, all members of the network can just connect
-to it using the address <em>foo</em>. You should disable the share-internet.service, if
-you don&rsquo;t need it. Otherwise you might mess up network setups, if you connect to a
-network with the device on which the dhcp service is running.</p>
+<p>After that the other machine can connect via dhcp. It will get an ipv4 address
+from the <strong>10.20.0.0/24</strong> subnet and a ipv6 address from the
+<strong>fd21:30c2:dd2f::</strong> subnet. Your host will be reachable via <strong>10.20.0.1</strong> or
+<strong>fd21:30c2:dd2f::1</strong>. Thanks to ipv6 router advertising, an AAAA record for
+each host is automatically set based on the hostname. This means if your
+hostname is <em>foo</em>, all members of the network can just connect to it using the
+address <em>foo</em>. You should disable the share-internet.service, if you don&rsquo;t need
+it. Otherwise you might mess up network setups, if you connect to a network with
+the device on which the dhcp service is running.</p>
 <p>Happy networking!</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># google as an upstream dns server
 server=8.8.8.8
@@ -985,9 +1221,9 @@ IP6_ADDRESS=&#34;fd21:30c2:dd2f::1&#34;
 IP6_NETMASK=&#34;64&#34;
 IP6_SUBNET=&#34;fd21:30c2:dd2f::&#34;
 </code></pre></div><p>Wlan to Ethernet:</p>
-<p>If you have luck and your wifi driver is capable of the infrastructure mode,
-you should take a look at hostadp, in my case I have to create an adhoc network.
-To enable the adhoc network:</p>
+<p>If you have luck and your wifi driver is capable of the infrastructure mode, you
+should take a look at hostadp, in my case I have to create an adhoc network. To
+enable the adhoc network:</p>
 <p>$ sudo systemctl enable wireless-adhoc@&lt;device&gt;.service</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback"># Device which has internet access, ex: wlan0 or usb0
 EXTERNAL_DEVICE=&#34;enp0s20u2&#34;
@@ -1043,14 +1279,14 @@ network={
 #    wep_key0=&#34;fnord&#34;
 #    wep_tx_keyidx=0
 #}
-</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/arch" term="arch" label="arch"/><category scheme="https://blog.thalheim.io/categories/dhcp" term="dhcp" label="dhcp"/><category scheme="https://blog.thalheim.io/categories/ipv6-router-advertisement" term="ipv6-router-advertisement" label="ipv6 router advertisement"/><category scheme="https://blog.thalheim.io/categories/network" term="network" label="network"/></entry><entry><title type="html">Busybox to the Rescue</title><link href="https://blog.thalheim.io/2014/01/30/busybox-to-the-rescue/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/01/30/busybox-to-the-rescue/</id><published>2014-01-30T00:00:00+00:00</published><updated>2014-01-30T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Some days before I broke my raspberry pie, after pacman running out of memory, while
-updating my glibc. To solve such problems on any of my machines, I decided to
-setup rescue systems with busybox. Therefor just install the package <em>busybox</em>
-on archlinux or <em>busybox-static</em> if you are on debian.
-Busybox is a so called multi-call binary.
-This means, it exposes different behaviour depending on the program name, which
-is used to execute it. As a basic environment for the rescue system, I created a
-symlinks for every command which busybox is capable of:</p>
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/arch" term="arch" label="arch"/><category scheme="https://blog.thalheim.io/categories/dhcp" term="dhcp" label="dhcp"/><category scheme="https://blog.thalheim.io/categories/ipv6-router-advertisement" term="ipv6-router-advertisement" label="ipv6 router advertisement"/><category scheme="https://blog.thalheim.io/categories/network" term="network" label="network"/></entry><entry><title type="html">Busybox to the Rescue</title><link href="https://blog.thalheim.io/2014/01/30/busybox-to-the-rescue/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2014/01/30/busybox-to-the-rescue/</id><published>2014-01-30T00:00:00+00:00</published><updated>2014-01-30T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Some days before I broke my raspberry pie, after pacman running out of memory,
+while updating my glibc. To solve such problems on any of my machines, I decided
+to setup rescue systems with busybox. Therefor just install the package
+<em>busybox</em> on archlinux or <em>busybox-static</em> if you are on debian. Busybox is a so
+called multi-call binary. This means, it exposes different behaviour depending
+on the program name, which is used to execute it. As a basic environment for the
+rescue system, I created a symlinks for every command which busybox is capable
+of:</p>
 <pre><code>$ sudo mkdir /opt/busybox/bin
 
 $ busybox --list | xargs -n 1 -d &quot;\n&quot; -I &quot;cmd&quot; sudo ln -s $(which busybox) /opt/busybox/bin/cmd
@@ -1065,9 +1301,8 @@ make things like su work:</p>
 <pre><code>$ sudo busybox passwd -a 2 rescue # use sha1 instead of sha256
 $ sudo busybox passwd -a 2 root
 </code></pre>
-<p>The login shell is set in this case to the one busybox provides.
-In order to be able to login via ssh this shell has to be added
-<em>/etc/shells</em>:</p>
+<p>The login shell is set in this case to the one busybox provides. In order to be
+able to login via ssh this shell has to be added <em>/etc/shells</em>:</p>
 <pre><code>$ echo /opt/busybox/bin/ash | sudo tee -a /etc/shells
 </code></pre>
 <p>The last thing left, is to prepend the path with busybox symlinks, to the PATH
@@ -1078,23 +1313,24 @@ variable of the rescue user, to use them instead of their coreutils equivalents.
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">remove Lock = Caps_Lock
 keysym Caps_Lock = Shift_L
 add Shift = Shift_L
-</code></pre></div><p>However these settings got sometimes lost. (ex: after the driver was reloaded after suspend).
-Finally I found event_key_remap patch from <a href="http://www.thenautilus.net/SW/xf86-input-evdev/en" target="_blank">here</a>,
-which allows to permanently redefine keys in the xorg.conf.</p>
-<p>To apply the patch under archlinux simply install <a href="https://aur.archlinux.org/packages/xf86-input-evdev-remap/?setlang=de" target="_blank">xf86-input-evdev-remap</a> from AUR:</p>
+</code></pre></div><p>However these settings got sometimes lost. (ex: after the driver was reloaded
+after suspend). Finally I found event_key_remap patch from
+<a href="http://www.thenautilus.net/SW/xf86-input-evdev/en" target="_blank">here</a>, which allows to
+permanently redefine keys in the xorg.conf.</p>
+<p>To apply the patch under archlinux simply install
+<a href="https://aur.archlinux.org/packages/xf86-input-evdev-remap/?setlang=de" target="_blank">xf86-input-evdev-remap</a>
+from AUR:</p>
 <pre><code>yaourt -S xf86-input-evdev-remap
 </code></pre>
-<p>To track down the key, you want to remap use <code>xev</code> on the terminal.
-Just type the wanted keys a few times. The output will be something like
-the following:</p>
+<p>To track down the key, you want to remap use <code>xev</code> on the terminal. Just type
+the wanted keys a few times. The output will be something like the following:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">KeyRelease event,  serial 33,  synthetic NO,  window 0x1e00001,
     root 0x8e,  subw 0x0,  time 5672767,  (611, 262),  root:(613, 288),
     state 0x1,  keycode 50 (keysym 0xffe1,  Shift_L),  same_screen YES
     XLookupString gives 0 bytes:
     XFilterEvent returns: False
-</code></pre></div><p>The interesting value here is the <code>keycode</code>.
-Use this code to build your final xorg.conf.
-In my case this was:</p>
+</code></pre></div><p>The interesting value here is the <code>keycode</code>. Use this code to build your final
+xorg.conf. In my case this was:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">#/etc/X11/xorg.conf.d/10-kb-layout.conf
 Section &#34;InputClass&#34;
     Identifier             &#34;Keyboard Defaults&#34;
@@ -1102,11 +1338,15 @@ Section &#34;InputClass&#34;
     Option                 &#34;XkbLayout&#34; &#34;de&#34;          # Replace this with your layout
     Option                 &#34;event_key_remap&#34; &#34;58=50&#34; # Caps Lock Key = Shift
 EndSection
-</code></pre></div>]]></content></entry><entry><title type="html">Global Request Management With Restkit</title><link href="https://blog.thalheim.io/2013/09/03/global-request-management-with-restkit/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/09/03/global-request-management-with-restkit/</id><published>2013-09-03T00:00:00+00:00</published><updated>2013-09-03T00:00:00+00:00</updated><content type="html"><![CDATA[<p>For our latest iOS app we are using <a href="http://restkit.org" target="_blank">RestKit Framework</a>, which is a really great and advanced library to communicate to your REST API.</p>
-<p>When you have lots of requests in different areas of your project, you may want to have a global handling for failure events.
-For example how an Login View, if any of the requests gives you an 401 (Unauthorized) status code.</p>
-<p>In RestKit 0.20 they introduced the oppertunity to register your own <code>RKObjectRequestOperation</code>, which is the common way to do this.</p>
-<p>So at first you create a subclass of <code>RKObjectRequestOperation</code>, let&rsquo;s call it <code>CustomRKObjectRequestOperation</code></p>
+</code></pre></div>]]></content></entry><entry><title type="html">Global Request Management With Restkit</title><link href="https://blog.thalheim.io/2013/09/03/global-request-management-with-restkit/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/09/03/global-request-management-with-restkit/</id><published>2013-09-03T00:00:00+00:00</published><updated>2013-09-03T00:00:00+00:00</updated><content type="html"><![CDATA[<p>For our latest iOS app we are using <a href="http://restkit.org" target="_blank">RestKit Framework</a>,
+which is a really great and advanced library to communicate to your REST API.</p>
+<p>When you have lots of requests in different areas of your project, you may want
+to have a global handling for failure events. For example how an Login View, if
+any of the requests gives you an 401 (Unauthorized) status code.</p>
+<p>In RestKit 0.20 they introduced the oppertunity to register your own
+<code>RKObjectRequestOperation</code>, which is the common way to do this.</p>
+<p>So at first you create a subclass of <code>RKObjectRequestOperation</code>, let&rsquo;s call it
+<code>CustomRKObjectRequestOperation</code></p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">
 <span style="color:#999;font-weight:bold;font-style:italic">#import &#34;RKObjectRequestOperation.h&#34;
 </span><span style="color:#999;font-weight:bold;font-style:italic"></span>
@@ -1122,32 +1362,37 @@ For example how an Login View, if any of the requests gives you an 401 (Unauthor
         <span style="color:#000;font-weight:bold">if</span> (success) {
             success(operation, mappingResult);
         }
-        
+
     }<span style="color:#900;font-weight:bold">failure</span>:<span style="color:#000;font-weight:bold">^</span><span style="color:#458;font-weight:bold">void</span>(RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation , NSError <span style="color:#000;font-weight:bold">*</span>error) {
-        
+
         [[NSNotificationCenter defaultCenter] <span style="color:#900;font-weight:bold">postNotificationName</span>:<span style="color:#d14">@&#34;connectionFailure&#34;</span> <span style="color:#900;font-weight:bold">object</span>:operation];
-        
+
         <span style="color:#000;font-weight:bold">if</span> (failure) {
             failure(operation, error);
         }
-        
+
     }];
 }
 
 <span style="color:#000;font-weight:bold">@end</span>
 
-</code></pre></div><p>This is the point where we overwrite the method which sets the completion and failure block.
-I use the Observer Pattern (<code>NSNotificationCenter</code>) to notify about connectionFailures. (<a href="http://mobile.tutsplus.com/tutorials/iphone/ios-sdk_nsnotificationcenter/" target="_blank">Learn more about NSNotificationCenter</a>)</p>
-<p>Of course we need to tell RestKit to use our custom <code>RKObjectRequestOperation</code> class. You can do this by adding this line to you RestKit configuration:</p>
+</code></pre></div><p>This is the point where we overwrite the method which sets the completion and
+failure block. I use the Observer Pattern (<code>NSNotificationCenter</code>) to notify
+about connectionFailures.
+(<a href="http://mobile.tutsplus.com/tutorials/iphone/ios-sdk_nsnotificationcenter/" target="_blank">Learn more about NSNotificationCenter</a>)</p>
+<p>Of course we need to tell RestKit to use our custom <code>RKObjectRequestOperation</code>
+class. You can do this by adding this line to you RestKit configuration:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">[[RKObjectManager sharedManager] <span style="color:#900;font-weight:bold">registerRequestOperationClass</span>:[CustomRKObjectRequestOperation <span style="color:#000;font-weight:bold">class</span>]];
-</code></pre></div><p>Now we need a class where we listen to the failure notifications. You can choose any of your class, I use the AppDelegate for this.</p>
+</code></pre></div><p>Now we need a class where we listen to the failure notifications. You can choose
+any of your class, I use the AppDelegate for this.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">[[NSNotificationCenter defaultCenter] <span style="color:#900;font-weight:bold">addObserver</span>:<span style="color:#0086b3">self</span> <span style="color:#900;font-weight:bold">selector</span>:<span style="color:#000;font-weight:bold">@selector</span>(<span style="color:#900;font-weight:bold">connectionFailedWithOperation</span>:) <span style="color:#900;font-weight:bold">name</span>:<span style="color:#d14">@&#34;connectionFailure&#34;</span> <span style="color:#900;font-weight:bold">object</span>:<span style="color:#0086b3">nil</span>];
-</code></pre></div><p>As you should know, the <code>connectionFailedWithOperation:</code> is called when a connection failure occures.</p>
+</code></pre></div><p>As you should know, the <code>connectionFailedWithOperation:</code> is called when a
+connection failure occures.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">- (<span style="color:#458;font-weight:bold">void</span>)<span style="color:#900;font-weight:bold">connectionFailedWithOperation:</span>(NSNotification <span style="color:#000;font-weight:bold">*</span>)<span style="color:#008080">notification</span>
 {
     RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation <span style="color:#000;font-weight:bold">=</span> (RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>)notification.object;
     <span style="color:#000;font-weight:bold">if</span> (operation) {
-        
+
         NSInteger statusCode <span style="color:#000;font-weight:bold">=</span> operation.HTTPRequestOperation.response.statusCode;
 
         <span style="color:#000;font-weight:bold">switch</span> (statusCode) {
@@ -1159,7 +1404,7 @@ I use the Observer Pattern (<code>NSNotificationCenter</code>) to notify about c
 </span><span style="color:#998;font-style:italic"></span>            {
             }
                 <span style="color:#000;font-weight:bold">break</span>;
-                
+
             <span style="color:#000;font-weight:bold">default</span><span style="color:#000;font-weight:bold">:</span>
             {
             }
@@ -1175,11 +1420,10 @@ If you have any questions feel free to contact me:<br>
 eMail: <a href="mailto:mail@halfco.de">mail@halfco.de</a><br>
 Twitter: <a href="https://twitter.com/albert_sn" target="_blank">@albert_sn</a><br>
 Web: <a href="http://halfco.de" target="_blank">halfco.de</a></p>
-]]></content></entry><entry><title type="html">Mongoid Use Objectid as Created At</title><link href="https://blog.thalheim.io/2013/08/23/mongoid-use-objectid-as-created-at/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/08/23/mongoid-use-objectid-as-created-at/</id><published>2013-08-23T00:00:00+00:00</published><updated>2013-08-23T00:00:00+00:00</updated><content type="html"><![CDATA[<p>date = &ldquo;Nov&rdquo;
-slug = &ldquo;Nov/mongoid-use-objectid-as-created-at&rdquo;</p>
-<p>One great feature of Mongodb is, that the first bytes of each ObjectID contains the time, they were generated.
-This can be exploited to mimic the well known <code>created_at</code> field in rails.
-First put this file in your lib directory.</p>
+]]></content></entry><entry><title type="html">Mongoid Use Objectid as Created At</title><link href="https://blog.thalheim.io/2013/08/23/mongoid-use-objectid-as-created-at/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/08/23/mongoid-use-objectid-as-created-at/</id><published>2013-08-23T00:00:00+00:00</published><updated>2013-08-23T00:00:00+00:00</updated><content type="html"><![CDATA[<p>date = &ldquo;Nov&rdquo; slug = &ldquo;Nov/mongoid-use-objectid-as-created-at&rdquo;</p>
+<p>One great feature of Mongodb is, that the first bytes of each ObjectID contains
+the time, they were generated. This can be exploited to mimic the well known
+<code>created_at</code> field in rails. First put this file in your lib directory.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#998;font-style:italic">#lib/mongoid/created.rb</span>
 <span style="color:#000;font-weight:bold">module</span> <span style="color:#555">Mongoid</span>
   <span style="color:#000;font-weight:bold">module</span> <span style="color:#555">CreatedAt</span>
@@ -1200,7 +1444,8 @@ First put this file in your lib directory.</p>
     <span style="color:#000;font-weight:bold">end</span>
   <span style="color:#000;font-weight:bold">end</span>
 <span style="color:#000;font-weight:bold">end</span>
-</code></pre></div><p>If you are still using mongoid 3 replace <code>BSON::ObjectId</code> with <code>Moped::BSON::ObjectId</code>.</p>
+</code></pre></div><p>If you are still using mongoid 3 replace <code>BSON::ObjectId</code> with
+<code>Moped::BSON::ObjectId</code>.</p>
 <p>Now you can include this module in every Model, where you need created at.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#998;font-style:italic">#app/models/user.rb</span>
 <span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">User</span>
@@ -1211,9 +1456,9 @@ First put this file in your lib directory.</p>
 u <span style="color:#000;font-weight:bold">=</span> <span style="color:#008080">User</span><span style="color:#000;font-weight:bold">.</span>new(<span style="color:#990073">created_at</span>: <span style="color:#099">1</span><span style="color:#000;font-weight:bold">.</span>hour<span style="color:#000;font-weight:bold">.</span>ago)
 u<span style="color:#000;font-weight:bold">.</span>created_at
 </code></pre></div><p>That&rsquo;s all easy enough, isn&rsquo;t it?</p>
-]]></content><category scheme="https://blog.thalheim.io/categories/mongodb" term="mongodb" label="mongodb"/><category scheme="https://blog.thalheim.io/categories/rails" term="rails" label="rails"/><category scheme="https://blog.thalheim.io/categories/mongoid" term="mongoid" label="mongoid"/></entry><entry><title type="html">Use Systemd as a Cron Replacement</title><link href="https://blog.thalheim.io/2013/06/09/use-systemd-as-a-cron-replacement/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/06/09/use-systemd-as-a-cron-replacement/</id><published>2013-06-09T00:00:00+00:00</published><updated>2013-06-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Since systemd 197 timer units support calendar time events, which makes systemd a
-full cron replacement. Why one would replace the good old cron? Well, because systemd
-is good at executing stuff and monitor its state!</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/mongodb" term="mongodb" label="mongodb"/><category scheme="https://blog.thalheim.io/categories/rails" term="rails" label="rails"/><category scheme="https://blog.thalheim.io/categories/mongoid" term="mongoid" label="mongoid"/></entry><entry><title type="html">Use Systemd as a Cron Replacement</title><link href="https://blog.thalheim.io/2013/06/09/use-systemd-as-a-cron-replacement/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/06/09/use-systemd-as-a-cron-replacement/</id><published>2013-06-09T00:00:00+00:00</published><updated>2013-06-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Since systemd 197 timer units support calendar time events, which makes systemd
+a full cron replacement. Why one would replace the good old cron? Well, because
+systemd is good at executing stuff and monitor its state!</p>
 <ul>
 <li>with the help of journalctl you get last status and logging output, which is a
 great thing to debug failing jobs:</li>
@@ -1230,12 +1475,16 @@ Jun 09 17:58:30 higgsboson reflector[30109]: rating http://lug.mtu.edu/archlinux
 Jun 09 17:58:30 higgsboson reflector[30109]: Server Rate       Time
 ...
 </code></pre></div><ul>
-<li>there are a lot of useful <a href="http://www.freedesktop.org/software/systemd/man/systemd.exec.html" target="_blank">systemd unit options</a> like <code>IOSchedulingPriority</code>, <code>Nice</code> or <code>JobTimeoutSec</code></li>
-<li>it is possible to let depend units on other services, like mounting the nfs host
-before starting the mysql-backup.service or depending on the network.target.</li>
+<li>there are a lot of useful
+<a href="http://www.freedesktop.org/software/systemd/man/systemd.exec.html" target="_blank">systemd unit options</a>
+like <code>IOSchedulingPriority</code>, <code>Nice</code> or <code>JobTimeoutSec</code></li>
+<li>it is possible to let depend units on other services, like mounting the nfs
+host before starting the mysql-backup.service or depending on the
+network.target.</li>
 </ul>
 <p>So let&rsquo;s get it started. The first thing you might want to do, is to replace the
-default scripts located in the <a href="http://superuser.com/questions/402781/what-is-run-parts-in-etc-crontab-and-how-do-i-use-it" target="_blank">runparts</a>
+default scripts located in the
+<a href="http://superuser.com/questions/402781/what-is-run-parts-in-etc-crontab-and-how-do-i-use-it" target="_blank">runparts</a>
 directories /etc/cron.{daily,hourly,monthly,weekly}.</p>
 <p>On my distribution (archlinux) these are logrotate, man-db, shadow and updatedb:
 For convenience I created a structure like /etc/cron.*:</p>
@@ -1289,7 +1538,8 @@ $ systemctl enable timer-daily.timer
 $ systemctl enable timer-weekly.timer
 </code></pre></div><p>These directories work like their cron equivalents, each service file located in
 such a directory will be executed at the given time.</p>
-<p>Now move on to the service files. If you&rsquo;re not running Arch, the paths might be different on your system.</p>
+<p>Now move on to the service files. If you&rsquo;re not running Arch, the paths might be
+different on your system.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ cd /etc/systemd/system
 $ wget https://blog.higgsboson.tk/downloads/services.tar
 $ tar -xvf services.tar &amp;&amp; rm services.tar
@@ -1326,8 +1576,10 @@ $ tar -xvf services.tar &amp;&amp; rm services.tar
 <span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/sbin/grpck -r</span>
 </code></pre></div><p>At last but not least you can disable cron:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ systemctl stop cronie &amp;&amp; systemctl disable cronie
-</code></pre></div><p>If you want to execute at a special calendar events for example &ldquo;every first day in a month&rdquo; use the <a href="http://www.freedesktop.org/software/systemd/man/systemd.time.html" target="_blank">&amp;ldquo;OnCalendar=&amp;rdquo; option</a> in the timer file.
-example:</p>
+</code></pre></div><p>If you want to execute at a special calendar events for example &ldquo;every first day
+in a month&rdquo; use the
+<a href="http://www.freedesktop.org/software/systemd/man/systemd.time.html" target="_blank">&amp;ldquo;OnCalendar=&amp;rdquo; option</a>
+in the timer file. example:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
 <span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Daily Timer</span>
 
@@ -1354,7 +1606,8 @@ example:</p>
 <span style="color:#000;font-weight:bold">[Service]</span>
 <span style="color:#008080">User</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">nobody</span>
 <span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/pkgstats</span>
-</code></pre></div><p><a href="https://bbs.archlinux.org/viewtopic.php?id=162989" target="_blank">See this link</a> for details about my shell-based pacman notifier</p>
+</code></pre></div><p><a href="https://bbs.archlinux.org/viewtopic.php?id=162989" target="_blank">See this link</a> for details
+about my shell-based pacman notifier</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#000;font-weight:bold">[Unit]</span>
 <span style="color:#008080">Description</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">Update pacman&#39;s package cache</span>
 
@@ -1366,8 +1619,8 @@ example:</p>
 <span style="color:#008080">Environment</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">CHECKUPDATE_DB=/var/lib/pacman/checkupdate</span>
 <span style="color:#008080">ExecStartPre</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/bin/sh -c &#34;/usr/bin/checkupdates &amp;gt; /var/log/pacman-updates.log&#34;</span>
 <span style="color:#008080">ExecStart</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">/usr/bin/pacman --sync --upgrades --downloadonly --noconfirm --dbpath=/var/lib/pacman/checkupdate</span>
-</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/systemd" term="systemd" label="systemd"/><category scheme="https://blog.thalheim.io/categories/timer" term="timer" label="timer"/><category scheme="https://blog.thalheim.io/categories/linux" term="linux" label="linux"/><category scheme="https://blog.thalheim.io/categories/cron" term="cron" label="cron"/></entry><entry><title type="html">Automated Backups for Chef Server</title><link href="https://blog.thalheim.io/2013/04/27/automated-backups-for-chef-server/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/04/27/automated-backups-for-chef-server/</id><published>2013-04-27T00:00:00+00:00</published><updated>2013-04-27T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will share my setup, I use to backup chef server.
-In the best case, you have a dedicated machine, which has network access to your chef
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/systemd" term="systemd" label="systemd"/><category scheme="https://blog.thalheim.io/categories/timer" term="timer" label="timer"/><category scheme="https://blog.thalheim.io/categories/linux" term="linux" label="linux"/><category scheme="https://blog.thalheim.io/categories/cron" term="cron" label="cron"/></entry><entry><title type="html">Automated Backups for Chef Server</title><link href="https://blog.thalheim.io/2013/04/27/automated-backups-for-chef-server/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/04/27/automated-backups-for-chef-server/</id><published>2013-04-27T00:00:00+00:00</published><updated>2013-04-27T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will share my setup, I use to backup chef server. In the best
+case, you have a dedicated machine, which has network access to your chef
 server. Otherwise you will have to additionally use a different backup program
 like <a href="http://www.rsnapshot.org/" target="_blank">rsnapshot</a> or
 <a href="http://duplicity.nongnu.org/" target="_blank">duplicity</a> to backup the created export
@@ -1377,7 +1630,9 @@ directory. In my case I use a raspberry pie with a
 <p>To get started you will need ruby on the backup machine. I prefer using rvm for
 this job. Feel free to choose your preferred way:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ curl -L https://get.rvm.io | bash -s stable --autolibs=enabled
-</code></pre></div><p>To create the backup, I use the great <a href="https://github.com/mdxp/knife-backup" target="_blank">knife-backup gem</a> of <a href="http://www.ducea.com/" target="_blank">Marius Ducea</a>:</p>
+</code></pre></div><p>To create the backup, I use the great
+<a href="https://github.com/mdxp/knife-backup" target="_blank">knife-backup gem</a> of
+<a href="http://www.ducea.com/" target="_blank">Marius Ducea</a>:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ gem install knife-backup
 </code></pre></div><p>Then add these scripts to your system:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir -p ~/bin &amp;&amp; cd ~/bin
@@ -1416,9 +1671,8 @@ ls -t <span style="color:#d14">&#34;</span><span style="color:#008080">$BACKUP</
 <span style="color:#0086b3">trap</span> <span style="color:#d14">&#34;rm -rf &#39;</span><span style="color:#008080">$TMPDIR</span><span style="color:#d14">&#39;&#34;</span> INT QUIT TERM EXIT
 tar xf <span style="color:#008080">$1</span>
 knife --config <span style="color:#008080">$HOME</span>/.chef/knife-backup.rb backup restore -D .
-</code></pre></div><p>Modify BACKUP variable to match your backup destination.
-Next you will need a knife.rb to get access to your server.
-I suggest to create a new client:</p>
+</code></pre></div><p>Modify BACKUP variable to match your backup destination. Next you will need a
+knife.rb to get access to your server. I suggest to create a new client:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ mkdir -p ~/.chef
 $ knife client create backup --admin --file &#34;$HOME/.chef/backup.pem&#34;
 $ cat &lt;&lt;&#39;__EOF__&#39; &gt;&gt; ~/.chef/knife-backup.rb
@@ -1440,7 +1694,8 @@ $ knife role list # test authentication
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ ~/bin/restore-chef.sh /path/to/backup/DATE.tar.bz2
 </code></pre></div><p>That&rsquo;s all folks!</p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/chef" term="chef" label="chef"/><category scheme="https://blog.thalheim.io/categories/opscode" term="opscode" label="opscode"/><category scheme="https://blog.thalheim.io/categories/backup" term="backup" label="backup"/><category scheme="https://blog.thalheim.io/categories/cron" term="cron" label="cron"/><category scheme="https://blog.thalheim.io/categories/knife-backup" term="knife-backup" label="knife-backup"/></entry><entry><title type="html">Owncloud 5 and Nginx</title><link href="https://blog.thalheim.io/2013/04/19/owncloud-5-and-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/04/19/owncloud-5-and-nginx/</id><published>2013-04-19T00:00:00+00:00</published><updated>2013-04-19T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Since my last <a href="http://localhost:4000/2012/06/03/owncloud-4-and-nginx/" target="_blank">post</a>
-owncloud has added <a href="http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration" target="_blank">offical documentation for nginx</a>.
+owncloud has added
+<a href="http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration" target="_blank">offical documentation for nginx</a>.
 Unfortunately the documentation there didn&rsquo;t worked for me out of the box:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">2013/04/19 22:14:38 [error] 32402#0: *251 FastCGI sent in stderr: &#34;Access to the
 script &#39;/var/www/cloud&#39; has been denied (see security.limit_extensions)&#34; while
@@ -1448,7 +1703,8 @@ reading response header from upstream,  client: ::1,  server:
 cloud.higgsboson.tk,  request: &#34;GET /index.php HTTP/1.1&#34;,  upstream:
 &#34;fastcgi://unix:/var/run/php-fpm.sock:&#34;,  host: &#34;cloud.higgsboson.tk&#34;
 </code></pre></div><p>The problem here was again a missing fastcgi_params option.</p>
-<p>To solve the problem include the following line either in &lsquo;/etc/nginx/fastcgi_params&rsquo;</p>
+<p>To solve the problem include the following line either in
+&lsquo;/etc/nginx/fastcgi_params&rsquo;</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">fastcgi_param</span> <span style="color:#d14">SCRIPT_FILENAME</span> <span style="color:#008080">$document_root$fastcgi_script_name</span>;
 <span style="color:#998;font-style:italic"># ...
 </span></code></pre></div><p>or in the owncloud block in nginx.conf:</p>
@@ -1518,10 +1774,12 @@ cloud.higgsboson.tk,  request: &#34;GET /index.php HTTP/1.1&#34;,  upstream:
 
 }
 </code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/owncloud" term="owncloud" label="owncloud"/></entry><entry><title type="html">Pubsubhubbub With Octopress</title><link href="https://blog.thalheim.io/2013/01/02/pubsubhubbub-with-octopress/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/01/02/pubsubhubbub-with-octopress/</id><published>2013-01-02T00:00:00+00:00</published><updated>2013-01-02T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I explain how to set up octopress with
-<a href="https://en.wikipedia.org/wiki/PubSubHubbub" target="_blank">pubsubhubbub</a>, to get
-push-enabled feeds. In my example I use <a href="http://superfeedr.com/" target="_blank">superfeedr</a>, which is free to use.</p>
-<p>After you signup up a hub, in my case <a href="http://higgsboson.superfeedr.com" target="_blank">higgsboson.superfeedr.com</a>,
-you have to add a hub reference to your atom feed.</p>
+<a href="https://en.wikipedia.org/wiki/PubSubHubbub" target="_blank">pubsubhubbub</a>, to get push-enabled
+feeds. In my example I use <a href="http://superfeedr.com/" target="_blank">superfeedr</a>, which is free
+to use.</p>
+<p>After you signup up a hub, in my case
+<a href="http://higgsboson.superfeedr.com" target="_blank">higgsboson.superfeedr.com</a>, you have to add a
+hub reference to your atom feed.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#998;font-style:italic"># ....</span><span style="color:#bbb">
 </span><span style="color:#bbb">
 </span><span style="color:#bbb"></span><span style="color:#998;font-style:italic"># pubsubhubbub</span><span style="color:#bbb">
@@ -1594,10 +1852,13 @@ task <span style="color:#990073">:deploy</span> <span style="color:#000;font-wei
   <span style="color:#0086b3">puts</span> <span style="color:#d14">&#34;## Notified hub (&#34;</span> <span style="color:#000;font-weight:bold">+</span> hub_url <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14">&#34;) that feed </span><span style="color:#d14">#{</span>atom_url<span style="color:#d14">}</span><span style="color:#d14"> has been updated&#34;</span>
 <span style="color:#000;font-weight:bold">end</span>
 </code></pre></div><p>Now whenever you run <code>rake deploy</code>, it will automaticly update your hub.</p>
-<p>If you have a jabber or google talk account, you can easily verify your setup by adding
-<a href="https://push-bot.appspot.com/" target="_blank">push-bot</a> to your contact list and subscribe to
-your feed.</p>
-]]></content><category scheme="https://blog.thalheim.io/categories/superfeedr" term="superfeedr" label="superfeedr"/><category scheme="https://blog.thalheim.io/categories/octopress" term="octopress" label="octopress"/><category scheme="https://blog.thalheim.io/categories/pubsubhubbub" term="pubsubhubbub" label="pubsubhubbub"/><category scheme="https://blog.thalheim.io/categories/real-time" term="real-time" label="real-time"/></entry><entry><title type="html">Icinga and Pnp4nagios With Nginx</title><link href="https://blog.thalheim.io/2012/12/09/icinga-and-pnp4nagios-with-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/12/09/icinga-and-pnp4nagios-with-nginx/</id><published>2012-12-09T00:00:00+00:00</published><updated>2012-12-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will show my nginx configuration for the <a href="https://www.icinga.org/" target="_blank">icinga</a> web interface. At the time of writing I installed version 1.8 on ubuntu 12.04 using this <a href="https://launchpad.net/~formorer/&#43;archive/icinga" target="_blank">ppa</a>:</p>
+<p>If you have a jabber or google talk account, you can easily verify your setup by
+adding <a href="https://push-bot.appspot.com/" target="_blank">push-bot</a> to your contact list and
+subscribe to your feed.</p>
+]]></content><category scheme="https://blog.thalheim.io/categories/superfeedr" term="superfeedr" label="superfeedr"/><category scheme="https://blog.thalheim.io/categories/octopress" term="octopress" label="octopress"/><category scheme="https://blog.thalheim.io/categories/pubsubhubbub" term="pubsubhubbub" label="pubsubhubbub"/><category scheme="https://blog.thalheim.io/categories/real-time" term="real-time" label="real-time"/></entry><entry><title type="html">Icinga and Pnp4nagios With Nginx</title><link href="https://blog.thalheim.io/2012/12/09/icinga-and-pnp4nagios-with-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/12/09/icinga-and-pnp4nagios-with-nginx/</id><published>2012-12-09T00:00:00+00:00</published><updated>2012-12-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>In this article I will show my nginx configuration for the
+<a href="https://www.icinga.org/" target="_blank">icinga</a> web interface. At the time of writing I
+installed version 1.8 on ubuntu 12.04 using this
+<a href="https://launchpad.net/~formorer/&#43;archive/icinga" target="_blank">ppa</a>:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">    $ sudo add-apt-repository ppa:formorer/icinga
     $ sudo add-apt-repository ppa:formorer/icinga-web
     $ sudo apt-get update
@@ -1605,8 +1866,9 @@ your feed.</p>
     $ sudo apt-get --no-install-recommends install icinga-web
     $ sudo apt-get install icinga-web-pnp # optional: for pnp4nagios
     $ sudo apt-get install nginx php5-fpm # if not already installed
-</code></pre></div><p>For php I just use php-fpm without a special configuration.
-If you installed icinga from source, you have change the roots to match your installation path (to <code>/usr/local/icinga-web/</code>)</p>
+</code></pre></div><p>For php I just use php-fpm without a special configuration. If you installed
+icinga from source, you have change the roots to match your installation path
+(to <code>/usr/local/icinga-web/</code>)</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">upstream</span> <span style="color:#d14">fpm</span> {
     <span style="color:#000;font-weight:bold">server</span> <span style="color:#d14">unix:/var/run/php5-fpm.sock</span>;
 }
@@ -1712,22 +1974,28 @@ init system behind and switch to systemd.</p>
 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd
 </code></pre>
 <p>If you reboot, systemd will be used instead of the default init script.</p>
-<p>Currently debians version of systemd doesn&rsquo;t ship many service files by default. Systemd
-will automaticly fallback to the lsb script, if a service file for a deamon is
-missing. So the speedup isn&rsquo;t as big as on other distributions such as archlinux
-or fedora, which provide a deeper integration.</p>
-<p>To get a quick overview, which services are started nativly, type the following command:</p>
+<p>Currently debians version of systemd doesn&rsquo;t ship many service files by default.
+Systemd will automaticly fallback to the lsb script, if a service file for a
+deamon is missing. So the speedup isn&rsquo;t as big as on other distributions such as
+archlinux or fedora, which provide a deeper integration.</p>
+<p>To get a quick overview, which services are started nativly, type the following
+command:</p>
 <pre><code>$ systemctl list-units
 </code></pre>
 <p>All descriptions containing <code>LSB: </code> are launched through lsb scripts.</p>
 <p>Writing your own service files, is straight forward. If you add custom service
 files, put them in /etc/systemd/system, so they will not get overwritten by
 updates.</p>
-<p>To get further information about systemd, I recommend the <a href="https://wiki.archlinux.org/index.php/Systemd" target="_blank">great archlinux wiki article</a>.</p>
-<p>At the end of this article, I provide some basic one, I use. I port them over mostly from archlinux.
-In the most cases, i just have adjusted the path of the binary to get them working. (from /usr/bin to /usr/sbin for ex.)
-It is important, that the service name match with the initscript, so it will be used instead by systemd.
-This will not work in all cases like dhcpcd which contains the specific network device (like dhcpcd@eth0). In this case, you have to remove origin service with <code>update-rc.d</code> and enable the service file with <code>systemctl enable</code>.</p>
+<p>To get further information about systemd, I recommend the
+<a href="https://wiki.archlinux.org/index.php/Systemd" target="_blank">great archlinux wiki article</a>.</p>
+<p>At the end of this article, I provide some basic one, I use. I port them over
+mostly from archlinux. In the most cases, i just have adjusted the path of the
+binary to get them working. (from /usr/bin to /usr/sbin for ex.) It is
+important, that the service name match with the initscript, so it will be used
+instead by systemd. This will not work in all cases like dhcpcd which contains
+the specific network device (like dhcpcd@eth0). In this case, you have to remove
+origin service with <code>update-rc.d</code> and enable the service file with
+<code>systemctl enable</code>.</p>
 <p>Also avaible as <a href="https://gist.github.com/ac8ab2e84125ededa5c5" target="_blank">gist</a>:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain"># IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!
 [Unit]
@@ -1816,7 +2084,8 @@ SuccessExitStatus=0 1 2
 
 [Install]
 WantedBy=multi-user.target
-</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/systemd" term="systemd" label="systemd"/><category scheme="https://blog.thalheim.io/categories/raspberry-pie" term="raspberry-pie" label="raspberry pie"/><category scheme="https://blog.thalheim.io/categories/raspbian" term="raspbian" label="raspbian"/></entry><entry><title type="html">Init Script for Pyload on Gentoo</title><link href="https://blog.thalheim.io/2012/06/30/init-script-for-pyload-on-gentoo/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/30/init-script-for-pyload-on-gentoo/</id><published>2012-06-30T00:00:00+00:00</published><updated>2012-06-30T00:00:00+00:00</updated><content type="html"><![CDATA[<blockquote>initscript to run pyload on gentoo as a service</blockquote><p>Because I use a custom installation of <a href="http://pyload.org/" target="_blank">pyload</a> I had to write my own init script.</p>
+</code></pre></div>]]></content><category scheme="https://blog.thalheim.io/categories/systemd" term="systemd" label="systemd"/><category scheme="https://blog.thalheim.io/categories/raspberry-pie" term="raspberry-pie" label="raspberry pie"/><category scheme="https://blog.thalheim.io/categories/raspbian" term="raspbian" label="raspbian"/></entry><entry><title type="html">Init Script for Pyload on Gentoo</title><link href="https://blog.thalheim.io/2012/06/30/init-script-for-pyload-on-gentoo/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/30/init-script-for-pyload-on-gentoo/</id><published>2012-06-30T00:00:00+00:00</published><updated>2012-06-30T00:00:00+00:00</updated><content type="html"><![CDATA[<blockquote>initscript to run pyload on gentoo as a service</blockquote><p>Because I use a custom installation of <a href="http://pyload.org/" target="_blank">pyload</a> I had to
+write my own init script.</p>
 <p>my setup:</p>
 <ul>
 <li>runs as a user with its home directory set to /home/pyload</li>
@@ -1858,7 +2127,10 @@ PYLOAD_EXEC=/home/pyload/bin/pyLoadCore.py
 PYLOAD_CONFDIR=/home/pyload/.pyload
 PYLOAD_PIDFILE=/home/pyload/${SVCNAME}.pid
 PYLOAD_OPTIONS=
-</code></pre></div>]]></content></entry><entry><title type="html">Use Your Ssh Server as a Socks Proxy</title><link href="https://blog.thalheim.io/2012/06/09/use-your-ssh-server-as-a-socks-proxy/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/09/use-your-ssh-server-as-a-socks-proxy/</id><published>2012-06-09T00:00:00+00:00</published><updated>2012-06-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Sometimes for whatever reason you want a secure internet connection. Maybe because you distrust your local network or your network filter some traffic. Openssh is able to speak the <a href="http://en.wikipedia.org/wiki/SOCKS" target="_blank">SOCKS protocol</a>, which does the trick.</p>
+</code></pre></div>]]></content></entry><entry><title type="html">Use Your Ssh Server as a Socks Proxy</title><link href="https://blog.thalheim.io/2012/06/09/use-your-ssh-server-as-a-socks-proxy/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/09/use-your-ssh-server-as-a-socks-proxy/</id><published>2012-06-09T00:00:00+00:00</published><updated>2012-06-09T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Sometimes for whatever reason you want a secure internet connection. Maybe
+because you distrust your local network or your network filter some traffic.
+Openssh is able to speak the
+<a href="http://en.wikipedia.org/wiki/SOCKS" target="_blank">SOCKS protocol</a>, which does the trick.</p>
 <p>Open you ~/.ssh/config on your local machine and add the following lines:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-apache" data-lang="apache"><span style="color:#0086b3">Host</span> webtunnel
   <span style="color:#0086b3">HostName</span> domain.tld # replace this with your ip or domain name of your server
@@ -1866,18 +2138,19 @@ PYLOAD_OPTIONS=
   <span style="color:#0086b3">User</span> myuser # replace this with your ssh login name
 </code></pre></div><p>next connect to your server like this</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">ssh webtunnel
-</code></pre></div><p>This opens a socks connection on your local machine on port 1080.
-Now you are able to set up every application to use this proxy.
-These are the common required settings:</p>
+</code></pre></div><p>This opens a socks connection on your local machine on port 1080. Now you are
+able to set up every application to use this proxy. These are the common
+required settings:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">Server: localhost
 Port: 1080
 Proxy-Type: SOCKS5
-</code></pre></div><p>Personally I use <a href="http://getfoxyproxy.org/" target="_blank">FoxProxy Basic</a> extension for firefox to fast setup a connection, whenever needed.</p>
+</code></pre></div><p>Personally I use <a href="http://getfoxyproxy.org/" target="_blank">FoxProxy Basic</a> extension for
+firefox to fast setup a connection, whenever needed.</p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/ssh" term="ssh" label="ssh"/><category scheme="https://blog.thalheim.io/categories/socks-proxy" term="socks-proxy" label="socks proxy"/><category scheme="https://blog.thalheim.io/categories/browser" term="browser" label="browser"/></entry><entry><title type="html">Owncloud 4 and Nginx</title><link href="https://blog.thalheim.io/2012/06/03/owncloud-4-and-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2012/06/03/owncloud-4-and-nginx/</id><published>2012-06-03T00:00:00+00:00</published><updated>2012-06-03T00:00:00+00:00</updated><content type="html"><![CDATA[<p><strong>updated at Do 14. Jul 2012</strong></p>
 <p>Short after writing this entry, I discover <a href="http://nblock.org/2012/03/12/nginx-and-owncloud" target="_blank">a good one</a>.</p>
-<p>Nginx don&rsquo;t understand the .htaccess, which is shipped with owncloud.
-So some rewrites, required by the webdav implementation, aren&rsquo;t applied.
-To get owncloud running, some additional options are necessary:</p>
+<p>Nginx don&rsquo;t understand the .htaccess, which is shipped with owncloud. So some
+rewrites, required by the webdav implementation, aren&rsquo;t applied. To get owncloud
+running, some additional options are necessary:</p>
 <h2 id="nginx">Nginx</h2>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nginx" data-lang="nginx"><span style="color:#000;font-weight:bold">upstream</span> <span style="color:#d14">backend</span> {
       <span style="color:#000;font-weight:bold">unix:/var/run/php-fpm.sock</span>; <span style="color:#998;font-style:italic"># &lt;--- edit me
@@ -1963,9 +2236,9 @@ To get owncloud running, some additional options are necessary:</p>
 
 <span style="color:#998;font-style:italic"># PHP only, required if PHP was built with --enable-force-cgi-redirect
 </span><span style="color:#998;font-style:italic"></span><span style="color:#000;font-weight:bold">fastcgi_param</span>  <span style="color:#d14">REDIRECT_STATUS</span>    <span style="color:#099">200</span>;
-</code></pre></div><p>PHP
-+++
-If your upload size is still lower than the one set in nginx&rsquo;s configuration, increase the size in the php.ini as described <a href="http://www.radinks.com/upload/config.php" target="_blank">here</a></p>
+</code></pre></div><p>PHP +++ If your upload size is still lower than the one set in nginx&rsquo;s
+configuration, increase the size in the php.ini as described
+<a href="http://www.radinks.com/upload/config.php" target="_blank">here</a></p>
 <h2 id="referenzes">Referenzes</h2>
 <p><a href="http://nblock.org/2012/03/12/nginx-and-owncloud" target="_blank">Setting up Nginx and Owncloud - nblock.org</a></p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/owncloud" term="owncloud" label="owncloud"/></entry></feed>

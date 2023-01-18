@@ -1,12 +1,12 @@
 <!doctype html><html lang=en><head><meta name=generator content="Hugo 0.79.1"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="Busybox to the Rescue"><meta property="og:title" content="Busybox to the Rescue"><meta property="og:description" content="Some days before I broke my raspberry pie, after pacman running out of memory, while updating my glibc. To solve such problems on any of my machines, I decided to setup rescue systems with busybox. Therefor just install the package busybox on archlinux or busybox-static if you are on debian. Busybox is a so called multi-call binary. This means, it exposes different behaviour depending on the program name, which is used to execute it."><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2014/01/30/busybox-to-the-rescue/"><meta property="article:published_time" content="2014-01-30T00:00:00+00:00"><meta property="article:modified_time" content="2014-01-30T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Busybox to the Rescue"><meta name=twitter:description content="Some days before I broke my raspberry pie, after pacman running out of memory, while updating my glibc. To solve such problems on any of my machines, I decided to setup rescue systems with busybox. Therefor just install the package busybox on archlinux or busybox-static if you are on debian. Busybox is a so called multi-call binary. This means, it exposes different behaviour depending on the program name, which is used to execute it."><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>Busybox to the Rescue | ~/git/blog</title><script data-goatcounter=https://goatcounter.thalheim.io/count async src=https://goatcounter.thalheim.io/count.js></script></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author></div><div class=post-header><div class=meta><div class=date><span class=day>30</span>
-<span class=rest>Jan 2014</span></div></div><div class=matter><h1 class=title>Busybox to the Rescue</h1></div></div><div class=markdown><p>Some days before I broke my raspberry pie, after pacman running out of memory, while
-updating my glibc. To solve such problems on any of my machines, I decided to
-setup rescue systems with busybox. Therefor just install the package <em>busybox</em>
-on archlinux or <em>busybox-static</em> if you are on debian.
-Busybox is a so called multi-call binary.
-This means, it exposes different behaviour depending on the program name, which
-is used to execute it. As a basic environment for the rescue system, I created a
-symlinks for every command which busybox is capable of:</p><pre><code>$ sudo mkdir /opt/busybox/bin
+<span class=rest>Jan 2014</span></div></div><div class=matter><h1 class=title>Busybox to the Rescue</h1></div></div><div class=markdown><p>Some days before I broke my raspberry pie, after pacman running out of memory,
+while updating my glibc. To solve such problems on any of my machines, I decided
+to setup rescue systems with busybox. Therefor just install the package
+<em>busybox</em> on archlinux or <em>busybox-static</em> if you are on debian. Busybox is a so
+called multi-call binary. This means, it exposes different behaviour depending
+on the program name, which is used to execute it. As a basic environment for the
+rescue system, I created a symlinks for every command which busybox is capable
+of:</p><pre><code>$ sudo mkdir /opt/busybox/bin
 
 $ busybox --list | xargs -n 1 -d &quot;\n&quot; -I &quot;cmd&quot; sudo ln -s $(which busybox) /opt/busybox/bin/cmd
 </code></pre><p>In order to be able to login in a system, where the usual shell is broken, I
@@ -15,9 +15,8 @@ added a new user called <em>rescue</em>.</p><pre><code>$ useradd -m -s /opt/busy
 capable of by default you have to recreate every password, you plan to login, to
 make things like su work:</p><pre><code>$ sudo busybox passwd -a 2 rescue # use sha1 instead of sha256
 $ sudo busybox passwd -a 2 root
-</code></pre><p>The login shell is set in this case to the one busybox provides.
-In order to be able to login via ssh this shell has to be added
-<em>/etc/shells</em>:</p><pre><code>$ echo /opt/busybox/bin/ash | sudo tee -a /etc/shells
+</code></pre><p>The login shell is set in this case to the one busybox provides. In order to be
+able to login via ssh this shell has to be added <em>/etc/shells</em>:</p><pre><code>$ echo /opt/busybox/bin/ash | sudo tee -a /etc/shells
 </code></pre><p>The last thing left, is to prepend the path with busybox symlinks, to the PATH
 variable of the rescue user, to use them instead of their coreutils equivalents.</p><pre><code>$ echo 'export PATH=/opt/busybox/bin:$PATH' | sudo tee -a /home/rescue/.profile
 </code></pre></div></div><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}

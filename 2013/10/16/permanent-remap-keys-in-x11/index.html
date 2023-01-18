@@ -8,19 +8,20 @@ yaourt -S xf86-input-evdev-remap  To track down the key, you want to remap use x
 <span class=rest>Oct 2013</span></div></div><div class=matter><h1 class=title>Permanent Remap Keys in X11</h1></div></div><div class=markdown><p>Because my shift key got broken, I remapped Caps Lock to Shift using xmodmap:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>remove Lock = Caps_Lock
 keysym Caps_Lock = Shift_L
 add Shift = Shift_L
-</code></pre></div><p>However these settings got sometimes lost. (ex: after the driver was reloaded after suspend).
-Finally I found event_key_remap patch from <a href=http://www.thenautilus.net/SW/xf86-input-evdev/en target=_blank>here</a>,
-which allows to permanently redefine keys in the xorg.conf.</p><p>To apply the patch under archlinux simply install <a href="https://aur.archlinux.org/packages/xf86-input-evdev-remap/?setlang=de" target=_blank>xf86-input-evdev-remap</a> from AUR:</p><pre><code>yaourt -S xf86-input-evdev-remap
-</code></pre><p>To track down the key, you want to remap use <code>xev</code> on the terminal.
-Just type the wanted keys a few times. The output will be something like
-the following:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>KeyRelease event,  serial 33,  synthetic NO,  window 0x1e00001,
+</code></pre></div><p>However these settings got sometimes lost. (ex: after the driver was reloaded
+after suspend). Finally I found event_key_remap patch from
+<a href=http://www.thenautilus.net/SW/xf86-input-evdev/en target=_blank>here</a>, which allows to
+permanently redefine keys in the xorg.conf.</p><p>To apply the patch under archlinux simply install
+<a href="https://aur.archlinux.org/packages/xf86-input-evdev-remap/?setlang=de" target=_blank>xf86-input-evdev-remap</a>
+from AUR:</p><pre><code>yaourt -S xf86-input-evdev-remap
+</code></pre><p>To track down the key, you want to remap use <code>xev</code> on the terminal. Just type
+the wanted keys a few times. The output will be something like the following:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>KeyRelease event,  serial 33,  synthetic NO,  window 0x1e00001,
     root 0x8e,  subw 0x0,  time 5672767,  (611, 262),  root:(613, 288),
     state 0x1,  keycode 50 (keysym 0xffe1,  Shift_L),  same_screen YES
     XLookupString gives 0 bytes:
     XFilterEvent returns: False
-</code></pre></div><p>The interesting value here is the <code>keycode</code>.
-Use this code to build your final xorg.conf.
-In my case this was:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>#/etc/X11/xorg.conf.d/10-kb-layout.conf
+</code></pre></div><p>The interesting value here is the <code>keycode</code>. Use this code to build your final
+xorg.conf. In my case this was:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>#/etc/X11/xorg.conf.d/10-kb-layout.conf
 Section &#34;InputClass&#34;
     Identifier             &#34;Keyboard Defaults&#34;
     MatchIsKeyboard        &#34;yes&#34;

@@ -4,6 +4,8 @@ date: 2022-12-17T20:50:21+01:00
 categories: [ "nixos", "kernel" ]
 ---
 
+*Written by Jörg Thalheim and Alex A. Renoire*
+
 Lately, I hacked on some kernel modules to get more debug logs out of a kernel
 module on my NixOS machine. Because NixOS does not follow the Filesystem
 Hierarchy Standard (FHS) for filesystem layouts, the standard kernel hacker

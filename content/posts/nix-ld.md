@@ -5,6 +5,8 @@ categories: [ "nixos", "kernel" ]
 ---
 *No such file or directory: How I stopped worrying and started loving binaries on NixOS.*
 
+*Written by Jörg Thalheim and Jill Thornhill*
+
 In this article, I will discuss the technical issue of running pre-compiled
 executables on NixOS, and how we can improve the user experience 
 by making these binaries work seamlessly using [nix-ld](https://github.com/Mic92/nix-ld).

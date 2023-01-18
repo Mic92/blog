@@ -4,6 +4,8 @@ date: 2023-01-08T11:46:06+01:00
 categories: ["nixos"]
 ---
 
+*Written by Jörg Thalheim and Alex A. Renoire*
+
 For complex modules, you may sometimes struggle to understand why a test isn't
 behaving properly. To gain more insight, you may want to check the debug output.
 This leads me to discuss how to execute NixOS tests interactively.

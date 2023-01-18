@@ -1,7 +1,7 @@
 ---
 title: "Hacking on Kernel Modules in NixOS"
 date: 2022-12-17T20:50:21+01:00
-categories: [ "nixos", "kernel" ]
+categories: ["nixos", "kernel"]
 author: ["Jörg Thalheim and Alex A. Renoire"]
 ---
 
@@ -27,7 +27,8 @@ only, you should look into `boot.kernelPackages.kernel`.
 Now that you are familiar with the topic, let's proceed to building kernel
 modules. This article will guide you through the following steps:
 
-1. Setting up a development environment with the necessary tools for building a kernel
+1. Setting up a development environment with the necessary tools for building a
+   kernel
 2. Building an out-of-tree kernel
 3. Building an in-tree kernel
 4. Bonus: Creating a symbolic link to our NixOS configuration flake for easy
@@ -60,6 +61,7 @@ needed for compiling to your shell.
 ```command
 $ nix develop "/etc/nixos#nixosConfigurations.my-nixos.config.boot.kernel"
 ```
+
 # Let's build a kernel module with that!
 
 Apart from the shell, we will also need the kernel development headers to build
@@ -130,7 +132,8 @@ $ realpath /run/booted-system/kernel
 /nix/store/yyz5jkjsan9q7v8aa4i7697rrivzwmjz-linux-6.0.12/bzImage
 ```
 
-In this case, the paths match because I have not updated my Linux kernel since I rebooted.
+In this case, the paths match because I have not updated my Linux kernel since I
+rebooted.
 
 However, there is an even better way to replace the drivers with the new ones:
 by adding a symlink of our NixOS flake to our NixOS system. This way, we will
@@ -162,7 +165,8 @@ By adding extra lines to `system.extraSystemBuilderCmds` like this:
 }
 ```
 
-After a reboot, we can check the symlink was added by looking at `/run/booted-system/flake`:
+After a reboot, we can check the symlink was added by looking at
+`/run/booted-system/flake`:
 
 ```command
 $ ls -la /run/booted-system/flake
@@ -182,7 +186,8 @@ configuration.
 
 Because things in NixOS are different from what we are used to in regular Linux
 distributions, hacking a kernel needs some special attention. In this tutorial,
-I shared my experience of hacking the NixOS kernel. 
+I shared my experience of hacking the NixOS kernel.
 
-For quicker iterations on building kernels, also check out the [nixos wiki article](https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU) 
-that describes how to debug the Linux kernel with Qemu in NixOS.
+For quicker iterations on building kernels, also check out the
+[nixos wiki article](https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU) that
+describes how to debug the Linux kernel with Qemu in NixOS.

@@ -9,14 +9,13 @@ Categories = ["nginx", "owncloud"]
 
 Short after writing this entry, I discover [a good one][ntblock].
 
-Nginx don't understand the .htaccess, which is shipped with owncloud.
-So some rewrites, required by the webdav implementation, aren't applied.
-To get owncloud running, some additional options are necessary:
+Nginx don't understand the .htaccess, which is shipped with owncloud. So some
+rewrites, required by the webdav implementation, aren't applied. To get owncloud
+running, some additional options are necessary:
 
-Nginx
------
+## Nginx
 
-``` nginx nginx.conf
+```nginx nginx.conf
 upstream backend {
       unix:/var/run/php-fpm.sock; # <--- edit me
 }
@@ -73,17 +72,16 @@ server {
 }
 ```
 
-Additionally I added these lines to the default */etc/nginx/fastcgi_params*:
+Additionally I added these lines to the default _/etc/nginx/fastcgi_params_:
 
-``` nginx
+```nginx
 fastcgi_param  PATH_INFO          $fastcgi_path_info;
 fastcgi_param  PATH_TRANSLATED    $document_root$fastcgi_path_info;
 ```
 
 So it does looks like this:
 
-
-``` nginx /etc/nginx/fastcgi_params
+```nginx /etc/nginx/fastcgi_params
 fastcgi_param  PATH_INFO          $fastcgi_path_info;
 fastcgi_param  PATH_TRANSLATED    $document_root$fastcgi_path_info;
 
@@ -112,13 +110,11 @@ fastcgi_param  SERVER_NAME        $server_name;
 fastcgi_param  REDIRECT_STATUS    200;
 ```
 
-PHP
-+++
-If your upload size is still lower than the one set in nginx's configuration, increase the size in the php.ini as described [here](http://www.radinks.com/upload/config.php)
+PHP +++ If your upload size is still lower than the one set in nginx's
+configuration, increase the size in the php.ini as described
+[here](http://www.radinks.com/upload/config.php)
 
-
-Referenzes
-----------
+## Referenzes
 
 [Setting up Nginx and Owncloud - nblock.org][ntblock]
 

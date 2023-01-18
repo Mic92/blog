@@ -4,10 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main  # Set a branch to deploy
+      - main # Set a branch to deploy
+      - staging # bors
+      - trying # bors
   pull_request:
   schedule:
-    - cron: '42 */24 * * *'  # Once a day at 42
+    - cron: "42 */24 * * *" # Once a day at 42
 
 jobs:
   deploy:
@@ -15,13 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: true  # Fetch Hugo themes (true OR recursive)
-          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+          submodules: true # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
-          hugo-version: '0.79.1'
+          hugo-version: "0.79.1"
           # extended: true
 
       - name: Build

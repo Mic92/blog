@@ -5,7 +5,7 @@ slug = "2014/11/01/ferm-rules-for-docker"
 Categories = []
 +++
 
-The Docker daemon add his own custom rules by default to iptables.  If you use
+The Docker daemon add his own custom rules by default to iptables. If you use
 [ferm](http://ferm.foo-projects.org/) to manage your iptables rules, it is a
 good idea to prepopulate rules for docker. Otherwise they will be overwritten by
 ferm as it restarts.

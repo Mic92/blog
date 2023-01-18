@@ -5,21 +5,21 @@ slug = "2014/01/30/busybox-to-the-rescue"
 Categories = []
 +++
 
-Some days before I broke my raspberry pie, after pacman running out of memory, while
-updating my glibc. To solve such problems on any of my machines, I decided to
-setup rescue systems with busybox. Therefor just install the package *busybox*
-on archlinux or *busybox-static* if you are on debian.
-Busybox is a so called multi-call binary.
-This means, it exposes different behaviour depending on the program name, which
-is used to execute it. As a basic environment for the rescue system, I created a
-symlinks for every command which busybox is capable of:
+Some days before I broke my raspberry pie, after pacman running out of memory,
+while updating my glibc. To solve such problems on any of my machines, I decided
+to setup rescue systems with busybox. Therefor just install the package
+_busybox_ on archlinux or _busybox-static_ if you are on debian. Busybox is a so
+called multi-call binary. This means, it exposes different behaviour depending
+on the program name, which is used to execute it. As a basic environment for the
+rescue system, I created a symlinks for every command which busybox is capable
+of:
 
     $ sudo mkdir /opt/busybox/bin
 
     $ busybox --list | xargs -n 1 -d "\n" -I "cmd" sudo ln -s $(which busybox) /opt/busybox/bin/cmd
 
 In order to be able to login in a system, where the usual shell is broken, I
-added a new user called *rescue*.
+added a new user called _rescue_.
 
     $ useradd -m -s /opt/busybox/bin/ash rescue
 
@@ -30,9 +30,8 @@ make things like su work:
     $ sudo busybox passwd -a 2 rescue # use sha1 instead of sha256
     $ sudo busybox passwd -a 2 root
 
-The login shell is set in this case to the one busybox provides.
-In order to be able to login via ssh this shell has to be added
-*/etc/shells*:
+The login shell is set in this case to the one busybox provides. In order to be
+able to login via ssh this shell has to be added _/etc/shells_:
 
     $ echo /opt/busybox/bin/ash | sudo tee -a /etc/shells
 

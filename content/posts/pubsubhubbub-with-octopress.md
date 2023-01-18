@@ -6,11 +6,13 @@ Categories = ["superfeedr", "octopress", "pubsubhubbub", "real-time"]
 +++
 
 In this article I explain how to set up octopress with
-[pubsubhubbub](https://en.wikipedia.org/wiki/PubSubHubbub), to get
-push-enabled feeds. In my example I use [superfeedr](http://superfeedr.com/), which is free to use.
+[pubsubhubbub](https://en.wikipedia.org/wiki/PubSubHubbub), to get push-enabled
+feeds. In my example I use [superfeedr](http://superfeedr.com/), which is free
+to use.
 
-After you signup up a hub, in my case [higgsboson.superfeedr.com](http://higgsboson.superfeedr.com),
-you have to add a hub reference to your atom feed.
+After you signup up a hub, in my case
+[higgsboson.superfeedr.com](http://higgsboson.superfeedr.com), you have to add a
+hub reference to your atom feed.
 
 ```yaml _config.yml
 # ....
@@ -22,14 +24,17 @@ hub_url: http://higgsboson.superfeedr.com/ # <--- replace this with your hub
 Insert this line:
 
 {% raw %}
-``` xml
+
+```xml
     {% if site.hub_url %}<link href="{{ site.hub_url }}" rel="hub"/>{% endif %}
 ```
+
 {% endraw %}
 
 into `source/atom.xml`. So it looks like this:
 
 {% raw %}
+
 ```xml source/atom.xml
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -57,6 +62,7 @@ into `source/atom.xml`. So it looks like this:
   {% endfor %}
 </feed>
 ```
+
 {% endraw %}
 
 To push out updates, you have to ping your hub, this is easily done in your
@@ -78,7 +84,7 @@ puts "## Notified hub (" + hub_url + ") that feed #{atom_url} has been updated"
 
 So you end up with something like this:
 
-``` ruby Rakefile
+```ruby Rakefile
 desc "Default deploy task"
 task :deploy do
   # Check if preview posts exist, which should not be published
@@ -105,6 +111,6 @@ end
 
 Now whenever you run `rake deploy`, it will automaticly update your hub.
 
-If you have a jabber or google talk account, you can easily verify your setup by adding
-[push-bot](https://push-bot.appspot.com/) to your contact list and subscribe to
-your feed.
+If you have a jabber or google talk account, you can easily verify your setup by
+adding [push-bot](https://push-bot.appspot.com/) to your contact list and
+subscribe to your feed.

@@ -5,11 +5,11 @@ slug = "2013/06/09/use-systemd-as-a-cron-replacement"
 Categories = ["systemd", "timer", "linux", "cron"]
 +++
 
-Since systemd 197 timer units support calendar time events, which makes systemd a
-full cron replacement. Why one would replace the good old cron? Well, because systemd
-is good at executing stuff and monitor its state!
+Since systemd 197 timer units support calendar time events, which makes systemd
+a full cron replacement. Why one would replace the good old cron? Well, because
+systemd is good at executing stuff and monitor its state!
 
-* with the help of journalctl you get last status and logging output, which is a
+- with the help of journalctl you get last status and logging output, which is a
   great thing to debug failing jobs:
 
 ```console
@@ -26,12 +26,16 @@ Jun 09 17:58:30 higgsboson reflector[30109]: Server Rate       Time
 ...
 ```
 
-* there are a lot of useful [systemd unit options](http://www.freedesktop.org/software/systemd/man/systemd.exec.html) like `IOSchedulingPriority`, `Nice` or `JobTimeoutSec`
-* it is possible to let depend units on other services, like mounting the nfs host
-  before starting the mysql-backup.service or depending on the network.target.
+- there are a lot of useful
+  [systemd unit options](http://www.freedesktop.org/software/systemd/man/systemd.exec.html)
+  like `IOSchedulingPriority`, `Nice` or `JobTimeoutSec`
+- it is possible to let depend units on other services, like mounting the nfs
+  host before starting the mysql-backup.service or depending on the
+  network.target.
 
 So let's get it started. The first thing you might want to do, is to replace the
-default scripts located in the [runparts](http://superuser.com/questions/402781/what-is-run-parts-in-etc-crontab-and-how-do-i-use-it)
+default scripts located in the
+[runparts](http://superuser.com/questions/402781/what-is-run-parts-in-etc-crontab-and-how-do-i-use-it)
 directories /etc/cron.{daily,hourly,monthly,weekly}.
 
 On my distribution (archlinux) these are logrotate, man-db, shadow and updatedb:
@@ -117,7 +121,8 @@ $ systemctl enable timer-weekly.timer
 These directories work like their cron equivalents, each service file located in
 such a directory will be executed at the given time.
 
-Now move on to the service files. If you're not running Arch, the paths might be different on your system.
+Now move on to the service files. If you're not running Arch, the paths might be
+different on your system.
 
 ```console
 $ cd /etc/systemd/system
@@ -174,10 +179,12 @@ At last but not least you can disable cron:
 $ systemctl stop cronie && systemctl disable cronie
 ```
 
-If you want to execute at a special calendar events for example "every first day in a month" use the ["OnCalendar=" option](http://www.freedesktop.org/software/systemd/man/systemd.time.html) in the timer file.
-example:
+If you want to execute at a special calendar events for example "every first day
+in a month" use the
+["OnCalendar=" option](http://www.freedesktop.org/software/systemd/man/systemd.time.html)
+in the timer file. example:
 
-``` systemd send-bill.timer
+```systemd send-bill.timer
 [Unit]
 Description=Daily Timer
 
@@ -214,7 +221,8 @@ User=nobody
 ExecStart=/usr/bin/pkgstats
 ```
 
-[See this link](https://bbs.archlinux.org/viewtopic.php?id=162989) for details about my shell-based pacman notifier
+[See this link](https://bbs.archlinux.org/viewtopic.php?id=162989) for details
+about my shell-based pacman notifier
 
 ```systemd
 [Unit]

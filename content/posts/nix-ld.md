@@ -1,14 +1,17 @@
 ---
-title: "Nix-ld: A clean solution for issues with pre-compiled executables on NixOS"
+title:
+  "Nix-ld: A clean solution for issues with pre-compiled executables on NixOS"
 date: 2022-12-31T07:37:57+01:00
-categories: [ "nixos", "kernel" ]
+categories: ["nixos", "kernel"]
 author: ["Jörg Thalheim and Jill Thornhill"]
 ---
-*No such file or directory: How I stopped worrying and started loving binaries on NixOS.*
+
+_No such file or directory: How I stopped worrying and started loving binaries
+on NixOS._
 
 In this article, I will discuss the technical issue of running pre-compiled
-executables on NixOS, and how we can improve the user experience 
-by making these binaries work seamlessly using [nix-ld](https://github.com/Mic92/nix-ld).
+executables on NixOS, and how we can improve the user experience by making these
+binaries work seamlessly using [nix-ld](https://github.com/Mic92/nix-ld).
 
 One of the key benefits of [NixOS](https://nixos.org/) is its focus on purity
 and reproducibility. The operating system is designed to ensure that the system
@@ -23,10 +26,11 @@ executables may have dependencies on libraries that are not available in the Nix
 package manager, or may require patching or modification to work correctly on
 the operating system.
 
+## The problem
 
-##  The problem
-
-If you have used NixOS for a while, you may have encountered an issue when attempting to run a pre-compiled executable. You probably saw something like this:
+If you have used NixOS for a while, you may have encountered an issue when
+attempting to run a pre-compiled executable. You probably saw something like
+this:
 
 ```command
 $ ./masterpdfeditor5
@@ -47,7 +51,6 @@ program, it uses an
 request the operating system to run the program. We can use the tool
 [strace](https://strace.io/) to visualize this:
 
-
 ```command
 $ strace -f ./masterpdfeditor5
 execve("./masterpdfeditor5", ["./masterpdfeditor5"], 0x7fff70350ef8 /* 188 vars */) = -1 ENOENT (No such file or directory)
@@ -60,8 +63,9 @@ code from the operating system. In this case, we can see that bash derived its
 error message (`No such file or directory`) from the `execve` system call.
 
 To understand why the operating system is reporting this error, we need to
-analyze the executable file further. The [file](https://man7.org/linux/man-pages/man1/file.1.html) command from the binutils package
-provides more information about the executable file:
+analyze the executable file further. The
+[file](https://man7.org/linux/man-pages/man1/file.1.html) command from the
+binutils package provides more information about the executable file:
 
 ```command
 $ file ./masterpdfeditor5
@@ -73,13 +77,15 @@ on libraries found on the system to function. It uses a link-loader program,
 also known as an `interpreter` to locate and load these libraries.
 
 Commonly these programs are provided in your system libc, which in most cases is
-[glibc](https://www.gnu.org/software/libc/), and are in a fixed location 
+[glibc](https://www.gnu.org/software/libc/), and are in a fixed location
 (`/lib64/ld-linux-x86-64.so.2` if your CPU is x86-based).
 
 On NixOS, the issue with running pre-compiled executables arises because it
-allows users to mix different libraries, including the glibc package. Unlike Linux, it does not provide a fixed path such as `/lib64/ld-linux-x86-64.so.2` for the
-link-loader program. Executables packaged with Nix are linked against a specific
-version of glibc. The [patchelf](https://github.com/Mic92/patchelf) command can be used to find out exactly which version is being used.
+allows users to mix different libraries, including the glibc package. Unlike
+Linux, it does not provide a fixed path such as `/lib64/ld-linux-x86-64.so.2`
+for the link-loader program. Executables packaged with Nix are linked against a
+specific version of glibc. The [patchelf](https://github.com/Mic92/patchelf)
+command can be used to find out exactly which version is being used.
 
 ```command
 $ patchelf --print-interpreter /run/current-system/sw/bin/ls
@@ -133,18 +139,27 @@ It gives this result:
 wcv24mi-qtbase-5.15.7/lib:/nix/store/lgfp5762m5qzby9syd21kj04l5qmjg4h-qtdeclarative-5.15.7/lib:/nix/store/ykjcsxdh9c1w664g6v38d86gph8m6mq7-libglvnd-1.5.0/lib:/nix/store/wprxx5zkkk13hpj6k1v6qadjylh3vq9m-gcc-11.3.0-lib/lib
 ```
 
-While `autoPatchelfHook` is a useful tool for making many programs usable in Nix,
-there are a few cases where it may not be possible or practical to use it. These include:
+While `autoPatchelfHook` is a useful tool for making many programs usable in
+Nix, there are a few cases where it may not be possible or practical to use it.
+These include:
 
 - Using binary executables downloaded with third-party package managers (e.g.
-  vscode, npm, or pip). With autoPatchelfHook, these would have to be patched on every update
-- Executables hidden inside other programs or archives, for example Java JARs might contain executables unpacked at runtime.
-- Running a game or proprietary software that verifies its integrity and will not start if the binary has been modified.
+  vscode, npm, or pip). With autoPatchelfHook, these would have to be patched on
+  every update
+- Executables hidden inside other programs or archives, for example Java JARs
+  might contain executables unpacked at runtime.
+- Running a game or proprietary software that verifies its integrity and will
+  not start if the binary has been modified.
 - Programs that are too large to be copied to the Nix store (e.g. FPGA IDEs).
 
 ## Nix-ld to the rescue!
 
-To address these cases, [nix-ld](https://github.com/Mic92/nix-ld) was created as an alternative to `autoPatchelfHook`. It allows users to run pre-compiled executables on NixOS without the need to modify the binaries or copy them to the Nix store. This improves the user experience by allowing users to easily run binaries downloaded from third-party sources and proprietary software without patching or modification.
+To address these cases, [nix-ld](https://github.com/Mic92/nix-ld) was created as
+an alternative to `autoPatchelfHook`. It allows users to run pre-compiled
+executables on NixOS without the need to modify the binaries or copy them to the
+Nix store. This improves the user experience by allowing users to easily run
+binaries downloaded from third-party sources and proprietary software without
+patching or modification.
 
 It is installed in the same location as the link-loader on other Linux
 distributions (i.e. `/lib64/ld-linux-x86-64.so.2`), and it loads the actual
@@ -163,7 +178,9 @@ $ ./masterpdfeditor5
 cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on nixos, but you have not configured NIX_LD or NIX_LD_x86_64-linux. See https://github.com/Mic92/nix-ld for more details
 ```
 
-To further improve the user experience, a new feature is available in the latest unstable version of NixOS and the upcoming 23.05 release. It allows the most common libraries to be included in the NixOs configuration as follows:
+To further improve the user experience, a new feature is available in the latest
+unstable version of NixOS and the upcoming 23.05 release. It allows the most
+common libraries to be included in the NixOs configuration as follows:
 
 ```nix
 { config, pkgs, ... }: {
@@ -186,10 +203,12 @@ To further improve the user experience, a new feature is available in the latest
 }
 ```
 
-For a more extensive version of this configuration, see my [dotfiles](https://github.com/Mic92/dotfiles/blob/master/nixos/modules/nix-ld.nix).
+For a more extensive version of this configuration, see my
+[dotfiles](https://github.com/Mic92/dotfiles/blob/master/nixos/modules/nix-ld.nix).
 
 By including the most common libraries in the configuration, nix-ld can provide
-a more seamless experience for users running pre-compiled executables on NixOS. They will not need to manually specify the necessary libraries for each
+a more seamless experience for users running pre-compiled executables on NixOS.
+They will not need to manually specify the necessary libraries for each
 executable and can simply run them as they would on other Linux distributions.
 
 ## Conclusion
@@ -200,6 +219,9 @@ that allows users to specify the necessary libraries for each executable and
 improves the user experience by allowing users to easily run binaries from
 third-party sources and proprietary software. By including the most common
 libraries in the NixOS configuration, nix-ld can provide an even more seamless
-experience for running pre-compiled executables on NixOS. 
+experience for running pre-compiled executables on NixOS.
 
-In my next article, I’ll be looking at a similar issue to the one encountered when working with executable binaries. Scripts that are hardcoded to point to /usr/bin can also cause a problem on NixOS, and I will address this by introducing [envfs](https://github.com/Mic92/envfs)
+In my next article, I’ll be looking at a similar issue to the one encountered
+when working with executable binaries. Scripts that are hardcoded to point to
+/usr/bin can also cause a problem on NixOS, and I will address this by
+introducing [envfs](https://github.com/Mic92/envfs)

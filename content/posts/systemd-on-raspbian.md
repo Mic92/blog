@@ -21,12 +21,13 @@ To do so, append `init=/bin/systemd` to the end of `/boot/cmdline.txt` line
 
 If you reboot, systemd will be used instead of the default init script.
 
-Currently debians version of systemd doesn't ship many service files by default. Systemd
-will automaticly fallback to the lsb script, if a service file for a deamon is
-missing. So the speedup isn't as big as on other distributions such as archlinux
-or fedora, which provide a deeper integration.
+Currently debians version of systemd doesn't ship many service files by default.
+Systemd will automaticly fallback to the lsb script, if a service file for a
+deamon is missing. So the speedup isn't as big as on other distributions such as
+archlinux or fedora, which provide a deeper integration.
 
-To get a quick overview, which services are started nativly, type the following command:
+To get a quick overview, which services are started nativly, type the following
+command:
 
     $ systemctl list-units
 
@@ -36,16 +37,21 @@ Writing your own service files, is straight forward. If you add custom service
 files, put them in /etc/systemd/system, so they will not get overwritten by
 updates.
 
-To get further information about systemd, I recommend the [great archlinux wiki article](https://wiki.archlinux.org/index.php/Systemd).
+To get further information about systemd, I recommend the
+[great archlinux wiki article](https://wiki.archlinux.org/index.php/Systemd).
 
-At the end of this article, I provide some basic one, I use. I port them over mostly from archlinux.
-In the most cases, i just have adjusted the path of the binary to get them working. (from /usr/bin to /usr/sbin for ex.)
-It is important, that the service name match with the initscript, so it will be used instead by systemd.
-This will not work in all cases like dhcpcd which contains the specific network device (like dhcpcd@eth0). In this case, you have to remove origin service with `update-rc.d` and enable the service file with `systemctl enable`.
+At the end of this article, I provide some basic one, I use. I port them over
+mostly from archlinux. In the most cases, i just have adjusted the path of the
+binary to get them working. (from /usr/bin to /usr/sbin for ex.) It is
+important, that the service name match with the initscript, so it will be used
+instead by systemd. This will not work in all cases like dhcpcd which contains
+the specific network device (like dhcpcd@eth0). In this case, you have to remove
+origin service with `update-rc.d` and enable the service file with
+`systemctl enable`.
 
 Also avaible as [gist](https://gist.github.com/ac8ab2e84125ededa5c5):
 
-``` plain /etc/systemd/system/dhcpcd@.service
+```plain /etc/systemd/system/dhcpcd@.service
 # IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!
 [Unit]
 Description=dhcpcd on %I
@@ -62,7 +68,7 @@ ExecStop=/sbin/dhcpcd -k %I
 Alias=multi-user.target.wants/dhcpcd@eth0.service
 ```
 
-``` plain /etc/systemd/system/monit.service
+```plain /etc/systemd/system/monit.service
 [Unit]
 Description=Pro-active monitoring utility for unix systems
 After=network.target
@@ -77,7 +83,7 @@ ExecReload=/usr/bin/monit reload
 WantedBy=multi-user.target
 ```
 
-``` plain /etc/systemd/system/ntp.service
+```plain /etc/systemd/system/ntp.service
 [Unit]
 Description=Network Time Service
 After=network.target nss-lookup.target
@@ -92,7 +98,7 @@ ControlGroup=cpu:/
 WantedBy=multi-user.target
 ```
 
-``` plain /etc/systemd/system/sshdgenkeys.service
+```plain /etc/systemd/system/sshdgenkeys.service
 [Unit]
 Description=SSH Key Generation
 ConditionPathExists=|!/etc/ssh/ssh_host_key
@@ -113,7 +119,7 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 ```
 
-``` plain /etc/systemd/system/ssh.socket
+```plain /etc/systemd/system/ssh.socket
 [Unit]
 Conflicts=ssh.service
 
@@ -125,7 +131,7 @@ Accept=yes
 WantedBy=sockets.target
 ```
 
-``` plain /etc/systemd/system/ssh@.service
+```plain /etc/systemd/system/ssh@.service
 [Unit]
 Description=SSH Per-Connection Server
 Requires=sshdgenkeys.service
@@ -139,7 +145,7 @@ ExecReload=/bin/kill -HUP $MAINPID
 StandardInput=socket
 ```
 
-``` plain /etc/systemd/system/ifplugd@.service
+```plain /etc/systemd/system/ifplugd@.service
 [Unit]
 Description=Daemon which acts upon network cable insertion/removal
 

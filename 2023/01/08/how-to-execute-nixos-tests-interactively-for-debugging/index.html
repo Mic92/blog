@@ -10,10 +10,11 @@ the process to explore what&rsquo;s gone wrong.</p><p>But there&rsquo;s a trick:
 will provide an interactive shell where you can execute your tests. This is a
 great way to shorten the feedback loop, as we can execute commands on our VMs.
 For instance, we can tell a VM to dump logs or to display the contents of files.</p><p>So, let&rsquo;s explore how to run tests interactively.</p><h1 id=running-tests-interactively>Running tests interactively</h1><p>To start the hello-world-server test in the interactive mode, you first need to
-build the test driver and then start it manually by providing the
-<code>--interactive</code> flag. Here&rsquo;s how you do it:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
+build the test driver by adding the <code>.driver</code> attribute to the test name and
+then start it manually by providing the <code>--interactive</code> flag. Here&rsquo;s how you do
+it:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
 
-$ nix build .#check.x86_64-linux
+$ nix build .#checks.x86_64-linux.hello-world-server.driver
 </code></pre></div><p>This will write out result symlink (all files are created in the nix store and
 we don&rsquo;t want to copy them outside) pointing to the test driver. We can run the
 test driver like this:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>./result/bin/nixos-test-driver --interactive
@@ -54,7 +55,7 @@ your test script and run the test-driver without the <code>--interactive</code> 
 
 }
 </code></pre></div><p>Here, we stopped the test flow and are looking at the value of <code>output</code> and
-checking the status of the module with <code>systemctl</code>.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ nix build .#check.x86_64-linux.hello-world-server
+checking the status of the module with <code>systemctl</code>.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ nix build .#checks.x86_64-linux.hello-world-server.driver
 $ ./result/bin/nixos-test-driver
 &gt;&gt;&gt; print(output)
 &gt;&gt;&gt; node1.execute(&#34;systemctl status hello-world-server&#34;)

@@ -10,3 +10,7 @@ build:
 # Open local server for the blog
 serve:
     hugo server
+
+# Format content
+fmt:
+     prettier --prose-wrap always -w .

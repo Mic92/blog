@@ -54,15 +54,16 @@ There are several ways to import `nixpkgs` in your code. One way is via
 `fetchTarball`:
 
 ```nix
-nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/archive/....tar.gz";
-
-pkgs = import nixpkgs {};
+{
+  nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/archive/....tar.gz";
+  pkgs = import nixpkgs {};
+}
 ```
 
 But `fetchTarball` is a builtin, which means that `nixpkgs` will be downloaded
-during evaluation. The other way is to reference the current system's `nixpkgs`
-in a flake. It's more convenient, because this way you can update the
-dependencies easily. I'll use this approach in my example.
+during evaluation. Another way is to load `nixpkgs` using a
+[flake](https://nixos.wiki/wiki/Flakes). It's more convenient, because this way
+you can update the dependencies easily. I'll use this approach in my example.
 
 Let's move to the coding part now.
 
@@ -83,7 +84,7 @@ As an example, I’ll take a simple project that runs a web server returning a
 
 This flake exposes the module `./hello-world-server.nix`. You can find the file
 in the repository [here](https://github.com/Mic92/nixos-test-example). What it
-does is it creates a simple HTML page and starts a sever on the port 8000. The
+does is it creates a simple HTML page and starts a server on the port 8000. The
 correct behavior would be if the module returns a “Hello world!” string. Any
 other output will be incorrect.
 

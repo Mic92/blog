@@ -1,8 +1,9 @@
 +++
-title = "Deploykit 1.0: A Python library for parallel deployment and maintaince task over ssh and locally"
+title = "Deploykit 1.0: A Python library for parallel deployment and maintained task over ssh and locally"
 date = "2022-01-30"
 slug = "2022/01/30/deploykit"
 Categories = [ "python", "devops", "ssh" ]
+draft = true
 +++
 
 When I started working on a growing fleet of NixOS machines, I eventually gained
@@ -11,7 +12,7 @@ number of machines. I found a bunch of tools that seemed to fit the bill:
 ansible, fabric, <TODO>.
 
 While ansible seemed like the closest to my feature set it had a slow startup
-and a lot of unneccessary features, since NixOS already covers most of the
+and a lot of unnecessary features, since NixOS already covers most of the
 configuration management part. Also it would captures the output of my remote
 processes until they finish, while quite often when deploying NixOS machines I
 rather prefer to get output as quickly as possible to see if something goes
@@ -95,7 +96,7 @@ def reboot(c, hosts=""):
 Lastly my own personal use case is evolves mostly around deploying new
 configuration to nixos machines. As you can see in this example, deploykit not
 only allows to run a simple command in parallel on multiple hosts, but also
-python functions, which allows for more flexibility i.e. by incorperating host
+python functions, which allows for more flexibility i.e. by incorporating host
 specific parameters into remote commands.
 
 ```

@@ -24,13 +24,14 @@ So, let's explore how to run tests interactively.
 # Running tests interactively
 
 To start the hello-world-server test in the interactive mode, you first need to
-build the test driver and then start it manually by providing the
-`--interactive` flag. Here's how you do it:
+build the test driver by adding the `.driver` attribute to the test name and
+then start it manually by providing the `--interactive` flag. Here's how you do
+it:
 
 ```console
 # Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
 
-$ nix build .#check.x86_64-linux
+$ nix build .#checks.x86_64-linux.hello-world-server.driver
 ```
 
 This will write out result symlink (all files are created in the nix store and
@@ -104,7 +105,7 @@ Here, we stopped the test flow and are looking at the value of `output` and
 checking the status of the module with `systemctl`.
 
 ```console
-$ nix build .#check.x86_64-linux.hello-world-server
+$ nix build .#checks.x86_64-linux.hello-world-server.driver
 $ ./result/bin/nixos-test-driver
 >>> print(output)
 >>> node1.execute("systemctl status hello-world-server")

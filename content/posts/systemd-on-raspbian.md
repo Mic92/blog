@@ -22,8 +22,8 @@ To do so, append `init=/bin/systemd` to the end of `/boot/cmdline.txt` line
 If you reboot, systemd will be used instead of the default init script.
 
 Currently debians version of systemd doesn't ship many service files by default.
-Systemd will automaticly fallback to the lsb script, if a service file for a
-deamon is missing. So the speedup isn't as big as on other distributions such as
+Systemd will automatically fallback to the lsb script, if a service file for a
+daemon is missing. So the speedup isn't as big as on other distributions such as
 archlinux or fedora, which provide a deeper integration.
 
 To get a quick overview, which services are started nativly, type the following
@@ -49,7 +49,7 @@ the specific network device (like dhcpcd@eth0). In this case, you have to remove
 origin service with `update-rc.d` and enable the service file with
 `systemctl enable`.
 
-Also avaible as [gist](https://gist.github.com/ac8ab2e84125ededa5c5):
+Also available as [gist](https://gist.github.com/ac8ab2e84125ededa5c5):
 
 ```plain /etc/systemd/system/dhcpcd@.service
 # IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!

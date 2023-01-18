@@ -77,7 +77,7 @@ the virtual machine. In such case, you can use the `breakpoint()` function in
 your test script and run the test-driver without the `--interactive` flag:
 
 ```nix
-# shortend example ./tests/hello-world-server.nix from above
+# shortened example ./tests/hello-world-server.nix from above
 
 (import ./lib.nix) {
 

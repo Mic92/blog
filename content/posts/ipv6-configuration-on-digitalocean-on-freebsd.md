@@ -14,7 +14,7 @@ ipv6 address is `2a03:b0c0:2:d0::2a5:f001`.
 
 ```bash /etc/rc.conf
 defaultrouter="188.166.0.1"
-# ipv6 address are shortend for readability
+# ipv6 address are shortened for readability
 ipv6_defaultrouter="2a03:b0c0:2:d0::1"
 ifconfig_vtnet0="inet 188.166.16.37 netmask 255.255.192.0"
 ifconfig_vtnet0_ipv6="inet6 2a03:b0c0:2:d0::2a5:f001 prefixlen 64"

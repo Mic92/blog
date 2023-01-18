@@ -109,7 +109,7 @@ task :deploy do
 end
 ```
 
-Now whenever you run `rake deploy`, it will automaticly update your hub.
+Now whenever you run `rake deploy`, it will automatically update your hub.
 
 If you have a jabber or google talk account, you can easily verify your setup by
 adding [push-bot](https://push-bot.appspot.com/) to your contact list and

@@ -6,7 +6,8 @@ Categories = ["nginx", "owncloud"]
 +++
 
 Since my last [post](http://localhost:4000/2012/06/03/owncloud-4-and-nginx/)
-owncloud has added [offical documentation for nginx](http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration).
+owncloud has added
+[offical documentation for nginx](http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration).
 Unfortunately the documentation there didn't worked for me out of the box:
 
 ```plain error.log
@@ -19,7 +20,8 @@ cloud.higgsboson.tk,  request: "GET /index.php HTTP/1.1",  upstream:
 
 The problem here was again a missing fastcgi_params option.
 
-To solve the problem include the following line either in '/etc/nginx/fastcgi_params'
+To solve the problem include the following line either in
+'/etc/nginx/fastcgi_params'
 
 ```nginx /etc/nginx/fastcgi_params
 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -28,7 +30,7 @@ fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 
 or in the owncloud block in nginx.conf:
 
-``` nginx /etc/nginx/nginx.conf
+```nginx /etc/nginx/nginx.conf
 server {
   listen 80;
   server_name cloud.example.com;

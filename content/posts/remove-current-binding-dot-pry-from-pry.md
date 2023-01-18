@@ -5,8 +5,9 @@ slug = "2014/11/14/remove-current-binding-dot-pry-from-pry"
 Categories = []
 +++
 
-If you are a ruby user and find it annoying to remove [binding.pry](http://pryrepl.org/) by hand, you may
-find the following snippet useful. (Put it in your ~/.pryrc to use it)
+If you are a ruby user and find it annoying to remove
+[binding.pry](http://pryrepl.org/) by hand, you may find the following snippet
+useful. (Put it in your ~/.pryrc to use it)
 
 ```ruby .pryrc
 Pry.config.commands.command "remove-pry", "Remove current pry" do
@@ -32,6 +33,7 @@ end
 **Usage**
 
 Before:
+
 ```ruby debug.rb
 # ...
 if foo == :bar
@@ -46,6 +48,7 @@ pry> remove-pry
 ```
 
 After:
+
 ```ruby debug.rb
 # ...
 if foo == :bar

@@ -9,13 +9,13 @@ The bananapi does currently assign random mac addresses to its ethnernet nic,
 which is bad if you want to assign static dhcp leases. To solve this issue just
 create the following udev rule:
 
-``` plain /etc/udev/rules.d/75-static-mac
+```plain /etc/udev/rules.d/75-static-mac
 ACTION=="add", SUBSYSTEM=="net", ATTR{dev_id}=="0x0", RUN+="/usr/bin/ip link set dev %k address XX:XX:XX:XX:XX:XX"
 ```
 
 Replace XX:XX:XX:XX:XX:XX with your current mac address:
 
-``` console
+```console
 $ ip address
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue state UNKNOWN group
 default

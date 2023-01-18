@@ -7,29 +7,30 @@ Categories = ["arch", "dhcp", "ipv6 router advertisement", "network"]
 
 **Update:** Added adhoc wlan network
 
-A guide to connect with a different machine using a ethernet cable for
-internet sharing or just transferring files:
+A guide to connect with a different machine using a ethernet cable for internet
+sharing or just transferring files:
 
 1. Install dnsmasq and iproute2
 
-    $ pacman -S dnsmasq iproute2
+   $ pacman -S dnsmasq iproute2
 
 2. Copy over the configuration files at the end of the article and edit the
-   */etc/conf.d/share-internet@\<device\>* to match your network setup. (where
+   _/etc/conf.d/share-internet@\<device\>_ to match your network setup. (where
    \<device\> is your network device)
 
 3. Start the sharing service with systemd
 
    $ sudo systemctl start internet-sharing@<device>.service
 
-After that the other machine can connect via dhcp. It will get an ipv4
-address from the **10.20.0.0/24** subnet and a ipv6 address from the **fd21:30c2:dd2f::**
-subnet. Your host will be reachable via **10.20.0.1** or **fd21:30c2:dd2f::1**.
-Thanks to ipv6 router advertising, an AAAA record for each host is automatically set based on the hostname.
-This means if your hostname is *foo*, all members of the network can just connect
-to it using the address *foo*. You should disable the share-internet.service, if
-you don't need it. Otherwise you might mess up network setups, if you connect to a
-network with the device on which the dhcp service is running.
+After that the other machine can connect via dhcp. It will get an ipv4 address
+from the **10.20.0.0/24** subnet and a ipv6 address from the
+**fd21:30c2:dd2f::** subnet. Your host will be reachable via **10.20.0.1** or
+**fd21:30c2:dd2f::1**. Thanks to ipv6 router advertising, an AAAA record for
+each host is automatically set based on the hostname. This means if your
+hostname is _foo_, all members of the network can just connect to it using the
+address _foo_. You should disable the share-internet.service, if you don't need
+it. Otherwise you might mess up network setups, if you connect to a network with
+the device on which the dhcp service is running.
 
 Happy networking!
 
@@ -58,11 +59,11 @@ IP6_SUBNET="fd21:30c2:dd2f::"
 
 Wlan to Ethernet:
 
-If you have luck and your wifi driver is capable of the infrastructure mode,
-you should take a look at hostadp, in my case I have to create an adhoc network.
-To enable the adhoc network:
+If you have luck and your wifi driver is capable of the infrastructure mode, you
+should take a look at hostadp, in my case I have to create an adhoc network. To
+enable the adhoc network:
 
-   $ sudo systemctl enable wireless-adhoc@\<device\>.service
+$ sudo systemctl enable wireless-adhoc@\<device\>.service
 
 ```
 # Device which has internet access, ex: wlan0 or usb0

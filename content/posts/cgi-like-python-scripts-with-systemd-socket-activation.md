@@ -5,11 +5,11 @@ slug = "2015/06/25/cgi-like-python-scripts-with-systemd-socket-activation"
 Categories = []
 +++
 
-Lets say you want to trigger remote the start of a python script.
-But you don't want to have a service running all the time waiting for requests.
+Lets say you want to trigger remote the start of a python script. But you don't
+want to have a service running all the time waiting for requests.
 
-What you can do, is using socket-unit in systemd, which is waiting on a tcp port for connections
-and starts the service, if somebody is requesting it.
+What you can do, is using socket-unit in systemd, which is waiting on a tcp port
+for connections and starts the service, if somebody is requesting it.
 
 The systemd configuration could look like this:
 
@@ -76,8 +76,8 @@ if __name__ == "__main__":
    do_work()
 ```
 
-This still lacks of authentication and does not take any arguments.
-You could protect this port using a frontend webserver with http authentication,
-or you pass the listen socket to an python http server, which add some token
-passed authentication. Systemd will ensure, that your service will not run more
-than once at the time.
+This still lacks of authentication and does not take any arguments. You could
+protect this port using a frontend webserver with http authentication, or you
+pass the listen socket to an python http server, which add some token passed
+authentication. Systemd will ensure, that your service will not run more than
+once at the time.

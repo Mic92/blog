@@ -4,11 +4,13 @@ date = "2015-01-19"
 slug = "2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd"
 Categories = ["freebsd", "digitalocean", "network"]
 +++
-By default Digitalocean add some custom rc.d scripts for network configuration to your droplet.
 
-You can just append the content of `/etc/rc.digitalocean.d/droplet.conf` to your `/etc/rc.conf`
-In my case the public ipv4 address is `188.166.0.1` and my first ipv6 address
-is `2a03:b0c0:2:d0::2a5:f001`.
+By default Digitalocean add some custom rc.d scripts for network configuration
+to your droplet.
+
+You can just append the content of `/etc/rc.digitalocean.d/droplet.conf` to your
+`/etc/rc.conf` In my case the public ipv4 address is `188.166.0.1` and my first
+ipv6 address is `2a03:b0c0:2:d0::2a5:f001`.
 
 ```bash /etc/rc.conf
 defaultrouter="188.166.0.1"
@@ -18,10 +20,12 @@ ifconfig_vtnet0="inet 188.166.16.37 netmask 255.255.192.0"
 ifconfig_vtnet0_ipv6="inet6 2a03:b0c0:2:d0::2a5:f001 prefixlen 64"
 ```
 
-Digitalocean provides these days for native Ipv6 for the most of its datacenters.
-Unlike other hoster they are very spare, when distributing Ipv6
-Addresses and only route 16 addresses per droplet (xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxx1 until xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxf).
-To make use of these additional ip addresses they have to be assigned to your network interface `vtnet0`:
+Digitalocean provides these days for native Ipv6 for the most of its
+datacenters. Unlike other hoster they are very spare, when distributing Ipv6
+Addresses and only route 16 addresses per droplet
+(xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxx1 until xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxf).
+To make use of these additional ip addresses they have to be assigned to your
+network interface `vtnet0`:
 
 ```bash /etc/rc.conf
 ifconfig_vtnet0_aliases="\
@@ -75,7 +79,8 @@ $ sudo service netif restart; sudo /etc/rc.d/routing restart
 The second command is important because it adds the ipv4 gateway back. Otherwise
 you will not reach your droplet via ipv4 without rebooting.
 
-If everything still works, you can remove, the following files leftover from cloudflare's provisioning:
+If everything still works, you can remove, the following files leftover from
+cloudflare's provisioning:
 
 ```console
 $ rm /etc/rc.d/digitalocean

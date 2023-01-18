@@ -13,17 +13,19 @@ keysym Caps_Lock = Shift_L
 add Shift = Shift_L
 ```
 
-However these settings got sometimes lost. (ex: after the driver was reloaded after suspend).
-Finally I found event_key_remap patch from [here](http://www.thenautilus.net/SW/xf86-input-evdev/en),
-which allows to permanently redefine keys in the xorg.conf.
+However these settings got sometimes lost. (ex: after the driver was reloaded
+after suspend). Finally I found event_key_remap patch from
+[here](http://www.thenautilus.net/SW/xf86-input-evdev/en), which allows to
+permanently redefine keys in the xorg.conf.
 
-To apply the patch under archlinux simply install [xf86-input-evdev-remap](https://aur.archlinux.org/packages/xf86-input-evdev-remap/?setlang=de) from AUR:
+To apply the patch under archlinux simply install
+[xf86-input-evdev-remap](https://aur.archlinux.org/packages/xf86-input-evdev-remap/?setlang=de)
+from AUR:
 
     yaourt -S xf86-input-evdev-remap
 
-To track down the key, you want to remap use `xev` on the terminal.
-Just type the wanted keys a few times. The output will be something like
-the following:
+To track down the key, you want to remap use `xev` on the terminal. Just type
+the wanted keys a few times. The output will be something like the following:
 
 ```
 KeyRelease event,  serial 33,  synthetic NO,  window 0x1e00001,
@@ -33,9 +35,8 @@ KeyRelease event,  serial 33,  synthetic NO,  window 0x1e00001,
     XFilterEvent returns: False
 ```
 
-The interesting value here is the `keycode`.
-Use this code to build your final xorg.conf.
-In my case this was:
+The interesting value here is the `keycode`. Use this code to build your final
+xorg.conf. In my case this was:
 
 ```
 #/etc/X11/xorg.conf.d/10-kb-layout.conf

@@ -5,9 +5,12 @@ slug = "2012/12/09/icinga-and-pnp4nagios-with-nginx"
 Categories = ["icinga", "pnp4nagios", "nginx", "icinga-web"]
 +++
 
-In this article I will show my nginx configuration for the [icinga](https://www.icinga.org/) web interface. At the time of writing I installed version 1.8 on ubuntu 12.04 using this [ppa](https://launchpad.net/~formorer/+archive/icinga):
+In this article I will show my nginx configuration for the
+[icinga](https://www.icinga.org/) web interface. At the time of writing I
+installed version 1.8 on ubuntu 12.04 using this
+[ppa](https://launchpad.net/~formorer/+archive/icinga):
 
-``` console
+```console
     $ sudo add-apt-repository ppa:formorer/icinga
     $ sudo add-apt-repository ppa:formorer/icinga-web
     $ sudo apt-get update
@@ -17,10 +20,11 @@ In this article I will show my nginx configuration for the [icinga](https://www.
     $ sudo apt-get install nginx php5-fpm # if not already installed
 ```
 
-For php I just use php-fpm without a special configuration.
-If you installed icinga from source, you have change the roots to match your installation path (to `/usr/local/icinga-web/`)
+For php I just use php-fpm without a special configuration. If you installed
+icinga from source, you have change the roots to match your installation path
+(to `/usr/local/icinga-web/`)
 
-``` nginx nginx.conf
+```nginx nginx.conf
 upstream fpm {
     server unix:/var/run/php5-fpm.sock;
 }

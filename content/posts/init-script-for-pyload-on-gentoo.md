@@ -6,7 +6,8 @@ description = "initscript to run pyload on gentoo as a service"
 Categories = []
 +++
 
-Because I use a custom installation of [pyload](http://pyload.org/) I had to write my own init script.
+Because I use a custom installation of [pyload](http://pyload.org/) I had to
+write my own init script.
 
 my setup:
 
@@ -16,7 +17,7 @@ my setup:
 
 Here is the init script I use:
 
-``` console /etc/init.d/pyload
+```console /etc/init.d/pyload
 #!/sbin/runscript
 
 depend() {
@@ -48,7 +49,7 @@ stop() {
 
 Here is the configuration:
 
-``` console /etc/conf.d/pyload
+```console /etc/conf.d/pyload
 PYLOAD_USER=pyload
 PYLOAD_GROUP=pyload
 PYLOAD_EXEC=/home/pyload/bin/pyLoadCore.py

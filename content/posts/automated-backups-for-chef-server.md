@@ -5,8 +5,8 @@ slug = "2013/04/27/automated-backups-for-chef-server"
 Categories = ["chef", "opscode", "backup", "cron", "knife-backup"]
 +++
 
-In this article I will share my setup, I use to backup chef server.
-In the best case, you have a dedicated machine, which has network access to your chef
+In this article I will share my setup, I use to backup chef server. In the best
+case, you have a dedicated machine, which has network access to your chef
 server. Otherwise you will have to additionally use a different backup program
 like [rsnapshot](http://www.rsnapshot.org/) or
 [duplicity](http://duplicity.nongnu.org/) to backup the created export
@@ -21,7 +21,9 @@ this job. Feel free to choose your preferred way:
 $ curl -L https://get.rvm.io | bash -s stable --autolibs=enabled
 ```
 
-To create the backup, I use the great [knife-backup gem](https://github.com/mdxp/knife-backup) of [Marius Ducea](http://www.ducea.com/):
+To create the backup, I use the great
+[knife-backup gem](https://github.com/mdxp/knife-backup) of
+[Marius Ducea](http://www.ducea.com/):
 
 ```console
 $ gem install knife-backup
@@ -74,9 +76,8 @@ tar xf $1
 knife --config $HOME/.chef/knife-backup.rb backup restore -D .
 ```
 
-Modify BACKUP variable to match your backup destination.
-Next you will need a knife.rb to get access to your server.
-I suggest to create a new client:
+Modify BACKUP variable to match your backup destination. Next you will need a
+knife.rb to get access to your server. I suggest to create a new client:
 
 ```console
 $ mkdir -p ~/.chef

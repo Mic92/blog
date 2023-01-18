@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main # Set a branch to deploy
+      - staging # bors
+      - trying # bors
   pull_request:
   schedule:
     - cron: "42 */24 * * *" # Once a day at 42

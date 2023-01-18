@@ -5,5 +5,6 @@ mkShell {
     hugo
     pandoc
     just
+    nodePackages.prettier
   ];
 }

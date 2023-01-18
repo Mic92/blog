@@ -6,5 +6,6 @@ mkShell {
     pandoc
     just
     nodePackages.prettier
+    typos
   ];
 }

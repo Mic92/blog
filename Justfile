@@ -11,6 +11,9 @@ build:
 serve:
     hugo server
 
+spellcheck:
+    typos ./content
+
 # Format content
 fmt:
      prettier --prose-wrap always -w .

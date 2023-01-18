@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-18T08:58:36+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">How to execute NixOS tests interactively for debugging</title><link href="https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.79.1">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2023-01-18T09:00:33+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">How to execute NixOS tests interactively for debugging</title><link href="https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t
 behaving properly. To gain more insight, you may want to check the debug output.
 This leads me to discuss how to execute NixOS tests interactively.</p>
 <h1 id="problem-statement">Problem statement</h1>
@@ -42,7 +42,7 @@ node1
 <p>For complex modules, you may need to execute certain tests and only then inspect
 the virtual machine. In such case, you can use the <code>breakpoint()</code> function in
 your test script and run the test-driver without the <code>--interactive</code> flag:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># shortend example ./tests/hello-world-server.nix from above</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix"><span style="color:#998;font-style:italic"># shortened example ./tests/hello-world-server.nix from above</span>
 
 (<span style="color:#000;font-weight:bold">import</span> <span style="color:#009926">./lib.nix</span>) {
 
@@ -790,7 +790,7 @@ android device and are able to connect to it via adb.</p>
 you want to install the root patch, you can download the latest
 <a href="http://download.chainfire.eu/supersu" target="_blank">SuperSU</a>. <strong>Note</strong> that you will be not
 able to install custom roms, if your bootloader is locked. If the signature
-missmatch it will refuse to boot.</p>
+mismatch it will refuse to boot.</p>
 <p>The next thing to do is to download and extract
 <a href="https://www.androidfilehost.com/?fid=24052804347782876" target="_blank">IntelAndroid-FBRL-07-24-2015.7z</a>
 mentioned in the post. It contains a recovery images for CWM or TWRP and some
@@ -900,7 +900,7 @@ to your droplet.</p>
 <code>/etc/rc.conf</code> In my case the public ipv4 address is <code>188.166.0.1</code> and my first
 ipv6 address is <code>2a03:b0c0:2:d0::2a5:f001</code>.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#008080">defaultrouter</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;188.166.0.1&#34;</span>
-<span style="color:#998;font-style:italic"># ipv6 address are shortend for readability</span>
+<span style="color:#998;font-style:italic"># ipv6 address are shortened for readability</span>
 <span style="color:#008080">ipv6_defaultrouter</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;2a03:b0c0:2:d0::1&#34;</span>
 <span style="color:#008080">ifconfig_vtnet0</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;inet 188.166.16.37 netmask 255.255.192.0&#34;</span>
 <span style="color:#008080">ifconfig_vtnet0_ipv6</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;inet6 2a03:b0c0:2:d0::2a5:f001 prefixlen 64&#34;</span>
@@ -1343,7 +1343,7 @@ which is a really great and advanced library to communicate to your REST API.</p
 <p>When you have lots of requests in different areas of your project, you may want
 to have a global handling for failure events. For example how an Login View, if
 any of the requests gives you an 401 (Unauthorized) status code.</p>
-<p>In RestKit 0.20 they introduced the oppertunity to register your own
+<p>In RestKit 0.20 they introduced the opportunity to register your own
 <code>RKObjectRequestOperation</code>, which is the common way to do this.</p>
 <p>So at first you create a subclass of <code>RKObjectRequestOperation</code>, let&rsquo;s call it
 <code>CustomRKObjectRequestOperation</code></p>
@@ -1387,7 +1387,7 @@ class. You can do this by adding this line to you RestKit configuration:</p>
 any of your class, I use the AppDelegate for this.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">[[NSNotificationCenter defaultCenter] <span style="color:#900;font-weight:bold">addObserver</span>:<span style="color:#0086b3">self</span> <span style="color:#900;font-weight:bold">selector</span>:<span style="color:#000;font-weight:bold">@selector</span>(<span style="color:#900;font-weight:bold">connectionFailedWithOperation</span>:) <span style="color:#900;font-weight:bold">name</span>:<span style="color:#d14">@&#34;connectionFailure&#34;</span> <span style="color:#900;font-weight:bold">object</span>:<span style="color:#0086b3">nil</span>];
 </code></pre></div><p>As you should know, the <code>connectionFailedWithOperation:</code> is called when a
-connection failure occures.</p>
+connection failure occurs.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">- (<span style="color:#458;font-weight:bold">void</span>)<span style="color:#900;font-weight:bold">connectionFailedWithOperation:</span>(NSNotification <span style="color:#000;font-weight:bold">*</span>)<span style="color:#008080">notification</span>
 {
     RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>operation <span style="color:#000;font-weight:bold">=</span> (RKObjectRequestOperation <span style="color:#000;font-weight:bold">*</span>)notification.object;
@@ -1695,7 +1695,7 @@ $ knife role list # test authentication
 </code></pre></div><p>That&rsquo;s all folks!</p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/chef" term="chef" label="chef"/><category scheme="https://blog.thalheim.io/categories/opscode" term="opscode" label="opscode"/><category scheme="https://blog.thalheim.io/categories/backup" term="backup" label="backup"/><category scheme="https://blog.thalheim.io/categories/cron" term="cron" label="cron"/><category scheme="https://blog.thalheim.io/categories/knife-backup" term="knife-backup" label="knife-backup"/></entry><entry><title type="html">Owncloud 5 and Nginx</title><link href="https://blog.thalheim.io/2013/04/19/owncloud-5-and-nginx/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2013/04/19/owncloud-5-and-nginx/</id><published>2013-04-19T00:00:00+00:00</published><updated>2013-04-19T00:00:00+00:00</updated><content type="html"><![CDATA[<p>Since my last <a href="http://localhost:4000/2012/06/03/owncloud-4-and-nginx/" target="_blank">post</a>
 owncloud has added
-<a href="http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration" target="_blank">offical documentation for nginx</a>.
+<a href="http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration" target="_blank">official documentation for nginx</a>.
 Unfortunately the documentation there didn&rsquo;t worked for me out of the box:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">2013/04/19 22:14:38 [error] 32402#0: *251 FastCGI sent in stderr: &#34;Access to the
 script &#39;/var/www/cloud&#39; has been denied (see security.limit_extensions)&#34; while
@@ -1851,7 +1851,7 @@ task <span style="color:#990073">:deploy</span> <span style="color:#000;font-wei
   <span style="color:#000;font-weight:bold">raise</span> <span style="color:#d14">&#34;!! Hub notification error: </span><span style="color:#d14">#{</span>resp<span style="color:#000;font-weight:bold">.</span>code<span style="color:#d14">}</span><span style="color:#d14"> </span><span style="color:#d14">#{</span>resp<span style="color:#000;font-weight:bold">.</span>msg<span style="color:#d14">}</span><span style="color:#d14">, </span><span style="color:#d14">#{</span>data<span style="color:#d14">}</span><span style="color:#d14">&#34;</span> <span style="color:#000;font-weight:bold">unless</span> resp<span style="color:#000;font-weight:bold">.</span>code <span style="color:#000;font-weight:bold">==</span> <span style="color:#d14">&#34;204&#34;</span>
   <span style="color:#0086b3">puts</span> <span style="color:#d14">&#34;## Notified hub (&#34;</span> <span style="color:#000;font-weight:bold">+</span> hub_url <span style="color:#000;font-weight:bold">+</span> <span style="color:#d14">&#34;) that feed </span><span style="color:#d14">#{</span>atom_url<span style="color:#d14">}</span><span style="color:#d14"> has been updated&#34;</span>
 <span style="color:#000;font-weight:bold">end</span>
-</code></pre></div><p>Now whenever you run <code>rake deploy</code>, it will automaticly update your hub.</p>
+</code></pre></div><p>Now whenever you run <code>rake deploy</code>, it will automatically update your hub.</p>
 <p>If you have a jabber or google talk account, you can easily verify your setup by
 adding <a href="https://push-bot.appspot.com/" target="_blank">push-bot</a> to your contact list and
 subscribe to your feed.</p>
@@ -1975,8 +1975,8 @@ dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 r
 </code></pre>
 <p>If you reboot, systemd will be used instead of the default init script.</p>
 <p>Currently debians version of systemd doesn&rsquo;t ship many service files by default.
-Systemd will automaticly fallback to the lsb script, if a service file for a
-deamon is missing. So the speedup isn&rsquo;t as big as on other distributions such as
+Systemd will automatically fallback to the lsb script, if a service file for a
+daemon is missing. So the speedup isn&rsquo;t as big as on other distributions such as
 archlinux or fedora, which provide a deeper integration.</p>
 <p>To get a quick overview, which services are started nativly, type the following
 command:</p>
@@ -1996,7 +1996,7 @@ instead by systemd. This will not work in all cases like dhcpcd which contains
 the specific network device (like dhcpcd@eth0). In this case, you have to remove
 origin service with <code>update-rc.d</code> and enable the service file with
 <code>systemctl enable</code>.</p>
-<p>Also avaible as <a href="https://gist.github.com/ac8ab2e84125ededa5c5" target="_blank">gist</a>:</p>
+<p>Also available as <a href="https://gist.github.com/ac8ab2e84125ededa5c5" target="_blank">gist</a>:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain"># IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!
 [Unit]
 Description=dhcpcd on %I
@@ -2239,6 +2239,6 @@ running, some additional options are necessary:</p>
 </code></pre></div><p>PHP +++ If your upload size is still lower than the one set in nginx&rsquo;s
 configuration, increase the size in the php.ini as described
 <a href="http://www.radinks.com/upload/config.php" target="_blank">here</a></p>
-<h2 id="referenzes">Referenzes</h2>
+<h2 id="references">References</h2>
 <p><a href="http://nblock.org/2012/03/12/nginx-and-owncloud" target="_blank">Setting up Nginx and Owncloud - nblock.org</a></p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/owncloud" term="owncloud" label="owncloud"/></entry></feed>

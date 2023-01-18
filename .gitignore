@@ -1,5 +1,7 @@
 # Hugo default output directory
 /public
+# hugo server lock
+.hugo_build.lock
 
 ## OS Files
 # Windows

@@ -2,6 +2,7 @@
 title: "How to use NixOS testing framework with flakes"
 date: 2023-01-08T11:46:06+01:00
 categories: ["nixos"]
+author: ["Jörg Thalheim and Alex A. Renoire"]
 ---
 
 *Written by Jörg Thalheim and Alex A. Renoire*

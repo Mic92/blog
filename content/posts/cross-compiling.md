@@ -3,6 +3,7 @@ title = "Cross compiling and deploying NixOS"
 date = "2022-11-27"
 slug = "2022/11/27/nixos-cross-compiling"
 Categories = [ "nix", "cross", "compiling" ]
+author = ["Jörg Thalheim and Alex A. Renoire"]
 +++
 
 *Written by Jörg Thalheim and Alex A. Renoire*

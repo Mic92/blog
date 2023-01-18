@@ -12,7 +12,7 @@ When you have lots of requests in different areas of your project, you may want
 to have a global handling for failure events. For example how an Login View, if
 any of the requests gives you an 401 (Unauthorized) status code.
 
-In RestKit 0.20 they introduced the oppertunity to register your own
+In RestKit 0.20 they introduced the opportunity to register your own
 `RKObjectRequestOperation`, which is the common way to do this.
 
 So at first you create a subclass of `RKObjectRequestOperation`, let's call it
@@ -70,7 +70,7 @@ any of your class, I use the AppDelegate for this.
 ```
 
 As you should know, the `connectionFailedWithOperation:` is called when a
-connection failure occures.
+connection failure occurs.
 
 ```objective-c
 - (void)connectionFailedWithOperation:(NSNotification *)notification

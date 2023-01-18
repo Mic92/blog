@@ -7,7 +7,7 @@ Categories = ["nginx", "owncloud"]
 
 Since my last [post](http://localhost:4000/2012/06/03/owncloud-4-and-nginx/)
 owncloud has added
-[offical documentation for nginx](http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration).
+[official documentation for nginx](http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration).
 Unfortunately the documentation there didn't worked for me out of the box:
 
 ```plain error.log

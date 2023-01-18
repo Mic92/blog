@@ -114,7 +114,7 @@ PHP +++ If your upload size is still lower than the one set in nginx's
 configuration, increase the size in the php.ini as described
 [here](http://www.radinks.com/upload/config.php)
 
-## Referenzes
+## References
 
 [Setting up Nginx and Owncloud - nblock.org][ntblock]
 

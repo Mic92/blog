@@ -20,7 +20,7 @@ Then place the update, you want to install on the sdcard on your device. In case
 you want to install the root patch, you can download the latest
 [SuperSU](http://download.chainfire.eu/supersu). **Note** that you will be not
 able to install custom roms, if your bootloader is locked. If the signature
-missmatch it will refuse to boot.
+mismatch it will refuse to boot.
 
 The next thing to do is to download and extract
 [IntelAndroid-FBRL-07-24-2015.7z](https://www.androidfilehost.com/?fid=24052804347782876)

@@ -4,25 +4,52 @@ date: 2023-01-08T11:46:06+01:00
 categories: ["nixos"]
 ---
 
-In this article, I will explain how to perform full integration tests with flakes outside nixpkgs.
+In this article, I will explain how to perform full integration tests with
+flakes outside nixpkgs.
 
-With [NixOS testing framework](https://nixos.wiki/wiki/NixOS_Testing_library), you can [create end-to-end integration tests](https://nix.dev/tutorials/integration-testing-using-virtual-machines) easily. It all comes down to starting a virtual machine based on your custom modules and testing its state with a Python script. This way, you can identify in advance all the regressions and incompatible configurations arising from the updates you introduced.
+With [NixOS testing framework](https://nixos.wiki/wiki/NixOS_Testing_library),
+you can
+[create end-to-end integration tests](https://nix.dev/tutorials/integration-testing-using-virtual-machines)
+easily. It all comes down to starting a virtual machine based on your custom
+modules and testing its state with a Python script. This way, you can identify
+in advance all the regressions and incompatible configurations arising from the
+updates you introduced.
 
-One of the framework's upsides is that it's extremely fast — maybe the fastest of its kind: setting up VMs and running tests doesn't take much time.
+One of the framework's upsides is that it's extremely fast — maybe the fastest
+of its kind: setting up VMs and running tests doesn't take much time thanks to
+sharing files with it's host nix store.
 
-But previously, there was no stable API to import the testing framework into projects, therefore it was hard to test anything that's outside NixOS. The situation has changed thanks to Robert Hensing, who [created a new modular interface] for testing.
+But previously, there was no stable API to import the testing framework into
+projects, therefore it was hard to test anything that's outside NixOS. The
+situation has changed thanks to Robert Hensing, who [created a new modular
+interface] for testing.
 
-But there's still a problem with documentation. Of course, you can refer to the corresponding [manual chapter](https://github.com/NixOS/nixpkgs/blob/master/nixos/doc/manual/development/writing-nixos-tests.section.md) to explore NixOS testing framework. But many topics aren't explained in detail, so I decided to write a brief intro to testing NixOS modules with flakes.
+But there's still a problem with documentation. Of course, you can refer to the
+corresponding
+[manual chapter](https://github.com/NixOS/nixpkgs/blob/master/nixos/doc/manual/development/writing-nixos-tests.section.md)
+to explore NixOS testing framework. But many topics aren't explained in detail,
+so I decided to write a brief intro to testing NixOS modules with flakes.
 
 # Intro to testing in NixOS
 
-Let me give you some info on how tests are executed, and how to incorporate them into your project. If you're new to NixOS, this info may be helpful.
+Let me give you some info on how tests are executed, and how to incorporate them
+into your project. If you're new to NixOS, this info may be helpful.
 
-So, how are tests executed in NixOS? To verify that the flake can be evaluated successfully, we run the [flake check](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-flake-check.html) command. Under the hood, nix will run the so-called test driver in its own build sandbox. The test driver provides an API for the test script to setup virtual machines. When the VMs are ready, a series of tests are executed to check if NixOS modules are functioning as intended.
+So, how are tests executed in NixOS? To verify that the flake can be evaluated
+successfully, we run the
+[flake check](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-flake-check.html)
+command. Under the hood, nix will run the so-called test driver in its own build
+sandbox. The test driver provides an API for the test script to setup virtual
+machines. When the VMs are ready, a series of tests are executed to check if
+NixOS modules are functioning as intended.
 
-That's a very broad outlook on how tests work. But how do you write tests? First, if you are testing a module outside NixOS, i.e. in your own project, you have to import `nixpkgs`, the biggest repository of Nix packages where the testing library is located.
+That's a very broad outlook on how tests work. But how do you write tests?
+First, if you are testing a module outside NixOS, i.e. in your own project, you
+have to import `nixpkgs`, the biggest repository of Nix packages where the
+testing library is located.
 
-There are several ways to import `nixpkgs` in your code. One way is via `fetchTarball`:
+There are several ways to import `nixpkgs` in your code. One way is via
+`fetchTarball`:
 
 ```nix
 nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/archive/....tar.gz";
@@ -30,13 +57,17 @@ nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/archive/....tar.gz";
 pkgs = import nixpkgs {};
 ```
 
-But `fetchTarball` is a builtin, which means that `nixpkgs` will be downloaded during evaluation. The other way is to reference the current system's `nixpkgs` in a flake. It's more convenient, because this way you can update the dependencies easily. I'll use this approach in my example.
+But `fetchTarball` is a builtin, which means that `nixpkgs` will be downloaded
+during evaluation. The other way is to reference the current system's `nixpkgs`
+in a flake. It's more convenient, because this way you can update the
+dependencies easily. I'll use this approach in my example.
 
 Let's move to the coding part now.
 
 # Defining a flake to be tested
 
-As an example, I’ll take a simple project that runs a web server returning a “Hello world!” string. First, let’s specify the flake:
+As an example, I’ll take a simple project that runs a web server returning a
+“Hello world!” string. First, let’s specify the flake:
 
 ```nix
 # flake.nix
@@ -48,13 +79,20 @@ As an example, I’ll take a simple project that runs a web server returning a �
 }
 ```
 
-This flake exposes the module `./hello-world-server.nix`. You can find the file in the repository [here](https://github.com/Mic92/nixos-test-example). What it does is it creates a simple HTML page and starts a sever on the port 8000. The correct behavior would be if the module returns a “Hello world!” string. Any other output will be incorrect.
+This flake exposes the module `./hello-world-server.nix`. You can find the file
+in the repository [here](https://github.com/Mic92/nixos-test-example). What it
+does is it creates a simple HTML page and starts a sever on the port 8000. The
+correct behavior would be if the module returns a “Hello world!” string. Any
+other output will be incorrect.
 
 # Writing the tests
 
-Now that we have our flake and module, we can write a test to check if we can reach the server.
+Now that we have our flake and module, we can write a test to check if we can
+reach the server.
 
-But before that, we will create a helper function in `./tests/lib.nix`, which will import the testing framework from nixpkgs. Extending `specialArgs` will allow us to pass through any flake inputs and outputs.
+But before that, we will create a helper function in `./tests/lib.nix`, which
+will import the testing framework from nixpkgs. Extending `specialArgs` will
+allow us to pass through any flake inputs and outputs.
 
 ```nix
 # tests/lib.nix
@@ -106,7 +144,9 @@ Now, let’s create the test:
 }
 ```
 
-To expose the test in our flake, we will import it in the checks output in the `flake.nix` file. This will make the test run when you execute the `nix flake check -L` command.
+To expose the test in our flake, we will import it in the checks output in the
+`flake.nix` file. This will make the test run when you execute the
+`nix flake check -L` command.
 
 ```nix
 # flake.nix
@@ -134,9 +174,10 @@ To expose the test in our flake, we will import it in the checks output in the `
 
 Now that we have our nixos module, we can write a nixos test to check if we can
 reach the "hello world" application. To expose the test in our flake, we will
-add an attribute under the `checks` output in the `flake.nix` file. This will make
-the test run when you execute the `nix flake check -L` command. The test uses the
-hello-world-server nixos module and checks if the application can be reached.
+add an attribute under the `checks` output in the `flake.nix` file. This will
+make the test run when you execute the `nix flake check -L` command. The test
+uses the hello-world-server nixos module and checks if the application can be
+reached.
 
 ```nix
 # flake.nix
@@ -170,7 +211,8 @@ To verify that everything works as expected, run:
 $ nix flake check -L
 ```
 
-The -L parameter here tells the testing framework to print all logs that occur during the test, making it easier to follow.
+The -L parameter here tells the testing framework to print all logs that occur
+during the test, making it easier to follow.
 
 ```console
 start all VLans
@@ -193,12 +235,20 @@ test script finished in 7.18s
 ...
 ```
 
-Here, the testing framework creates a virtual network and a virtual machine with our module in it, then it waits for the hello-world-server to start and checks if its output is valid. Here, the output is “Hello world!”, so we passed the test.
+Here, the testing framework creates a virtual network and a virtual machine with
+our module in it, then it waits for the hello-world-server to start and checks
+if its output is valid. Here, the output is “Hello world!”, so we passed the
+test.
 
 Now our hello-world-server NixOS module has a proper test!
 
 # Conclusion
 
-In this article, we explained how you can leverage the NixOS testing framework for your projects while importing the nixpkgs repository. In particular, we defined a NixOS test in a flake and exposed it through the checks output, making it run when executing the `nix flake check -L` command.
+In this article, we explained how you can leverage the NixOS testing framework
+for your projects while importing the nixpkgs repository. In particular, we
+defined a NixOS test in a flake and exposed it through the checks output, making
+it run when executing the `nix flake check -L` command.
 
-But often you need to run your tests interactively to check the debug output and gain more insight into why a test isn’t behaving the way you expected. That’s what I explore in a [twin article](nixos-tests-2.md).
+But often you need to run your tests interactively to check the debug output and
+gain more insight into why a test isn’t behaving the way you expected. That’s
+what I explore in a [twin article](nixos-tests-2.md).

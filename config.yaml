@@ -50,6 +50,7 @@ menu:
       weight: 5
 
 params:
+  listAuthor: true
   comments:
     enabled: true
   subtitle: "My brain-dump of random code/configuration."

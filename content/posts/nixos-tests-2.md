@@ -11,7 +11,7 @@ This leads me to discuss how to execute NixOS tests interactively.
 
 # Problem statement
 
-In a [standard way of running tests](nixos-tests.md), you can't interfere with
+In a [standard way of running tests]({{< ref "nixos-tests" >}}), you can't interfere with
 the process to explore what's gone wrong.
 
 But there's a trick: you can start the test driver in a python REPL loop, which

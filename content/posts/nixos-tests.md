@@ -253,4 +253,4 @@ it run when executing the `nix flake check -L` command.
 
 But often you need to run your tests interactively to check the debug output and
 gain more insight into why a test isn’t behaving the way you expected. That’s
-what I explore in a [twin article](nixos-tests-2.md).
+what I explore in a [twin article]({{< ref "nixos-tests-2" >}}).

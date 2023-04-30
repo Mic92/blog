@@ -38,11 +38,41 @@
   src: local('Roboto Mono'), url('../webfonts/RobotoMono-Regular.woff') format('woff');
 }
 
+:root {
+  --bg-color: #FDFDFD;
+  --txt-color: #333;
+  --line-color: #EEE;
+  --fn-color: #CCC;
+  --ft-txt-color: #777;
+  --lk-color: #00E;
+  --hover-color: #808080;
+  --bq-color: #E00;
+  --tb1-color: #DEE2E6;
+  --inline-cd-color: #DDD;
+}
+
+[data-theme="dark"] {
+  --bg-color: #181714;
+  --txt-color: #FFEECA;
+  --line-color: #433F37;
+  --fn-color: #534F47;
+  --ft-txt-color: #FFEECA;
+  --lk-color: #8192AE;
+  --hover-color: #B1A184;
+  --bq-color: #75271E;
+  --tb1-color: #47443B;
+  --inline-cd-color: #37342E;
+}
+
+html {
+  background-color: var(--bg-color);
+}
+
 body {
   font-family: "Roboto Regular", serif;
   font-weight: 400;
   font-size: 18px;
-  color: #333;
+  color: var(--txt-color);
   line-height: 1.6rem;
   max-width: 800px;
   margin: 20px auto 0 auto;
@@ -62,26 +92,31 @@ header nav li {
   padding: 0;
 }
 
+#dark-mode {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
 footer {
   font-family: "Roboto Slab Regular", serif;
   text-align: right;
   font-size: 0.75em;
-  color: #999;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--line-color);
   margin-top: 10px;
   padding: 5px 0;
 }
 
 footer a {
-  color: #555;
+  color: var(--ft-txt-color);
 }
 
 footer a:hover {
-  color: #00E
+  color: var(--lk-color);
 }
 
 html,button,input,select,textarea {
-  color: #333;
+  color: var(--txt-color);
 }
 
 b, strong {
@@ -89,19 +124,19 @@ b, strong {
 }
 
 a {
-  color: #00E;
+  color: var(--lk-color);
   text-decoration: none;
   word-break: break-word;
 }
 a:hover {
-  color: #808080;
+  color: var(--hover-color);
 }
 
 hr {
     display: block;
     height: 1px;
     border: 0;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--fn-color);
     margin: 1rem 0;
     padding: 0;
 }
@@ -133,7 +168,7 @@ textarea {
 
 blockquote {
   margin-left: 1rem;
-  border-left: 2px solid #E00;
+  border-left: 2px solid var(--bq-color);
   padding-left: 20px;
 }
 
@@ -147,7 +182,7 @@ blockquote em {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #333;
+    color: var(--txt-color);
     font-weight: 500;
     line-height: 1.3em;
     margin: 30px 0 20px 0;
@@ -193,29 +228,29 @@ table {
 
 table th,
 table td {
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid var(--tb1-color);
   padding: 0.75rem;
   vertical-align: top;
 }
 
 table thead th {
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid var(--tb1-color);
   vertical-align: bottom;
 }
 
 table tbody + tbody {
-  border-top: 2px solid #dee2e6;
+  border-top: 2px solid var(--tb1-color);
 }
 
 table tbody tr:nth-of-type(even) {
-  background-color: #808080;
-  color: #fff;
+  background-color: var(--hover-color);
+  color: var(--bg-color);
 }
 
 table th {
-  background-color: #333;
-  border-color: #333;
-  color: #fff;
+  background-color: var(--txt-color);
+  border-color: var(--txt-color);
+  color: var(--bg-color);
 }
 
 #avatar {
@@ -235,11 +270,24 @@ table th {
 }
 
 #title a {
-  color: #333;
+  color: var(--txt-color);
 }
 
 #title a:hover {
-  color: #808080;
+  color: var(--hover-color);
+}
+
+#titleonly {
+  font-size: 4.75rem;
+  margin: 0;
+}
+
+#titleonly a {
+  color: var(--txt-color);
+}
+
+#titleonly a:hover {
+  color: var(--hover-color);
 }
 
 #title-description {
@@ -247,8 +295,14 @@ table th {
   justify-content: space-between;
 }
 
+#title-social {
+  float: right;
+  margin-top: -54px;
+}
+
 #social nav {
   margin: auto 0;
+  max-width: 128px;
 }
 
 #social nav ul {
@@ -262,13 +316,9 @@ table th {
   margin: 0 10px 0 0;
 }
 
-#social li:last-child {
-  margin: 0;
-}
-
 #mainmenu nav {
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+  border-top: 1px solid var(--line-color);
+  border-bottom: 1px solid var(--line-color);
   padding: 5px 0 5px 0;
 }
 
@@ -283,15 +333,19 @@ table th {
 }
 
 .icons {
-  color: #333;
+  color: var(--txt-color);
   font-size: 1.4rem;
 }
 
 .icons:hover {
-  color: #808080;
+  color: var(--hover-color);
 }
 
 .recent-posts .posts .post {
+    margin-bottom: 45px;
+}
+
+.flat .post {
     margin-bottom: 45px;
 }
 
@@ -327,17 +381,17 @@ table th {
     font-weight: bold;
 }
 
+.markdown {
+    overflow: hidden;
+}
+
 .post .title.small {
-    margin: 0 0 10px 0;
+    margin: 0;
     font-family: "Roboto Slab Regular", serif;
 }
 
-.post .post-header {
-    margin-bottom: 30px;
-}
-
 .post .draft-label {
-    color: #E00;
+    color: var(--bq-color);
     text-decoration: underline;
     padding: 2px 4px;
     margin-left: 6px;
@@ -355,8 +409,12 @@ table th {
     margin: 0 10px 0 0;
 }
 
+.tags p {
+  margin: 10px 0 10px 0;
+}
+
 .post .tags a:hover {
-    border: 1px solid #FFFFFF;
+    border: 1px solid var(--bg-color);
 }
 
 .post ul li {
@@ -369,6 +427,17 @@ table th {
 
 .list .posts .post-header .meta {
     margin-bottom: 0;
+}
+
+.post-meta {
+  color: var(--hover-color);
+  font-size: 14px;
+  font-style: italic;
+  margin: 0 0 10px;
+}
+
+.description {
+  margin: 0;
 }
 
 .pagination {
@@ -422,7 +491,7 @@ table th {
 
 .tags {
   text-align: center;
-  padding: 5px 0 20px 0;
+  padding: 5px 0 5px 0;
 }
 
 .clearit {
@@ -462,7 +531,7 @@ code, kbd, pre, samp {
 
 .highlight {
   background: 0 0;
-  background-color: #FAFAFA;
+  background-color: var(--bg-color);
 }
 
 pre, textarea {
@@ -488,14 +557,26 @@ legend, td, th {
 
 p code {
   border-radius: 5px;
-  background: #F1F1F1;
+  background: var(--inline-cd-color);
   padding: 0px 4px;
+}
+
+.left, .alignleft {
+  float: left;
+}
+
+.right, .alignright {
+  float: right;
 }
 
 @media screen and (max-width: 800px) {
   body {
     margin: 0 auto;
     padding: 15px;
+  }
+
+  header {
+    text-align: center;
   }
 
   h1 {
@@ -516,7 +597,7 @@ p code {
 
   blockquote {
     margin-left: 1rem;
-    border-left: 2px solid #E00;
+    border-left: 2px solid var(--bq-color);
     padding-left: 20px;
   }
 
@@ -536,6 +617,13 @@ p code {
     line-height: 1em;
   }
 
+  #titleonly {
+    line-height: 1em;
+    font-size: 4rem;
+    margin: 0px;
+    text-align: center;
+  }
+
   #titletext {
     margin: 0 0 10px 0;
   }
@@ -544,8 +632,17 @@ p code {
     flex-direction: column;
   }
 
+  #title-social {
+    float: none;
+    margin: 0;
+  }
+
   #subtitle {
     margin: 5px 0 5px 0;
+  }
+
+  #social nav {
+    max-width: none;
   }
 
   #social nav ul {
@@ -570,5 +667,13 @@ p code {
 
   .icons {
     font-size: 1.8rem;
+  }
+
+  .left, .alignleft {
+    float: none;
+  }
+
+  .right, .alignright {
+    float: none;
   }
 }

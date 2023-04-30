@@ -2,7 +2,7 @@
 title: "How to execute NixOS tests interactively for debugging"
 date: 2023-01-08T11:46:06+01:00
 categories: ["nixos"]
-author: ["Jörg Thalheim and Alex A. Renoire"]
+author: "Jörg Thalheim and Alex A. Renoire"
 ---
 
 For complex modules, you may sometimes struggle to understand why a test isn't

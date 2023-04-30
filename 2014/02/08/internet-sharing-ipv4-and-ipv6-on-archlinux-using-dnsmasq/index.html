@@ -1,14 +1,16 @@
-<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.79.1"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq"><meta property="og:title" content="Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq"><meta property="og:description" content="Update: Added adhoc wlan network
+<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.110.0"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq"><meta property="og:title" content="Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq"><meta property="og:description" content="Update: Added adhoc wlan network
 A guide to connect with a different machine using a ethernet cable for internet sharing or just transferring files:
-  Install dnsmasq and iproute2
+Install dnsmasq and iproute2
 $ pacman -S dnsmasq iproute2
-  Copy over the configuration files at the end of the article and edit the /etc/conf.d/share-internet@<device> to match your network setup. (where <device> is your network device)
-  Start the sharing service with systemd"><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2014/02/08/internet-sharing-ipv4-and-ipv6-on-archlinux-using-dnsmasq/"><meta property="article:published_time" content="2014-02-08T00:00:00+00:00"><meta property="article:modified_time" content="2014-02-08T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq"><meta name=twitter:description content="Update: Added adhoc wlan network
+Copy over the configuration files at the end of the article and edit the /etc/conf.d/share-internet@<device> to match your network setup. (where <device> is your network device)
+Start the sharing service with systemd
+$ sudo systemctl start internet-sharing@.service"><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2014/02/08/internet-sharing-ipv4-and-ipv6-on-archlinux-using-dnsmasq/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2014-02-08T00:00:00+00:00"><meta property="article:modified_time" content="2014-02-08T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq"><meta name=twitter:description content="Update: Added adhoc wlan network
 A guide to connect with a different machine using a ethernet cable for internet sharing or just transferring files:
-  Install dnsmasq and iproute2
+Install dnsmasq and iproute2
 $ pacman -S dnsmasq iproute2
-  Copy over the configuration files at the end of the article and edit the /etc/conf.d/share-internet@<device> to match your network setup. (where <device> is your network device)
-  Start the sharing service with systemd"><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq | ~/git/blog</title><script data-goatcounter=https://goatcounter.thalheim.io/count async src=https://goatcounter.thalheim.io/count.js></script></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author></div><div class=post-header><div class=meta><div class=date><span class=day>08</span>
+Copy over the configuration files at the end of the article and edit the /etc/conf.d/share-internet@<device> to match your network setup. (where <device> is your network device)
+Start the sharing service with systemd
+$ sudo systemctl start internet-sharing@.service"><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq | ~/git/blog</title><script data-goatcounter=https://goatcounter.thalheim.io/count async src=https://goatcounter.thalheim.io/count.js></script></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author></div><div class=post-header><div class=meta><div class=date><span class=day>08</span>
 <span class=rest>Feb 2014</span></div></div><div class=matter><h1 class=title>Internet Sharing Ipv4 and Ipv6 on Archlinux Using Dnsmasq</h1></div></div><div class=markdown><p><strong>Update:</strong> Added adhoc wlan network</p><p>A guide to connect with a different machine using a ethernet cable for internet
 sharing or just transferring files:</p><ol><li><p>Install dnsmasq and iproute2</p><p>$ pacman -S dnsmasq iproute2</p></li><li><p>Copy over the configuration files at the end of the article and edit the
 <em>/etc/conf.d/share-internet@&lt;device></em> to match your network setup. (where
@@ -20,79 +22,78 @@ each host is automatically set based on the hostname. This means if your
 hostname is <em>foo</em>, all members of the network can just connect to it using the
 address <em>foo</em>. You should disable the share-internet.service, if you don&rsquo;t need
 it. Otherwise you might mess up network setups, if you connect to a network with
-the device on which the dhcp service is running.</p><p>Happy networking!</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># google as an upstream dns server
-server=8.8.8.8
-server=8.8.4.4
-no-resolv
-cache-size=2000
-</code></pre></div><p>Ethernet to Wlan:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># Device which has internet access, ex: wlan0 or usb0
-EXTERNAL_DEVICE=&#34;wlp3s0&#34;
-
-IP4_ADDRESS=&#34;10.20.0.1&#34;
-IP4_NETMASK=&#34;24&#34;
-IP4_SUBNET=&#34;10.20.0.2,10.20.0.255&#34;
-
-IP6_ADDRESS=&#34;fd21:30c2:dd2f::1&#34;
-IP6_NETMASK=&#34;64&#34;
-IP6_SUBNET=&#34;fd21:30c2:dd2f::&#34;
-</code></pre></div><p>Wlan to Ethernet:</p><p>If you have luck and your wifi driver is capable of the infrastructure mode, you
+the device on which the dhcp service is running.</p><p>Happy networking!</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span># google as an upstream dns server
+</span></span><span style=display:flex><span>server=8.8.8.8
+</span></span><span style=display:flex><span>server=8.8.4.4
+</span></span><span style=display:flex><span>no-resolv
+</span></span><span style=display:flex><span>cache-size=2000
+</span></span></code></pre></div><p>Ethernet to Wlan:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span># Device which has internet access, ex: wlan0 or usb0
+</span></span><span style=display:flex><span>EXTERNAL_DEVICE=&#34;wlp3s0&#34;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>IP4_ADDRESS=&#34;10.20.0.1&#34;
+</span></span><span style=display:flex><span>IP4_NETMASK=&#34;24&#34;
+</span></span><span style=display:flex><span>IP4_SUBNET=&#34;10.20.0.2,10.20.0.255&#34;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>IP6_ADDRESS=&#34;fd21:30c2:dd2f::1&#34;
+</span></span><span style=display:flex><span>IP6_NETMASK=&#34;64&#34;
+</span></span><span style=display:flex><span>IP6_SUBNET=&#34;fd21:30c2:dd2f::&#34;
+</span></span></code></pre></div><p>Wlan to Ethernet:</p><p>If you have luck and your wifi driver is capable of the infrastructure mode, you
 should take a look at hostadp, in my case I have to create an adhoc network. To
-enable the adhoc network:</p><p>$ sudo systemctl enable wireless-adhoc@&lt;device>.service</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># Device which has internet access, ex: wlan0 or usb0
-EXTERNAL_DEVICE=&#34;enp0s20u2&#34;
-
-IP4_ADDRESS=&#34;10.20.0.1&#34;
-IP4_NETMASK=&#34;24&#34;
-IP4_SUBNET=&#34;10.20.0.100,10.20.0.199&#34;
-
-IP6_ADDRESS=&#34;fd21:30c2:dd2f::1&#34;
-IP6_NETMASK=&#34;64&#34;
-IP6_SUBNET=&#34;fd21:30c2:dd2f::&#34;
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=color:#000;font-weight:700>[Unit]</span>
-<span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Ad-hoc wireless network connectivity (%i)</span>
-<span style=color:teal>Wants</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>network.target</span>
-<span style=color:teal>Before</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>network.target</span>
-<span style=color:teal>Conflicts</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>netctl-auto@.service</span>
-<span style=color:teal>BindsTo</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>sys-subsystem-net-devices-%i.device</span>
-<span style=color:teal>After</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>sys-subsystem-net-devices-%i.device</span>
-
-<span style=color:#000;font-weight:700>[Service]</span>
-<span style=color:teal>Type</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>simple</span>
-<span style=color:teal>ExecStartPre</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/rfkill unblock wifi</span>
-<span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/sbin//wpa_supplicant -D nl80211,wext -c/etc/wpa_supplicant/wpa_supplicant-adhoc-%I.conf -i%I</span>
-
-<span style=color:#000;font-weight:700>[Install]</span>
-<span style=color:teal>RequiredBy</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>share-internet@%i.service</span>
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>ctrl_interface=DIR=/run/wpa_supplicant GROUP=wheel
-
-# use &#39;ap_scan=2&#39; on all devices connected to the network
-ap_scan=2
-
-network={
-    ssid=&#34;The.Secure.Network&#34;
-    mode=1
-    frequency=2432
-    proto=WPA
-    key_mgmt=WPA-NONE
-    pairwise=NONE
-    group=TKIP
-    psk=&#34;fnord&#34;
-}
-
-# MacOS X and Networmanager aren&#39;t capable of using WPA/WPA2 for Adhoc Networks
-#network={
-#    ssid=&#34;The.Insecure.Network&#34;
-#    mode=1
-#    frequency=2432
-#    proto=WPA
-#    key_mgmt=NONE
-#    pairwise=NONE
-#    group=TKIP
-#
-#    wep_key0=&#34;fnord&#34;
-#    wep_tx_keyidx=0
-#}
-</code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/arch/>arch</a>
+enable the adhoc network:</p><p>$ sudo systemctl enable wireless-adhoc@&lt;device>.service</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span># Device which has internet access, ex: wlan0 or usb0
+</span></span><span style=display:flex><span>EXTERNAL_DEVICE=&#34;enp0s20u2&#34;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>IP4_ADDRESS=&#34;10.20.0.1&#34;
+</span></span><span style=display:flex><span>IP4_NETMASK=&#34;24&#34;
+</span></span><span style=display:flex><span>IP4_SUBNET=&#34;10.20.0.100,10.20.0.199&#34;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>IP6_ADDRESS=&#34;fd21:30c2:dd2f::1&#34;
+</span></span><span style=display:flex><span>IP6_NETMASK=&#34;64&#34;
+</span></span><span style=display:flex><span>IP6_SUBNET=&#34;fd21:30c2:dd2f::&#34;
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=display:flex><span><span style=color:#000;font-weight:700>[Unit]</span>
+</span></span><span style=display:flex><span><span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Ad-hoc wireless network connectivity (%i)</span>
+</span></span><span style=display:flex><span><span style=color:teal>Wants</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>network.target</span>
+</span></span><span style=display:flex><span><span style=color:teal>Before</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>network.target</span>
+</span></span><span style=display:flex><span><span style=color:teal>Conflicts</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>netctl-auto@.service</span>
+</span></span><span style=display:flex><span><span style=color:teal>BindsTo</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>sys-subsystem-net-devices-%i.device</span>
+</span></span><span style=display:flex><span><span style=color:teal>After</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>sys-subsystem-net-devices-%i.device</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>[Service]</span>
+</span></span><span style=display:flex><span><span style=color:teal>Type</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>simple</span>
+</span></span><span style=display:flex><span><span style=color:teal>ExecStartPre</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/rfkill unblock wifi</span>
+</span></span><span style=display:flex><span><span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/sbin//wpa_supplicant -D nl80211,wext -c/etc/wpa_supplicant/wpa_supplicant-adhoc-%I.conf -i%I</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>[Install]</span>
+</span></span><span style=display:flex><span><span style=color:teal>RequiredBy</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>share-internet@%i.service</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>ctrl_interface=DIR=/run/wpa_supplicant GROUP=wheel
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span># use &#39;ap_scan=2&#39; on all devices connected to the network
+</span></span><span style=display:flex><span>ap_scan=2
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>network={
+</span></span><span style=display:flex><span>    ssid=&#34;The.Secure.Network&#34;
+</span></span><span style=display:flex><span>    mode=1
+</span></span><span style=display:flex><span>    frequency=2432
+</span></span><span style=display:flex><span>    proto=WPA
+</span></span><span style=display:flex><span>    key_mgmt=WPA-NONE
+</span></span><span style=display:flex><span>    pairwise=NONE
+</span></span><span style=display:flex><span>    group=TKIP
+</span></span><span style=display:flex><span>    psk=&#34;fnord&#34;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span># MacOS X and Networmanager aren&#39;t capable of using WPA/WPA2 for Adhoc Networks
+</span></span><span style=display:flex><span>#network={
+</span></span><span style=display:flex><span>#    ssid=&#34;The.Insecure.Network&#34;
+</span></span><span style=display:flex><span>#    mode=1
+</span></span><span style=display:flex><span>#    frequency=2432
+</span></span><span style=display:flex><span>#    proto=WPA
+</span></span><span style=display:flex><span>#    key_mgmt=NONE
+</span></span><span style=display:flex><span>#    pairwise=NONE
+</span></span><span style=display:flex><span>#    group=TKIP
+</span></span><span style=display:flex><span>#
+</span></span><span style=display:flex><span>#    wep_key0=&#34;fnord&#34;
+</span></span><span style=display:flex><span>#    wep_tx_keyidx=0
+</span></span><span style=display:flex><span>#}
+</span></span></code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/arch/>arch</a>
 <a href=/categories/dhcp/>dhcp</a>
 <a href=/categories/ipv6-router-advertisement/>ipv6-router-advertisement</a>
-<a href=/categories/network/>network</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}
-var d=document,s=d.createElement('script');s.async=true;s.src='//'+"mic92"+'.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>
+<a href=/categories/network/>network</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//mic92.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>

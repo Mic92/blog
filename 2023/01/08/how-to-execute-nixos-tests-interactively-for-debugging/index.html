@@ -1,6 +1,6 @@
-<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.79.1"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="How to execute NixOS tests interactively for debugging"><meta name=author content="[Jörg Thalheim and Alex A. Renoire]"><meta property="og:title" content="How to execute NixOS tests interactively for debugging"><meta property="og:description" content="For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t behaving properly. To gain more insight, you may want to check the debug output. This leads me to discuss how to execute NixOS tests interactively.
+<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.110.0"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="How to execute NixOS tests interactively for debugging"><meta name=author content="[Jörg Thalheim and Alex A. Renoire]"><meta property="og:title" content="How to execute NixOS tests interactively for debugging"><meta property="og:description" content="For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t behaving properly. To gain more insight, you may want to check the debug output. This leads me to discuss how to execute NixOS tests interactively.
 Problem statement In a standard way of running tests, you can&rsquo;t interfere with the process to explore what&rsquo;s gone wrong.
-But there&rsquo;s a trick: you can start the test driver in a python REPL loop, which will provide an interactive shell where you can execute your tests."><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/"><meta property="article:published_time" content="2023-01-08T11:46:06+01:00"><meta property="article:modified_time" content="2023-01-08T11:46:06+01:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="How to execute NixOS tests interactively for debugging"><meta name=twitter:description content="For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t behaving properly. To gain more insight, you may want to check the debug output. This leads me to discuss how to execute NixOS tests interactively.
+But there&rsquo;s a trick: you can start the test driver in a python REPL loop, which will provide an interactive shell where you can execute your tests."><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-01-08T11:46:06+01:00"><meta property="article:modified_time" content="2023-01-08T11:46:06+01:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="How to execute NixOS tests interactively for debugging"><meta name=twitter:description content="For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t behaving properly. To gain more insight, you may want to check the debug output. This leads me to discuss how to execute NixOS tests interactively.
 Problem statement In a standard way of running tests, you can&rsquo;t interfere with the process to explore what&rsquo;s gone wrong.
 But there&rsquo;s a trick: you can start the test driver in a python REPL loop, which will provide an interactive shell where you can execute your tests."><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>How to execute NixOS tests interactively for debugging | ~/git/blog</title><script data-goatcounter=https://goatcounter.thalheim.io/count async src=https://goatcounter.thalheim.io/count.js></script></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author><p>Written by [Jörg Thalheim and Alex A. Renoire]</p></div><div class=post-header><div class=meta><div class=date><span class=day>08</span>
 <span class=rest>Jan 2023</span></div></div><div class=matter><h1 class=title>How to execute NixOS tests interactively for debugging</h1></div></div><div class=markdown><p>For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t
@@ -12,57 +12,56 @@ great way to shorten the feedback loop, as we can execute commands on our VMs.
 For instance, we can tell a VM to dump logs or to display the contents of files.</p><p>So, let&rsquo;s explore how to run tests interactively.</p><h1 id=running-tests-interactively>Running tests interactively</h1><p>To start the hello-world-server test in the interactive mode, you first need to
 build the test driver by adding the <code>.driver</code> attribute to the test name and
 then start it manually by providing the <code>--interactive</code> flag. Here&rsquo;s how you do
-it:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback># Here we assume that our test machine is running on `x86_64-linux`, adjust this to your own architecture)
-
-$ nix build .#checks.x86_64-linux.hello-world-server.driver
-</code></pre></div><p>This will write out result symlink (all files are created in the nix store and
+it:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>#</span> Here we assume that our <span style=color:#0086b3>test</span> machine is running on <span style=color:#d14>`</span>x86_64-linux<span style=color:#d14>`</span>, adjust this to your own architecture<span style=color:#000;font-weight:700>)</span>
+</span></span><span style=display:flex><span><span style=color:#a61717;background-color:#e3d2d2>
+</span></span></span><span style=display:flex><span><span style=color:#a61717;background-color:#e3d2d2></span><span style=color:#555>$</span> nix build .#checks.x86_64-linux.hello-world-server.driver
+</span></span></code></pre></div><p>This will write out result symlink (all files are created in the nix store and
 we don&rsquo;t want to copy them outside) pointing to the test driver. We can run the
-test driver like this:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>./result/bin/nixos-test-driver --interactive
-</code></pre></div><p><strong>Note:</strong> <em>Usually when running tests there&rsquo;s no Internet access because you
+test driver like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#888>./result/bin/nixos-test-driver --interactive
+</span></span></span></code></pre></div><p><strong>Note:</strong> <em>Usually when running tests there&rsquo;s no Internet access because you
 want things to be reproducible and self-contained. Running NixOS tests this way
 will allow the VM to access the Internet, which will make some services work
 that didn&rsquo;t work previously in the nix build sandbox. Therefore, some tests will
 pass that were failing previously.</em></p><p>Inside the REPL, you can type out the Python commands to test your module. For
-example:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#000;font-weight:700>&gt;&gt;&gt;</span> node1<span style=color:#000;font-weight:700>.</span>wait_for_unit(<span style=color:#d14>&#34;hello-world-server&#34;</span>)
-</code></pre></div><h2 id=direct-shell-access>Direct shell access</h2><p>The API of the test driver gives you direct shell access with
+example:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#000;font-weight:700>&gt;&gt;&gt;</span> node1<span style=color:#000;font-weight:700>.</span>wait_for_unit(<span style=color:#d14>&#34;hello-world-server&#34;</span>)
+</span></span></code></pre></div><h2 id=direct-shell-access>Direct shell access</h2><p>The API of the test driver gives you direct shell access with
 <code>&lt;yourmachine>.shell_interact()</code>, so you can access the shell running inside the
 guest machine.</p><p>To try it out, let&rsquo;s replace the placeholder with the name of the VM defined in
-the test &mdash; node1:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-py data-lang=py><span style=color:#000;font-weight:700>&gt;&gt;&gt;</span> node1<span style=color:#000;font-weight:700>.</span>shell_interact()
-node1: Terminal <span style=color:#000;font-weight:700>is</span> ready (there <span style=color:#000;font-weight:700>is</span> no initial prompt):
-<span style=color:#a61717;background-color:#e3d2d2>$</span> hostname
-node1
-</code></pre></div><h2 id=breakpoints>Breakpoints</h2><p>For complex modules, you may need to execute certain tests and only then inspect
+the test &mdash; node1:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#000;font-weight:700>&gt;&gt;&gt;</span> node1<span style=color:#000;font-weight:700>.</span>shell_interact()
+</span></span><span style=display:flex><span>node1: Terminal <span style=color:#000;font-weight:700>is</span> ready (there <span style=color:#000;font-weight:700>is</span> no initial prompt):
+</span></span><span style=display:flex><span><span style=color:#a61717;background-color:#e3d2d2>$</span> hostname
+</span></span><span style=display:flex><span>node1
+</span></span></code></pre></div><h2 id=breakpoints>Breakpoints</h2><p>For complex modules, you may need to execute certain tests and only then inspect
 the virtual machine. In such case, you can use the <code>breakpoint()</code> function in
-your test script and run the test-driver without the <code>--interactive</code> flag:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=color:#998;font-style:italic># shortened example ./tests/hello-world-server.nix from above</span>
-
-(<span style=color:#000;font-weight:700>import</span> <span style=color:#009926>./lib.nix</span>) {
-
- <span style=color:#998;font-style:italic># ...</span>
-
- testScript <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#39;&#39;
-</span><span style=color:#d14>   start_all()
-</span><span style=color:#d14>
-</span><span style=color:#d14>   node1.wait_for_unit(&#34;hello-world-server&#34;)
-</span><span style=color:#d14>
-</span><span style=color:#d14>   output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
-</span><span style=color:#d14>
-</span><span style=color:#d14>   # The test will stop at this line, giving you control over execution.
-</span><span style=color:#d14>
-</span><span style=color:#d14>   breakpoint()
-</span><span style=color:#d14>
-</span><span style=color:#d14>   assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
-</span><span style=color:#d14> &#39;&#39;</span>;
-
-}
-</code></pre></div><p>Here, we stopped the test flow and are looking at the value of <code>output</code> and
-checking the status of the module with <code>systemctl</code>.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>$ nix build .#checks.x86_64-linux.hello-world-server.driver
-$ ./result/bin/nixos-test-driver
-&gt;&gt;&gt; print(output)
-&gt;&gt;&gt; node1.execute(&#34;systemctl status hello-world-server&#34;)
-</code></pre></div><h1 id=conclusion>Conclusion</h1><p>In this article, we showed how you can interactively execute NixOS tests for
+your test script and run the test-driver without the <code>--interactive</code> flag:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span><span style=color:#998;font-style:italic># shortened example ./tests/hello-world-server.nix from above</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(<span style=color:#000;font-weight:700>import</span> <span style=color:#009926>./lib.nix</span>) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> <span style=color:#998;font-style:italic># ...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> testScript <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#39;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#d14>   start_all()
+</span></span></span><span style=display:flex><span><span style=color:#d14>
+</span></span></span><span style=display:flex><span><span style=color:#d14>   node1.wait_for_unit(&#34;hello-world-server&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#d14>
+</span></span></span><span style=display:flex><span><span style=color:#d14>   output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#d14>
+</span></span></span><span style=display:flex><span><span style=color:#d14>   # The test will stop at this line, giving you control over execution.
+</span></span></span><span style=display:flex><span><span style=color:#d14>
+</span></span></span><span style=display:flex><span><span style=color:#d14>   breakpoint()
+</span></span></span><span style=display:flex><span><span style=color:#d14>
+</span></span></span><span style=display:flex><span><span style=color:#d14>   assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+</span></span></span><span style=display:flex><span><span style=color:#d14> &#39;&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Here, we stopped the test flow and are looking at the value of <code>output</code> and
+checking the status of the module with <code>systemctl</code>.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> nix build .#checks.x86_64-linux.hello-world-server.driver
+</span></span><span style=display:flex><span><span style=color:#555>$</span> ./result/bin/nixos-test-driver
+</span></span><span style=display:flex><span><span style=color:#555>&gt;</span>&gt;&gt; print<span style=color:#000;font-weight:700>(</span>output<span style=color:#000;font-weight:700>)</span>
+</span></span><span style=display:flex><span><span style=color:#555>&gt;</span>&gt;&gt; node1.execute<span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;systemctl status hello-world-server&#34;</span><span style=color:#000;font-weight:700>)</span>
+</span></span></code></pre></div><h1 id=conclusion>Conclusion</h1><p>In this article, we showed how you can interactively execute NixOS tests for
 easier troubleshooting and debugging. In short, you can do so using either the
 <code>--interactive</code> flag or breakpoints in your test script. In comparison to
 running tests in a sandbox, you can get immediate feedback and code completion,
 and look at the intermediate results.</p><p>By employing these techniques, you can improve the quality and reliability of
-your NixOS modules and ensure that they are functioning correctly.</p></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/nixos/>nixos</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}
-var d=document,s=d.createElement('script');s.async=true;s.src='//'+"mic92"+'.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>
+your NixOS modules and ensure that they are functioning correctly.</p></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/nixos/>nixos</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//mic92.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>

@@ -1,12 +1,12 @@
-<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.79.1"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="Systemd on Raspbian"><meta property="og:title" content="Systemd on Raspbian"><meta property="og:description" content="As I like the stability and raw speed of systemd, I wanted to leave debian&rsquo;s init system behind and switch to systemd.
+<!doctype html><html lang=en><head><meta name=generator content="Hugo 0.110.0"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta property="og:title" content="Systemd on Raspbian"><meta property="og:title" content="Systemd on Raspbian"><meta property="og:description" content="As I like the stability and raw speed of systemd, I wanted to leave debian&rsquo;s init system behind and switch to systemd.
 The basic installation is pretty easy:
-$ apt-get install systemd  Then you need to tell the kernel to use systemd as the init system:
+$ apt-get install systemd Then you need to tell the kernel to use systemd as the init system:
 To do so, append init=/bin/systemd to the end of /boot/cmdline.txt line
-$ cat /boot/cmdline.txt dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd  If you reboot, systemd will be used instead of the default init script."><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2012/09/19/systemd-on-raspbian/"><meta property="article:published_time" content="2012-09-19T00:00:00+00:00"><meta property="article:modified_time" content="2012-09-19T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Systemd on Raspbian"><meta name=twitter:description content="As I like the stability and raw speed of systemd, I wanted to leave debian&rsquo;s init system behind and switch to systemd.
+$ cat /boot/cmdline.txt dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd If you reboot, systemd will be used instead of the default init script."><meta property="og:type" content="article"><meta property="og:url" content="https://blog.thalheim.io/2012/09/19/systemd-on-raspbian/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2012-09-19T00:00:00+00:00"><meta property="article:modified_time" content="2012-09-19T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Systemd on Raspbian"><meta name=twitter:description content="As I like the stability and raw speed of systemd, I wanted to leave debian&rsquo;s init system behind and switch to systemd.
 The basic installation is pretty easy:
-$ apt-get install systemd  Then you need to tell the kernel to use systemd as the init system:
+$ apt-get install systemd Then you need to tell the kernel to use systemd as the init system:
 To do so, append init=/bin/systemd to the end of /boot/cmdline.txt line
-$ cat /boot/cmdline.txt dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd  If you reboot, systemd will be used instead of the default init script."><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>Systemd on Raspbian | ~/git/blog</title><script data-goatcounter=https://goatcounter.thalheim.io/count async src=https://goatcounter.thalheim.io/count.js></script></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author></div><div class=post-header><div class=meta><div class=date><span class=day>19</span>
+$ cat /boot/cmdline.txt dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd If you reboot, systemd will be used instead of the default init script."><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><title>Systemd on Raspbian | ~/git/blog</title><script data-goatcounter=https://goatcounter.thalheim.io/count async src=https://goatcounter.thalheim.io/count.js></script></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml><i title=RSS class="icons fas fa-rss"></i></a></li><li><a href=https://github.com/Mic92/blog><i title=Github class="icons fab fa-github"></i></a></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><div class=author></div><div class=post-header><div class=meta><div class=date><span class=day>19</span>
 <span class=rest>Sep 2012</span></div></div><div class=matter><h1 class=title>Systemd on Raspbian</h1></div></div><div class=markdown><p>As I like the stability and raw speed of systemd, I wanted to leave debian&rsquo;s
 init system behind and switch to systemd.</p><p>The basic installation is pretty easy:</p><pre><code>$ apt-get install systemd
 </code></pre><p>Then you need to tell the kernel to use systemd as the init system:</p><p>To do so, append <code>init=/bin/systemd</code> to the end of <code>/boot/cmdline.txt</code> line</p><pre><code>$ cat /boot/cmdline.txt
@@ -26,94 +26,93 @@ important, that the service name match with the initscript, so it will be used
 instead by systemd. This will not work in all cases like dhcpcd which contains
 the specific network device (like dhcpcd@eth0). In this case, you have to remove
 origin service with <code>update-rc.d</code> and enable the service file with
-<code>systemctl enable</code>.</p><p>Also available as <a href=https://gist.github.com/ac8ab2e84125ededa5c5 target=_blank>gist</a>:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain># IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!
-[Unit]
-Description=dhcpcd on %I
-Wants=network.target
-Before=network.target
-
-[Service]
-Type=forking
-PIDFile=/run/dhcpcd-%I.pid
-ExecStart=/sbin/dhcpcd -A -q -w %I
-ExecStop=/sbin/dhcpcd -k %I
-
-[Install]
-Alias=multi-user.target.wants/dhcpcd@eth0.service
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain>[Unit]
-Description=Pro-active monitoring utility for unix systems
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/monit -I
-ExecStop=/usr/bin/monit quit
-ExecReload=/usr/bin/monit reload
-
-[Install]
-WantedBy=multi-user.target
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain>[Unit]
-Description=Network Time Service
-After=network.target nss-lookup.target
-
-[Service]
-Type=forking
-PrivateTmp=true
-ExecStart=/usr/sbin/ntpd -g -u ntp:ntp
-ControlGroup=cpu:/
-
-[Install]
-WantedBy=multi-user.target
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain>[Unit]
-Description=SSH Key Generation
-ConditionPathExists=|!/etc/ssh/ssh_host_key
-ConditionPathExists=|!/etc/ssh/ssh_host_key.pub
-ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key
-ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key.pub
-ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key
-ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key.pub
-ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key
-ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key.pub
-
-[Service]
-ExecStart=/usr/bin/ssh-keygen -A
-Type=oneshot
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain>[Unit]
-Conflicts=ssh.service
-
-[Socket]
-ListenStream=22
-Accept=yes
-
-[Install]
-WantedBy=sockets.target
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain>[Unit]
-Description=SSH Per-Connection Server
-Requires=sshdgenkeys.service
-After=syslog.target
-After=sshdgenkeys.service
-
-[Service]
-ExecStartPre=/bin/mkdir -m700 -p /var/run/sshd
-ExecStart=-/usr/sbin/sshd -i
-ExecReload=/bin/kill -HUP $MAINPID
-StandardInput=socket
-</code></pre></div><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain>[Unit]
-Description=Daemon which acts upon network cable insertion/removal
-
-[Service]
-Type=forking
-PIDFile=/run/ifplugd.%i.pid
-ExecStart=/usr/sbin/ifplugd %i
-SuccessExitStatus=0 1 2
-
-[Install]
-WantedBy=multi-user.target
-</code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/raspberry-pie/>raspberry-pie</a>
+<code>systemctl enable</code>.</p><p>Also available as <a href=https://gist.github.com/ac8ab2e84125ededa5c5 target=_blank>gist</a>:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span># IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!
+</span></span><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=dhcpcd on %I
+</span></span><span style=display:flex><span>Wants=network.target
+</span></span><span style=display:flex><span>Before=network.target
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=forking
+</span></span><span style=display:flex><span>PIDFile=/run/dhcpcd-%I.pid
+</span></span><span style=display:flex><span>ExecStart=/sbin/dhcpcd -A -q -w %I
+</span></span><span style=display:flex><span>ExecStop=/sbin/dhcpcd -k %I
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>Alias=multi-user.target.wants/dhcpcd@eth0.service
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=Pro-active monitoring utility for unix systems
+</span></span><span style=display:flex><span>After=network.target
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=simple
+</span></span><span style=display:flex><span>ExecStart=/usr/bin/monit -I
+</span></span><span style=display:flex><span>ExecStop=/usr/bin/monit quit
+</span></span><span style=display:flex><span>ExecReload=/usr/bin/monit reload
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=Network Time Service
+</span></span><span style=display:flex><span>After=network.target nss-lookup.target
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=forking
+</span></span><span style=display:flex><span>PrivateTmp=true
+</span></span><span style=display:flex><span>ExecStart=/usr/sbin/ntpd -g -u ntp:ntp
+</span></span><span style=display:flex><span>ControlGroup=cpu:/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=SSH Key Generation
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_key.pub
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key.pub
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key.pub
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key.pub
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>ExecStart=/usr/bin/ssh-keygen -A
+</span></span><span style=display:flex><span>Type=oneshot
+</span></span><span style=display:flex><span>RemainAfterExit=yes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Conflicts=ssh.service
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Socket]
+</span></span><span style=display:flex><span>ListenStream=22
+</span></span><span style=display:flex><span>Accept=yes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=sockets.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=SSH Per-Connection Server
+</span></span><span style=display:flex><span>Requires=sshdgenkeys.service
+</span></span><span style=display:flex><span>After=syslog.target
+</span></span><span style=display:flex><span>After=sshdgenkeys.service
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>ExecStartPre=/bin/mkdir -m700 -p /var/run/sshd
+</span></span><span style=display:flex><span>ExecStart=-/usr/sbin/sshd -i
+</span></span><span style=display:flex><span>ExecReload=/bin/kill -HUP $MAINPID
+</span></span><span style=display:flex><span>StandardInput=socket
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=Daemon which acts upon network cable insertion/removal
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=forking
+</span></span><span style=display:flex><span>PIDFile=/run/ifplugd.%i.pid
+</span></span><span style=display:flex><span>ExecStart=/usr/sbin/ifplugd %i
+</span></span><span style=display:flex><span>SuccessExitStatus=0 1 2
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/raspberry-pie/>raspberry-pie</a>
 <a href=/categories/raspbian/>raspbian</a>
-<a href=/categories/systemd/>systemd</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}
-var d=document,s=d.createElement('script');s.async=true;s.src='//'+"mic92"+'.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>
+<a href=/categories/systemd/>systemd</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//mic92.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></main><footer>© 2021 Jörg Thalheim</footer></body></html>

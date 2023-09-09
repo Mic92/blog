@@ -9,7 +9,7 @@ title: ~/git/blog
 author: Mic92
 disqusShortname: mic92
 copyright: © 2021 Jörg Thalheim
-pygmentsstyle: github
+pygmentsstyle: "dracula"
 pygmentscodefences: true
 pygmentscodefencesguesssyntax: true
 enableRobotsTXT: true

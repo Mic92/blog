@@ -10,88 +10,88 @@ Nginx don&rsquo;t understand the .htaccess, which is shipped with owncloud. So s
 Nginx upstream backend { unix:/var/run/php-fpm.sock; # <--- edit me } # force https server { listen 80; server_name cloud.site.com; rewrite ^ https://$server_name$request_uri? permanent; } server { listen 443 ssl; ssl_certificate /etc/ssl/nginx/nginx."><meta itemprop=datePublished content="2012-06-03T00:00:00+00:00"><meta itemprop=dateModified content="2012-06-03T00:00:00+00:00"><meta itemprop=wordCount content="300"><meta itemprop=keywords content></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml rel=me aria-label=RSS><span title=RSS class="icons fas fa-rss" aria-hidden=true></span></a></li><li><a href=https://github.com/Mic92/blog rel=me aria-label=Github><span title=Github class="icons fab fa-github" aria-hidden=true></span></a></li><li><button id=dark-mode aria-label="Switch Dark Mode"><span title="Switch Dark Mode" class="icons fas fa-moon" aria-hidden=true></span></button></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><article><div class=post-header><div class=meta><div class=date><span class=day>03</span>
 <span class=rest>Jun 2012</span></div></div><div class=matter><h1 class=title>Owncloud 4 and Nginx</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p><strong>updated at Do 14. Jul 2012</strong></p><p>Short after writing this entry, I discover <a href=http://nblock.org/2012/03/12/nginx-and-owncloud target=_blank>a good one</a>.</p><p>Nginx don&rsquo;t understand the .htaccess, which is shipped with owncloud. So some
 rewrites, required by the webdav implementation, aren&rsquo;t applied. To get owncloud
-running, some additional options are necessary:</p><h2 id=nginx>Nginx</h2><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#000;font-weight:700>upstream</span> <span style=color:#d14>backend</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>unix:/var/run/php-fpm.sock</span>; <span style=color:#998;font-style:italic># &lt;--- edit me
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>}
+running, some additional options are necessary:</p><h2 id=nginx>Nginx</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#ff79c6>upstream</span> <span style=color:#f1fa8c>backend</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>unix:/var/run/php-fpm.sock</span>; <span style=color:#6272a4># &lt;--- edit me
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#998;font-style:italic># force https
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span><span style=color:#000;font-weight:700>server</span> {
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>listen</span>         <span style=color:#099>80</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>server_name</span>    <span style=color:#d14>cloud.site.com</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>rewrite</span>        <span style=color:#d14>^</span> <span style=color:#d14>https://</span><span style=color:teal>$server_name$request_uri?</span> <span style=color:#d14>permanent</span>;
+</span></span><span style=display:flex><span><span style=color:#6272a4># force https
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>server</span> {
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>listen</span>         <span style=color:#bd93f9>80</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>server_name</span>    <span style=color:#f1fa8c>cloud.site.com</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>rewrite</span>        <span style=color:#f1fa8c>^</span> <span style=color:#f1fa8c>https://</span><span style=color:#8be9fd;font-style:italic>$server_name$request_uri?</span> <span style=color:#f1fa8c>permanent</span>;
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>server</span> {
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>listen</span> <span style=color:#099>443</span> <span style=color:#d14>ssl</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>ssl_certificate</span> <span style=color:#d14>/etc/ssl/nginx/nginx.crt</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>ssl_certificate_key</span> <span style=color:#d14>/etc/ssl/nginx/nginx.key</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>server</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>listen</span> <span style=color:#bd93f9>443</span> <span style=color:#f1fa8c>ssl</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>ssl_certificate</span> <span style=color:#f1fa8c>/etc/ssl/nginx/nginx.crt</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>ssl_certificate_key</span> <span style=color:#f1fa8c>/etc/ssl/nginx/nginx.key</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>server_name</span> <span style=color:#d14>cloud.site.com</span>; <span style=color:#998;font-style:italic># &lt;--- edit me
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>root</span> <span style=color:#d14>/var/web/MyOwncloud</span>;   <span style=color:#998;font-style:italic># &lt;--- edit me
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>index</span> <span style=color:#d14>index.php</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>client_max_body_size</span> <span style=color:#d14>20M</span>; <span style=color:#998;font-style:italic># set maximum upload size
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>access_log</span> <span style=color:#d14>/var/log/nginx/cloud.access_log</span> <span style=color:#d14>main</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>error_log</span> <span style=color:#d14>/var/log/nginx/cloud.error_log</span> <span style=color:#d14>info</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>server_name</span> <span style=color:#f1fa8c>cloud.site.com</span>; <span style=color:#6272a4># &lt;--- edit me
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>root</span> <span style=color:#f1fa8c>/var/web/MyOwncloud</span>;   <span style=color:#6272a4># &lt;--- edit me
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>index</span> <span style=color:#f1fa8c>index.php</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>client_max_body_size</span> <span style=color:#f1fa8c>20M</span>; <span style=color:#6272a4># set maximum upload size
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>access_log</span> <span style=color:#f1fa8c>/var/log/nginx/cloud.access_log</span> <span style=color:#f1fa8c>main</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>error_log</span> <span style=color:#f1fa8c>/var/log/nginx/cloud.error_log</span> <span style=color:#f1fa8c>info</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> ~<span style=color:#009926>*</span> <span style=color:#d14>^.+.(jpg|jpeg|gif|bmp|ico|png|css|js|swf)</span>$ {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>expires</span> <span style=color:#d14>30d</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>access_log</span> <span style=color:teal>off</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> ~<span style=color:#f1fa8c>*</span> <span style=color:#f1fa8c>^.+.(jpg|jpeg|gif|bmp|ico|png|css|js|swf)</span>$ {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>expires</span> <span style=color:#f1fa8c>30d</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>access_log</span> off;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># deny direct access
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>location</span> ~ <span style=color:#009926>^/(data|config|\.ht|db_structure.xml|README)</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>deny</span> <span style=color:#d14>all</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># deny direct access
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>location</span> ~ <span style=color:#f1fa8c>^/(data|config|\.ht|db_structure.xml|README)</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>deny</span> <span style=color:#f1fa8c>all</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/</span> {
-</span></span><span style=display:flex><span>      <span style=color:#998;font-style:italic># these line replace the rewrite made in owncloud .htaccess
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>      <span style=color:#000;font-weight:700>try_files</span> <span style=color:teal>$uri</span> <span style=color:teal>$uri/</span> <span style=color:#d14>@webdav</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/</span> {
+</span></span><span style=display:flex><span>      <span style=color:#6272a4># these line replace the rewrite made in owncloud .htaccess
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>      <span style=color:#ff79c6>try_files</span> <span style=color:#8be9fd;font-style:italic>$uri</span> <span style=color:#8be9fd;font-style:italic>$uri/</span> <span style=color:#f1fa8c>@webdav</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>@webdav</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>include</span> <span style=color:#d14>fastcgi_params</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_pass</span> <span style=color:#d14>backend</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>HTTPS</span> <span style=color:teal>on</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_split_path_info</span> <span style=color:#d14>^(.+\.php)(/.*)</span>$;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SCRIPT_FILENAME</span>  <span style=color:teal>$document_root$fastcgi_script_name</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>@webdav</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>include</span> <span style=color:#f1fa8c>fastcgi_params</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_pass</span> <span style=color:#f1fa8c>backend</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>HTTPS</span> on;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_split_path_info</span> <span style=color:#f1fa8c>^(.+\.php)(/.*)</span>$;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SCRIPT_FILENAME</span>  <span style=color:#8be9fd;font-style:italic>$document_root$fastcgi_script_name</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> ~ <span style=color:#009926>\.php$</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>include</span> <span style=color:#d14>fastcgi_params</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_pass</span> <span style=color:#d14>backend</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>HTTPS</span> <span style=color:teal>on</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SCRIPT_FILENAME</span>  <span style=color:teal>$document_root$fastcgi_script_name</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> ~ <span style=color:#f1fa8c>\.php$</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>include</span> <span style=color:#f1fa8c>fastcgi_params</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_pass</span> <span style=color:#f1fa8c>backend</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>HTTPS</span> on;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SCRIPT_FILENAME</span>  <span style=color:#8be9fd;font-style:italic>$document_root$fastcgi_script_name</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Additionally I added these lines to the default <em>/etc/nginx/fastcgi_params</em>:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>PATH_INFO</span>          <span style=color:teal>$fastcgi_path_info</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>PATH_TRANSLATED</span>    <span style=color:teal>$document_root$fastcgi_path_info</span>;
-</span></span></code></pre></div><p>So it does looks like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>PATH_INFO</span>          <span style=color:teal>$fastcgi_path_info</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>PATH_TRANSLATED</span>    <span style=color:teal>$document_root$fastcgi_path_info</span>;
+</span></span></code></pre></div><p>Additionally I added these lines to the default <em>/etc/nginx/fastcgi_params</em>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>PATH_INFO</span>          <span style=color:#8be9fd;font-style:italic>$fastcgi_path_info</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>PATH_TRANSLATED</span>    <span style=color:#8be9fd;font-style:italic>$document_root$fastcgi_path_info</span>;
+</span></span></code></pre></div><p>So it does looks like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>PATH_INFO</span>          <span style=color:#8be9fd;font-style:italic>$fastcgi_path_info</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>PATH_TRANSLATED</span>    <span style=color:#8be9fd;font-style:italic>$document_root$fastcgi_path_info</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>QUERY_STRING</span>       <span style=color:teal>$query_string</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>REQUEST_METHOD</span>     <span style=color:teal>$request_method</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>CONTENT_TYPE</span>       <span style=color:teal>$content_type</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>CONTENT_LENGTH</span>     <span style=color:teal>$content_length</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>QUERY_STRING</span>       <span style=color:#8be9fd;font-style:italic>$query_string</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>REQUEST_METHOD</span>     <span style=color:#8be9fd;font-style:italic>$request_method</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>CONTENT_TYPE</span>       <span style=color:#8be9fd;font-style:italic>$content_type</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>CONTENT_LENGTH</span>     <span style=color:#8be9fd;font-style:italic>$content_length</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SCRIPT_NAME</span>        <span style=color:teal>$fastcgi_script_name</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>REQUEST_URI</span>        <span style=color:teal>$request_uri</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>DOCUMENT_URI</span>       <span style=color:teal>$document_uri</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>DOCUMENT_ROOT</span>      <span style=color:teal>$document_root</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SERVER_PROTOCOL</span>    <span style=color:teal>$server_protocol</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>HTTPS</span>              <span style=color:teal>$https</span> <span style=color:#d14>if_not_empty</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SCRIPT_NAME</span>        <span style=color:#8be9fd;font-style:italic>$fastcgi_script_name</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>REQUEST_URI</span>        <span style=color:#8be9fd;font-style:italic>$request_uri</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>DOCUMENT_URI</span>       <span style=color:#8be9fd;font-style:italic>$document_uri</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>DOCUMENT_ROOT</span>      <span style=color:#8be9fd;font-style:italic>$document_root</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SERVER_PROTOCOL</span>    <span style=color:#8be9fd;font-style:italic>$server_protocol</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>HTTPS</span>              <span style=color:#8be9fd;font-style:italic>$https</span> <span style=color:#f1fa8c>if_not_empty</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>GATEWAY_INTERFACE</span>  <span style=color:#d14>CGI/1.1</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SERVER_SOFTWARE</span>    <span style=color:#d14>nginx/</span><span style=color:teal>$nginx_version</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>GATEWAY_INTERFACE</span>  <span style=color:#f1fa8c>CGI/1.1</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SERVER_SOFTWARE</span>    <span style=color:#f1fa8c>nginx/</span><span style=color:#8be9fd;font-style:italic>$nginx_version</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>REMOTE_ADDR</span>        <span style=color:teal>$remote_addr</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>REMOTE_PORT</span>        <span style=color:teal>$remote_port</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SERVER_ADDR</span>        <span style=color:teal>$server_addr</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SERVER_PORT</span>        <span style=color:teal>$server_port</span>;
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>SERVER_NAME</span>        <span style=color:teal>$server_name</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>REMOTE_ADDR</span>        <span style=color:#8be9fd;font-style:italic>$remote_addr</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>REMOTE_PORT</span>        <span style=color:#8be9fd;font-style:italic>$remote_port</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SERVER_ADDR</span>        <span style=color:#8be9fd;font-style:italic>$server_addr</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SERVER_PORT</span>        <span style=color:#8be9fd;font-style:italic>$server_port</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>SERVER_NAME</span>        <span style=color:#8be9fd;font-style:italic>$server_name</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#998;font-style:italic># PHP only, required if PHP was built with --enable-force-cgi-redirect
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span><span style=color:#000;font-weight:700>fastcgi_param</span>  <span style=color:#d14>REDIRECT_STATUS</span>    <span style=color:#099>200</span>;
+</span></span><span style=display:flex><span><span style=color:#6272a4># PHP only, required if PHP was built with --enable-force-cgi-redirect
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>fastcgi_param</span>  <span style=color:#f1fa8c>REDIRECT_STATUS</span>    <span style=color:#bd93f9>200</span>;
 </span></span></code></pre></div><p>PHP +++ If your upload size is still lower than the one set in nginx&rsquo;s
 configuration, increase the size in the php.ini as described
 <a href=http://www.radinks.com/upload/config.php target=_blank>here</a></p><h2 id=references>References</h2><p><a href=http://nblock.org/2012/03/12/nginx-and-owncloud target=_blank>Setting up Nginx and Owncloud - nblock.org</a></p></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/nginx/>nginx</a>

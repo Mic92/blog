@@ -8,76 +8,76 @@ To solve the problem include the following line either in &lsquo;/etc/nginx/fast
 <span class=rest>Apr 2013</span></div></div><div class=matter><h1 class=title>Owncloud 5 and Nginx</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p>Since my last <a href=http://localhost:4000/2012/06/03/owncloud-4-and-nginx/ target=_blank>post</a>
 owncloud has added
 <a href=http://doc.owncloud.org/server/5.0/admin_manual/installation/installation_others.html#nginx-configuration target=_blank>official documentation for nginx</a>.
-Unfortunately the documentation there didn&rsquo;t worked for me out of the box:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>2013/04/19 22:14:38 [error] 32402#0: *251 FastCGI sent in stderr: &#34;Access to the
+Unfortunately the documentation there didn&rsquo;t worked for me out of the box:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plain data-lang=plain><span style=display:flex><span>2013/04/19 22:14:38 [error] 32402#0: *251 FastCGI sent in stderr: &#34;Access to the
 </span></span><span style=display:flex><span>script &#39;/var/www/cloud&#39; has been denied (see security.limit_extensions)&#34; while
 </span></span><span style=display:flex><span>reading response header from upstream,  client: ::1,  server:
 </span></span><span style=display:flex><span>cloud.higgsboson.tk,  request: &#34;GET /index.php HTTP/1.1&#34;,  upstream:
 </span></span><span style=display:flex><span>&#34;fastcgi://unix:/var/run/php-fpm.sock:&#34;,  host: &#34;cloud.higgsboson.tk&#34;
 </span></span></code></pre></div><p>The problem here was again a missing fastcgi_params option.</p><p>To solve the problem include the following line either in
-&lsquo;/etc/nginx/fastcgi_params&rsquo;</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>SCRIPT_FILENAME</span> <span style=color:teal>$document_root$fastcgi_script_name</span>;
-</span></span><span style=display:flex><span><span style=color:#998;font-style:italic># ...
-</span></span></span></code></pre></div><p>or in the owncloud block in nginx.conf:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#000;font-weight:700>server</span> {
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>listen</span> <span style=color:#099>80</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>server_name</span> <span style=color:#d14>cloud.example.com</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>return</span>  <span style=color:#d14>https://</span><span style=color:teal>$server_name$request_uri</span>;  <span style=color:#998;font-style:italic># enforce https
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>}
+&lsquo;/etc/nginx/fastcgi_params&rsquo;</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>SCRIPT_FILENAME</span> <span style=color:#8be9fd;font-style:italic>$document_root$fastcgi_script_name</span>;
+</span></span><span style=display:flex><span><span style=color:#6272a4># ...
+</span></span></span></code></pre></div><p>or in the owncloud block in nginx.conf:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#ff79c6>server</span> {
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>listen</span> <span style=color:#bd93f9>80</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>server_name</span> <span style=color:#f1fa8c>cloud.example.com</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>return</span>  <span style=color:#f1fa8c>https://</span><span style=color:#8be9fd;font-style:italic>$server_name$request_uri</span>;  <span style=color:#6272a4># enforce https
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>server</span> {
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>listen</span> <span style=color:#099>443</span> <span style=color:#d14>ssl</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>server_name</span> <span style=color:#d14>cloud.example.com</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>server</span> {
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>listen</span> <span style=color:#bd93f9>443</span> <span style=color:#f1fa8c>ssl</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>server_name</span> <span style=color:#f1fa8c>cloud.example.com</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>ssl_certificate</span> <span style=color:#d14>/etc/ssl/nginx/cloud.example.com.crt</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>ssl_certificate_key</span> <span style=color:#d14>/etc/ssl/nginx/cloud.example.com.key</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>ssl_certificate</span> <span style=color:#f1fa8c>/etc/ssl/nginx/cloud.example.com.crt</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>ssl_certificate_key</span> <span style=color:#f1fa8c>/etc/ssl/nginx/cloud.example.com.key</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#998;font-style:italic># Path to the root of your installation
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>  <span style=color:#000;font-weight:700>root</span> <span style=color:#d14>/var/www/</span>;
+</span></span><span style=display:flex><span>  <span style=color:#6272a4># Path to the root of your installation
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  <span style=color:#ff79c6>root</span> <span style=color:#f1fa8c>/var/www/</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>client_max_body_size</span> <span style=color:#d14>10G</span>; <span style=color:#998;font-style:italic># set max upload size
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>  <span style=color:#000;font-weight:700>fastcgi_buffers</span> <span style=color:#099>64</span> <span style=color:#d14>4K</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>client_max_body_size</span> <span style=color:#f1fa8c>10G</span>; <span style=color:#6272a4># set max upload size
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  <span style=color:#ff79c6>fastcgi_buffers</span> <span style=color:#bd93f9>64</span> <span style=color:#f1fa8c>4K</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/caldav(.*)</span>$ <span style=color:#d14>/remote.php/caldav</span><span style=color:teal>$1</span> <span style=color:#d14>redirect</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/carddav(.*)</span>$ <span style=color:#d14>/remote.php/carddav</span><span style=color:teal>$1</span> <span style=color:#d14>redirect</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/webdav(.*)</span>$ <span style=color:#d14>/remote.php/webdav</span><span style=color:teal>$1</span> <span style=color:#d14>redirect</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/caldav(.*)</span>$ <span style=color:#f1fa8c>/remote.php/caldav</span><span style=color:#8be9fd;font-style:italic>$1</span> <span style=color:#f1fa8c>redirect</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/carddav(.*)</span>$ <span style=color:#f1fa8c>/remote.php/carddav</span><span style=color:#8be9fd;font-style:italic>$1</span> <span style=color:#f1fa8c>redirect</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/webdav(.*)</span>$ <span style=color:#f1fa8c>/remote.php/webdav</span><span style=color:#8be9fd;font-style:italic>$1</span> <span style=color:#f1fa8c>redirect</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>index</span> <span style=color:#d14>index.php</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>error_page</span> <span style=color:#099>403</span> = <span style=color:#d14>/core/templates/403.php</span>;
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>error_page</span> <span style=color:#099>404</span> = <span style=color:#d14>/core/templates/404.php</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>index</span> <span style=color:#f1fa8c>index.php</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>error_page</span> <span style=color:#bd93f9>403</span> = <span style=color:#f1fa8c>/core/templates/403.php</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>error_page</span> <span style=color:#bd93f9>404</span> = <span style=color:#f1fa8c>/core/templates/404.php</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>location</span> ~ <span style=color:#009926>^/(data|config|\.ht|db_structure\.xml|README)</span> {
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>deny</span> <span style=color:#d14>all</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>location</span> ~ <span style=color:#f1fa8c>^/(data|config|\.ht|db_structure\.xml|README)</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>deny</span> <span style=color:#f1fa8c>all</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/</span> {
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># The following 2 rules are only needed with webfinger
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/.well-known/host-meta</span> <span style=color:#d14>/public.php?service=host-meta</span> <span style=color:#d14>last</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/.well-known/host-meta.json</span> <span style=color:#d14>/public.php?service=host-meta-json</span>
-</span></span><span style=display:flex><span><span style=color:#d14>last</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/</span> {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># The following 2 rules are only needed with webfinger
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/.well-known/host-meta</span> <span style=color:#f1fa8c>/public.php?service=host-meta</span> <span style=color:#f1fa8c>last</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/.well-known/host-meta.json</span> <span style=color:#f1fa8c>/public.php?service=host-meta-json</span>
+</span></span><span style=display:flex><span><span style=color:#f1fa8c>last</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/.well-known/carddav</span> <span style=color:#d14>/remote.php/carddav/</span> <span style=color:#d14>redirect</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/.well-known/caldav</span> <span style=color:#d14>/remote.php/caldav/</span> <span style=color:#d14>redirect</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/.well-known/carddav</span> <span style=color:#f1fa8c>/remote.php/carddav/</span> <span style=color:#f1fa8c>redirect</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/.well-known/caldav</span> <span style=color:#f1fa8c>/remote.php/caldav/</span> <span style=color:#f1fa8c>redirect</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^(/core/doc/[^\/]+/)</span>$ <span style=color:teal>$1/index.html</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^(/core/doc/[^\/]+/)</span>$ <span style=color:#8be9fd;font-style:italic>$1/index.html</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>try_files</span> <span style=color:teal>$uri</span> <span style=color:teal>$uri/</span> <span style=color:#d14>index.php</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>try_files</span> <span style=color:#8be9fd;font-style:italic>$uri</span> <span style=color:#8be9fd;font-style:italic>$uri/</span> <span style=color:#f1fa8c>index.php</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#000;font-weight:700>location</span> ~ <span style=color:#009926>^(.+?\.php)(/.*)?$</span> {
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>try_files</span> <span style=color:teal>$1</span> = <span style=color:#099>404</span>;
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>location</span> ~ <span style=color:#f1fa8c>^(.+?\.php)(/.*)?$</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>try_files</span> <span style=color:#8be9fd;font-style:italic>$1</span> = <span style=color:#bd93f9>404</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>include</span> <span style=color:#d14>fastcgi_params</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>PATH_INFO</span> <span style=color:teal>$2</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>HTTPS</span> <span style=color:teal>on</span>;
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># THIS LINE WAS ADDED
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>SCRIPT_FILENAME</span> <span style=color:teal>$document_root$fastcgi_script_name</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>fastcgi_pass</span> 127.0.0.1:<span style=color:#099>9000</span>;
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># Or use unix-socket with &#39;fastcgi_pass unix:/var/run/php5-fpm.sock;&#39;
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>  }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>include</span> <span style=color:#f1fa8c>fastcgi_params</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>PATH_INFO</span> <span style=color:#8be9fd;font-style:italic>$2</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>HTTPS</span> on;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># THIS LINE WAS ADDED
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>SCRIPT_FILENAME</span> <span style=color:#8be9fd;font-style:italic>$document_root$fastcgi_script_name</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>fastcgi_pass</span> 127.0.0.1:<span style=color:#bd93f9>9000</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># Or use unix-socket with &#39;fastcgi_pass unix:/var/run/php5-fpm.sock;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#998;font-style:italic># Optional: set long EXPIRES header on static assets
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>  <span style=color:#000;font-weight:700>location</span> ~<span style=color:#009926>*</span> <span style=color:#d14>^.+\.(jpg|jpeg|gif|bmp|ico|png|css|js|swf)</span>$ {
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>expires</span> <span style=color:#d14>30d</span>;
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># Optional: Don&#39;t log access to assets
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>access_log</span> <span style=color:teal>off</span>;
+</span></span><span style=display:flex><span>  <span style=color:#6272a4># Optional: set long EXPIRES header on static assets
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  <span style=color:#ff79c6>location</span> ~<span style=color:#f1fa8c>*</span> <span style=color:#f1fa8c>^.+\.(jpg|jpeg|gif|bmp|ico|png|css|js|swf)</span>$ {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>expires</span> <span style=color:#f1fa8c>30d</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># Optional: Don&#39;t log access to assets
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>access_log</span> off;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>}

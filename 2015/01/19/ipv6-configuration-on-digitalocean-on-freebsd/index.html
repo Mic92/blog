@@ -8,58 +8,58 @@ defaultrouter=&#34;188.166.0.1&#34; # ipv6 address are shortened for readability
 <span class=rest>Jan 2015</span></div></div><div class=matter><h1 class=title>Ipv6 Configuration on Digitalocean on Freebsd</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p>By default Digitalocean add some custom rc.d scripts for network configuration
 to your droplet.</p><p>You can just append the content of <code>/etc/rc.digitalocean.d/droplet.conf</code> to your
 <code>/etc/rc.conf</code> In my case the public ipv4 address is <code>188.166.0.1</code> and my first
-ipv6 address is <code>2a03:b0c0:2:d0::2a5:f001</code>.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:teal>defaultrouter</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;188.166.0.1&#34;</span>
-</span></span><span style=display:flex><span><span style=color:#998;font-style:italic># ipv6 address are shortened for readability</span>
-</span></span><span style=display:flex><span><span style=color:teal>ipv6_defaultrouter</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;2a03:b0c0:2:d0::1&#34;</span>
-</span></span><span style=display:flex><span><span style=color:teal>ifconfig_vtnet0</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;inet 188.166.16.37 netmask 255.255.192.0&#34;</span>
-</span></span><span style=display:flex><span><span style=color:teal>ifconfig_vtnet0_ipv6</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;inet6 2a03:b0c0:2:d0::2a5:f001 prefixlen 64&#34;</span>
+ipv6 address is <code>2a03:b0c0:2:d0::2a5:f001</code>.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>defaultrouter</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#34;188.166.0.1&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#6272a4># ipv6 address are shortened for readability</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>ipv6_defaultrouter</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#34;2a03:b0c0:2:d0::1&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>ifconfig_vtnet0</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#34;inet 188.166.16.37 netmask 255.255.192.0&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>ifconfig_vtnet0_ipv6</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#34;inet6 2a03:b0c0:2:d0::2a5:f001 prefixlen 64&#34;</span>
 </span></span></code></pre></div><p>Digitalocean provides these days for native Ipv6 for the most of its
 datacenters. Unlike other hoster they are very spare, when distributing Ipv6
 Addresses and only route 16 addresses per droplet
 (xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxx1 until xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxf).
 To make use of these additional ip addresses they have to be assigned to your
-network interface <code>vtnet0</code>:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:teal>ifconfig_vtnet0_aliases</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;\
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f002 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f003 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f004 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f005 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f006 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f007 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f008 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f009 prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f00a prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f00b prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f00c prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f00d prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f00e prefixlen 64 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet6 2a03:b0c0:2:d0::2a5:f00f prefixlen 64&#34;</span>
+network interface <code>vtnet0</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>ifconfig_vtnet0_aliases</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#34;\
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f002 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f003 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f004 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f005 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f006 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f007 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f008 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f009 prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f00a prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f00b prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f00c prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f00d prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f00e prefixlen 64 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet6 2a03:b0c0:2:d0::2a5:f00f prefixlen 64&#34;</span>
 </span></span></code></pre></div><p>In case you want to add freebsd jails later on, it is a good idea to allocate
 private ipv4 addresses for these too. In my case I generated as many ipv4
-address as ipv6 addresses I got:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:teal>cloned_interfaces</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;</span><span style=color:#d14>${</span><span style=color:teal>cloned_interfaces</span><span style=color:#d14>}</span><span style=color:#d14> lo1&#34;</span>
-</span></span><span style=display:flex><span><span style=color:teal>ifconfig_lo1_aliases</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>&#34;\
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.1/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.2/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.3/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.4/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.5/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.6/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.7/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.8/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.9/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.10/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.11/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.12/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.13/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.14/24 \
-</span></span></span><span style=display:flex><span><span style=color:#d14>                      inet 192.168.67.15/24&#34;</span>
+address as ipv6 addresses I got:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>cloned_interfaces</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#34;</span><span style=color:#f1fa8c>${</span><span style=color:#8be9fd;font-style:italic>cloned_interfaces</span><span style=color:#f1fa8c>}</span><span style=color:#f1fa8c> lo1&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>ifconfig_lo1_aliases</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#34;\
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.1/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.2/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.3/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.4/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.5/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.6/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.7/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.8/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.9/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.10/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.11/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.12/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.13/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.14/24 \
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                      inet 192.168.67.15/24&#34;</span>
 </span></span></code></pre></div><p>To apply these network settings immediately issue the following commands in
-series:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> sudo service netif restart; sudo /etc/rc.d/routing restart
+series:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ sudo service netif restart; sudo /etc/rc.d/routing restart
 </span></span></code></pre></div><p>The second command is important because it adds the ipv4 gateway back. Otherwise
 you will not reach your droplet via ipv4 without rebooting.</p><p>If everything still works, you can remove, the following files leftover from
-cloudflare&rsquo;s provisioning:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> rm /etc/rc.d/digitalocean
-</span></span><span style=display:flex><span><span style=color:#555>$</span> rm -r /etc/rc.digitalocean.d
-</span></span><span style=display:flex><span><span style=color:#555>$</span> rm -r /usr/local/bsd-cloudinit/
-</span></span><span style=display:flex><span><span style=color:#555>$</span> pkg remove avahi-autoipd
+cloudflare&rsquo;s provisioning:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ rm /etc/rc.d/digitalocean
+</span></span><span style=display:flex><span>$ rm -r /etc/rc.digitalocean.d
+</span></span><span style=display:flex><span>$ rm -r /usr/local/bsd-cloudinit/
+</span></span><span style=display:flex><span>$ pkg remove avahi-autoipd
 </span></span></code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/digitalocean/>digitalocean</a>
 <a href=/categories/freebsd/>freebsd</a>
 <a href=/categories/network/>network</a></p></div><div class=clearit></div></div><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//mic92.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></article></div></main><footer>© 2021 Jörg Thalheim</footer><script src=/js/dark-mode.js></script></body></html>

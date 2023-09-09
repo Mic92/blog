@@ -13,34 +13,34 @@ this architecture, I had time to go further.</p><p>One of the thing that becomes
 that although the board is quite beefy with 16GB of RAM and NVME, it cannot keep
 up with up-to-date x86 machines. This is where cross-compiling NixOS helps.</p><h2 id=goal-of-this-article>Goal of this article</h2><p>In this article I will show you how to use NixOS on a host x86_64 machine to
 debug and cross-deploy another NixOS machine. And iterate faster doing so.</p><p>We&rsquo;re going to do this with the following steps:</p><ol><li>How to define a cross-compiled nixos configuration in flakes</li><li>How to deploy from cross-compile nixos machine</li><li>Work-around cross-compiling issues with binfmt</li></ol><h2 id=configuring-the-flake>Configuring the flake</h2><p>First we need to find out the architecture we want to build on and the
-architecture to build for. The easiest way to find out is using <code>nix repl</code></p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> nix repl <span style=color:#d14>&#39;&lt;nixpkgs&gt;&#39;</span>
-</span></span><span style=display:flex><span><span style=color:#888>repl&gt; pkgs.system # This is our build architecture
-</span></span></span><span style=display:flex><span><span style=color:#888>&#34;x86_64-linux&#34;
-</span></span></span><span style=display:flex><span><span style=color:#888></span><span style=color:#555>#</span> use tab completion to find the architecture you want to build <span style=color:#000;font-weight:700>for</span>
-</span></span><span style=display:flex><span><span style=color:#888>repl&gt; pkgsCross.&lt;TAB&gt;
+architecture to build for. The easiest way to find out is using <code>nix repl</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ nix repl <span style=color:#f1fa8c>&#39;&lt;nixpkgs&gt;&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#44475a>repl&gt; pkgs.system # This is our build architecture
+</span></span></span><span style=display:flex><span><span style=color:#44475a>&#34;x86_64-linux&#34;
+</span></span></span><span style=display:flex><span><span style=color:#44475a></span># use tab completion to find the architecture you want to build <span style=color:#ff79c6>for</span>
+</span></span><span style=display:flex><span><span style=color:#44475a>repl&gt; pkgsCross.&lt;TAB&gt;
 </span></span></span></code></pre></div><p>We are interested in <code>pkgsCross.&lt;arch>.system</code> here. For my board this looks
-like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#888>repl&gt; pkgsCross.riscv64.system
-</span></span></span><span style=display:flex><span><span style=color:#888>&#34;riscv64-linux&#34;
-</span></span></span></code></pre></div><p>With information we can define the cross-compiled variant of our nixos machine:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  inputs<span style=color:#000;font-weight:700>.</span>nixpkgs<span style=color:#000;font-weight:700>.</span>url <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;github:NixOS/nixpkgs/release-22.11&#34;</span>;
+like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#44475a>repl&gt; pkgsCross.riscv64.system
+</span></span></span><span style=display:flex><span><span style=color:#44475a>&#34;riscv64-linux&#34;
+</span></span></span></code></pre></div><p>With information we can define the cross-compiled variant of our nixos machine:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  inputs<span style=color:#ff79c6>.</span>nixpkgs<span style=color:#ff79c6>.</span>url <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;github:NixOS/nixpkgs/release-22.11&#34;</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  outputs <span style=color:#000;font-weight:700>=</span> { self<span style=color:#000;font-weight:700>,</span> nixpkgs }: {
-</span></span><span style=display:flex><span>    nixosConfigurations <span style=color:#000;font-weight:700>=</span> {
-</span></span><span style=display:flex><span>      <span style=color:#998;font-style:italic># Native machine build</span>
-</span></span><span style=display:flex><span>      my-nixos <span style=color:#000;font-weight:700>=</span> nixpkgs<span style=color:#000;font-weight:700>.</span>lib<span style=color:#000;font-weight:700>.</span>nixosSystem {
-</span></span><span style=display:flex><span>        system <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;riscv64-linux&#34;</span>;
-</span></span><span style=display:flex><span>        modules <span style=color:#000;font-weight:700>=</span> [ <span style=color:#009926>./configuration.nix</span> ];
+</span></span><span style=display:flex><span>  outputs <span style=color:#ff79c6>=</span> { self<span style=color:#ff79c6>,</span> nixpkgs }: {
+</span></span><span style=display:flex><span>    nixosConfigurations <span style=color:#ff79c6>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#6272a4># Native machine build</span>
+</span></span><span style=display:flex><span>      my-nixos <span style=color:#ff79c6>=</span> nixpkgs<span style=color:#ff79c6>.</span>lib<span style=color:#ff79c6>.</span>nixosSystem {
+</span></span><span style=display:flex><span>        system <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;riscv64-linux&#34;</span>;
+</span></span><span style=display:flex><span>        modules <span style=color:#ff79c6>=</span> [ <span style=color:#f1fa8c>./configuration.nix</span> ];
 </span></span><span style=display:flex><span>      };
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      <span style=color:#998;font-style:italic># Cross machine build, from x86_64</span>
-</span></span><span style=display:flex><span>      my-nixos-from-x86_64 <span style=color:#000;font-weight:700>=</span> nixpkgs<span style=color:#000;font-weight:700>.</span>lib<span style=color:#000;font-weight:700>.</span>nixosSystem {
-</span></span><span style=display:flex><span>        modules <span style=color:#000;font-weight:700>=</span> [
-</span></span><span style=display:flex><span>          <span style=color:#009926>./configuration.nix</span>
+</span></span><span style=display:flex><span>      <span style=color:#6272a4># Cross machine build, from x86_64</span>
+</span></span><span style=display:flex><span>      my-nixos-from-x86_64 <span style=color:#ff79c6>=</span> nixpkgs<span style=color:#ff79c6>.</span>lib<span style=color:#ff79c6>.</span>nixosSystem {
+</span></span><span style=display:flex><span>        modules <span style=color:#ff79c6>=</span> [
+</span></span><span style=display:flex><span>          <span style=color:#f1fa8c>./configuration.nix</span>
 </span></span><span style=display:flex><span>          {
-</span></span><span style=display:flex><span>            <span style=color:#998;font-style:italic># This is the architecture we build from (pkgs.system from above)</span>
-</span></span><span style=display:flex><span>            nixpkgs<span style=color:#000;font-weight:700>.</span>buildPlatform <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;x86_64-linux&#34;</span>;
-</span></span><span style=display:flex><span>            <span style=color:#998;font-style:italic># pkgsCross.&lt;yourtarget&gt;.system</span>
-</span></span><span style=display:flex><span>            nixpkgs<span style=color:#000;font-weight:700>.</span>hostPlatform <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;riscv64-linux&#34;</span>;
+</span></span><span style=display:flex><span>            <span style=color:#6272a4># This is the architecture we build from (pkgs.system from above)</span>
+</span></span><span style=display:flex><span>            nixpkgs<span style=color:#ff79c6>.</span>buildPlatform <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;x86_64-linux&#34;</span>;
+</span></span><span style=display:flex><span>            <span style=color:#6272a4># pkgsCross.&lt;yourtarget&gt;.system</span>
+</span></span><span style=display:flex><span>            nixpkgs<span style=color:#ff79c6>.</span>hostPlatform <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;riscv64-linux&#34;</span>;
 </span></span><span style=display:flex><span>          }
 </span></span><span style=display:flex><span>        ];
 </span></span><span style=display:flex><span>      };
@@ -48,11 +48,11 @@ like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-
 </span></span><span style=display:flex><span>  };
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><h2 id=deploying-to-the-board>Deploying to the board</h2><p>Now that we have this extended flake configuration, deploying the new system
-closures to the board becomes easy:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> nixos-rebuild switch <span style=color:#d14>\
-</span></span></span><span style=display:flex><span><span style=color:#d14></span><span style=color:#888>  --fast \
-</span></span></span><span style=display:flex><span><span style=color:#888>  --build-host localhost \
-</span></span></span><span style=display:flex><span><span style=color:#888>  --target-host $target_host \
-</span></span></span><span style=display:flex><span><span style=color:#888>  --flake .#my-nixos-from-x86_64
+closures to the board becomes easy:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ nixos-rebuild switch <span style=color:#f1fa8c>\
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span><span style=color:#44475a>  --fast \
+</span></span></span><span style=display:flex><span><span style=color:#44475a>  --build-host localhost \
+</span></span></span><span style=display:flex><span><span style=color:#44475a>  --target-host $target_host \
+</span></span></span><span style=display:flex><span><span style=color:#44475a>  --flake .#my-nixos-from-x86_64
 </span></span></span></code></pre></div><p>nixos-rebuild will (1) build the system on the host machine, and then (2) copy
 the build result onto the board, and finally (3) atomically switch the
 configuration. The <code>--fast</code> flag here is crucial since it stops <code>nixos-rebuild</code>
@@ -62,9 +62,9 @@ machine. Since it sometimes not feasiable to fix this issues easily, one trick
 is to set platform emulation support based binfmt_misc and qemu. This allows to
 run the binaries directly on the NixOS host that are actually compiled for a
 different architecture.</p><p>It also allows to test and run binaries without having to copy them over to the
-target machine.</p><p>In order to do that, extend the host NixOS configuration</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  boot<span style=color:#000;font-weight:700>.</span>binfmt<span style=color:#000;font-weight:700>.</span>emulatedSystems <span style=color:#000;font-weight:700>=</span> [
-</span></span><span style=display:flex><span>    <span style=color:#d14>&#34;riscv64-linux&#34;</span>
+target machine.</p><p>In order to do that, extend the host NixOS configuration</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  boot<span style=color:#ff79c6>.</span>binfmt<span style=color:#ff79c6>.</span>emulatedSystems <span style=color:#ff79c6>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;riscv64-linux&#34;</span>
 </span></span><span style=display:flex><span>  ];
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>Cross-compiling has made good progress over the years. While still not a

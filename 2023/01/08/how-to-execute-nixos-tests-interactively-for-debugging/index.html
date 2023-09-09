@@ -15,53 +15,53 @@ great way to shorten the feedback loop, as we can execute commands on our VMs.
 For instance, we can tell a VM to dump logs or to display the contents of files.</p><p>So, let&rsquo;s explore how to run tests interactively.</p><h1 id=running-tests-interactively>Running tests interactively</h1><p>To start the hello-world-server test in the interactive mode, you first need to
 build the test driver by adding the <code>.driver</code> attribute to the test name and
 then start it manually by providing the <code>--interactive</code> flag. Here&rsquo;s how you do
-it:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>#</span> Here we assume that our <span style=color:#0086b3>test</span> machine is running on <span style=color:#d14>`</span>x86_64-linux<span style=color:#d14>`</span>, adjust this to your own architecture<span style=color:#000;font-weight:700>)</span>
-</span></span><span style=display:flex><span><span style=color:#a61717;background-color:#e3d2d2>
-</span></span></span><span style=display:flex><span><span style=color:#a61717;background-color:#e3d2d2></span><span style=color:#555>$</span> nix build .#checks.x86_64-linux.hello-world-server.driver
+it:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span># Here we assume that our <span style=color:#8be9fd;font-style:italic>test</span> machine is running on <span style=color:#f1fa8c>`</span>x86_64-linux<span style=color:#f1fa8c>`</span>, adjust this to your own architecture<span style=color:#ff79c6>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ nix build .#checks.x86_64-linux.hello-world-server.driver
 </span></span></code></pre></div><p>This will write out result symlink (all files are created in the nix store and
 we don&rsquo;t want to copy them outside) pointing to the test driver. We can run the
-test driver like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#888>./result/bin/nixos-test-driver --interactive
+test driver like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#44475a>./result/bin/nixos-test-driver --interactive
 </span></span></span></code></pre></div><p><strong>Note:</strong> <em>Usually when running tests there&rsquo;s no Internet access because you
 want things to be reproducible and self-contained. Running NixOS tests this way
 will allow the VM to access the Internet, which will make some services work
 that didn&rsquo;t work previously in the nix build sandbox. Therefore, some tests will
 pass that were failing previously.</em></p><p>Inside the REPL, you can type out the Python commands to test your module. For
-example:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#000;font-weight:700>&gt;&gt;&gt;</span> node1<span style=color:#000;font-weight:700>.</span>wait_for_unit(<span style=color:#d14>&#34;hello-world-server&#34;</span>)
+example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff79c6>&gt;&gt;&gt;</span> node1<span style=color:#ff79c6>.</span>wait_for_unit(<span style=color:#f1fa8c>&#34;hello-world-server&#34;</span>)
 </span></span></code></pre></div><h2 id=direct-shell-access>Direct shell access</h2><p>The API of the test driver gives you direct shell access with
 <code>&lt;yourmachine>.shell_interact()</code>, so you can access the shell running inside the
 guest machine.</p><p>To try it out, let&rsquo;s replace the placeholder with the name of the VM defined in
-the test &mdash; node1:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#000;font-weight:700>&gt;&gt;&gt;</span> node1<span style=color:#000;font-weight:700>.</span>shell_interact()
-</span></span><span style=display:flex><span>node1: Terminal <span style=color:#000;font-weight:700>is</span> ready (there <span style=color:#000;font-weight:700>is</span> no initial prompt):
-</span></span><span style=display:flex><span><span style=color:#a61717;background-color:#e3d2d2>$</span> hostname
+the test &mdash; node1:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#ff79c6>&gt;&gt;&gt;</span> node1<span style=color:#ff79c6>.</span>shell_interact()
+</span></span><span style=display:flex><span>node1: Terminal <span style=color:#ff79c6>is</span> ready (there <span style=color:#ff79c6>is</span> no initial prompt):
+</span></span><span style=display:flex><span>$ hostname
 </span></span><span style=display:flex><span>node1
 </span></span></code></pre></div><h2 id=breakpoints>Breakpoints</h2><p>For complex modules, you may need to execute certain tests and only then inspect
 the virtual machine. In such case, you can use the <code>breakpoint()</code> function in
-your test script and run the test-driver without the <code>--interactive</code> flag:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span><span style=color:#998;font-style:italic># shortened example ./tests/hello-world-server.nix from above</span>
+your test script and run the test-driver without the <code>--interactive</code> flag:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span><span style=color:#6272a4># shortened example ./tests/hello-world-server.nix from above</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>(<span style=color:#000;font-weight:700>import</span> <span style=color:#009926>./lib.nix</span>) {
+</span></span><span style=display:flex><span>(<span style=color:#ff79c6>import</span> <span style=color:#f1fa8c>./lib.nix</span>) {
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span> <span style=color:#998;font-style:italic># ...</span>
+</span></span><span style=display:flex><span> <span style=color:#6272a4># ...</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span> testScript <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#39;&#39;
-</span></span></span><span style=display:flex><span><span style=color:#d14>   start_all()
-</span></span></span><span style=display:flex><span><span style=color:#d14>
-</span></span></span><span style=display:flex><span><span style=color:#d14>   node1.wait_for_unit(&#34;hello-world-server&#34;)
-</span></span></span><span style=display:flex><span><span style=color:#d14>
-</span></span></span><span style=display:flex><span><span style=color:#d14>   output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
-</span></span></span><span style=display:flex><span><span style=color:#d14>
-</span></span></span><span style=display:flex><span><span style=color:#d14>   # The test will stop at this line, giving you control over execution.
-</span></span></span><span style=display:flex><span><span style=color:#d14>
-</span></span></span><span style=display:flex><span><span style=color:#d14>   breakpoint()
-</span></span></span><span style=display:flex><span><span style=color:#d14>
-</span></span></span><span style=display:flex><span><span style=color:#d14>   assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
-</span></span></span><span style=display:flex><span><span style=color:#d14> &#39;&#39;</span>;
+</span></span><span style=display:flex><span> testScript <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>   start_all()
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>   node1.wait_for_unit(&#34;hello-world-server&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>   output = node1.succeed(&#34;curl localhost:8000/index.html&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>   # The test will stop at this line, giving you control over execution.
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>   breakpoint()
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>   assert &#34;Hello world&#34; in output, f&#34;&#39;{output}&#39; does not contain &#39;Hello world&#39;&#34;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c> &#39;&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>Here, we stopped the test flow and are looking at the value of <code>output</code> and
-checking the status of the module with <code>systemctl</code>.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> nix build .#checks.x86_64-linux.hello-world-server.driver
-</span></span><span style=display:flex><span><span style=color:#555>$</span> ./result/bin/nixos-test-driver
-</span></span><span style=display:flex><span><span style=color:#555>&gt;</span>&gt;&gt; print<span style=color:#000;font-weight:700>(</span>output<span style=color:#000;font-weight:700>)</span>
-</span></span><span style=display:flex><span><span style=color:#555>&gt;</span>&gt;&gt; node1.execute<span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;systemctl status hello-world-server&#34;</span><span style=color:#000;font-weight:700>)</span>
+checking the status of the module with <code>systemctl</code>.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ nix build .#checks.x86_64-linux.hello-world-server.driver
+</span></span><span style=display:flex><span>$ ./result/bin/nixos-test-driver
+</span></span><span style=display:flex><span>&gt;&gt;&gt; print<span style=color:#ff79c6>(</span>output<span style=color:#ff79c6>)</span>
+</span></span><span style=display:flex><span>&gt;&gt;&gt; node1.execute<span style=color:#ff79c6>(</span><span style=color:#f1fa8c>&#34;systemctl status hello-world-server&#34;</span><span style=color:#ff79c6>)</span>
 </span></span></code></pre></div><h1 id=conclusion>Conclusion</h1><p>In this article, we showed how you can interactively execute NixOS tests for
 easier troubleshooting and debugging. In short, you can do so using either the
 <code>--interactive</code> flag or breakpoints in your test script. In comparison to

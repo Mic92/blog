@@ -5,107 +5,107 @@ $ sudo add-apt-repository ppa:formorer/icinga $ sudo add-apt-repository ppa:form
 <span class=rest>Dec 2012</span></div></div><div class=matter><h1 class=title>Icinga and Pnp4nagios With Nginx</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p>In this article I will show my nginx configuration for the
 <a href=https://www.icinga.org/ target=_blank>icinga</a> web interface. At the time of writing I
 installed version 1.8 on ubuntu 12.04 using this
-<a href=https://launchpad.net/~formorer/+archive/icinga target=_blank>ppa</a>:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#888>    $ sudo add-apt-repository ppa:formorer/icinga
-</span></span></span><span style=display:flex><span><span style=color:#888>    $ sudo add-apt-repository ppa:formorer/icinga-web
-</span></span></span><span style=display:flex><span><span style=color:#888>    $ sudo apt-get update
-</span></span></span><span style=display:flex><span><span style=color:#888>    # without --no-install-recommends, it will try to install apache
-</span></span></span><span style=display:flex><span><span style=color:#888>    $ sudo apt-get --no-install-recommends install icinga-web
-</span></span></span><span style=display:flex><span><span style=color:#888>    $ sudo apt-get install icinga-web-pnp # optional: for pnp4nagios
-</span></span></span><span style=display:flex><span><span style=color:#888>    $ sudo apt-get install nginx php5-fpm # if not already installed
+<a href=https://launchpad.net/~formorer/+archive/icinga target=_blank>ppa</a>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#44475a>    $ sudo add-apt-repository ppa:formorer/icinga
+</span></span></span><span style=display:flex><span><span style=color:#44475a>    $ sudo add-apt-repository ppa:formorer/icinga-web
+</span></span></span><span style=display:flex><span><span style=color:#44475a>    $ sudo apt-get update
+</span></span></span><span style=display:flex><span><span style=color:#44475a>    # without --no-install-recommends, it will try to install apache
+</span></span></span><span style=display:flex><span><span style=color:#44475a>    $ sudo apt-get --no-install-recommends install icinga-web
+</span></span></span><span style=display:flex><span><span style=color:#44475a>    $ sudo apt-get install icinga-web-pnp # optional: for pnp4nagios
+</span></span></span><span style=display:flex><span><span style=color:#44475a>    $ sudo apt-get install nginx php5-fpm # if not already installed
 </span></span></span></code></pre></div><p>For php I just use php-fpm without a special configuration. If you installed
 icinga from source, you have change the roots to match your installation path
-(to <code>/usr/local/icinga-web/</code>)</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#000;font-weight:700>upstream</span> <span style=color:#d14>fpm</span> {
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>server</span> <span style=color:#d14>unix:/var/run/php5-fpm.sock</span>;
+(to <code>/usr/local/icinga-web/</code>)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#ff79c6>upstream</span> <span style=color:#f1fa8c>fpm</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>server</span> <span style=color:#f1fa8c>unix:/var/run/php5-fpm.sock</span>;
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>server</span> {
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>listen</span> <span style=color:#099>80</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>listen</span> <span style=color:#099>443</span> <span style=color:#d14>ssl</span>;
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># FIXME
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>server_name</span> <span style=color:#d14>icinga.yourdomain.tld</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>server</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>listen</span> <span style=color:#bd93f9>80</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>listen</span> <span style=color:#bd93f9>443</span> <span style=color:#f1fa8c>ssl</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># FIXME
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>server_name</span> <span style=color:#f1fa8c>icinga.yourdomain.tld</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>access_log</span> <span style=color:#d14>/var/log/nginx/icinga.access.log</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>error_log</span> <span style=color:#d14>/var/log/nginx/icinga.error.log</span>;
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># FIXME
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>ssl_certificate</span> <span style=color:#d14>/etc/ssl/private/icinga.yourdomain.tld.crt</span>;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>ssl_certificate_key</span> <span style=color:#d14>/etc/ssl/private/icinga.yourdomain.tld.pem</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>access_log</span> <span style=color:#f1fa8c>/var/log/nginx/icinga.access.log</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>error_log</span> <span style=color:#f1fa8c>/var/log/nginx/icinga.error.log</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># FIXME
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>ssl_certificate</span> <span style=color:#f1fa8c>/etc/ssl/private/icinga.yourdomain.tld.crt</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>ssl_certificate_key</span> <span style=color:#f1fa8c>/etc/ssl/private/icinga.yourdomain.tld.pem</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># Security - Basic configuration
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>location</span> = <span style=color:#d14>/favicon.ico</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>log_not_found</span> <span style=color:teal>off</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>access_log</span> <span style=color:teal>off</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>expires</span> <span style=color:#d14>max</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># Security - Basic configuration
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>location</span> = <span style=color:#f1fa8c>/favicon.ico</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>log_not_found</span> off;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>access_log</span> off;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>expires</span> <span style=color:#f1fa8c>max</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> = <span style=color:#d14>/robots.txt</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>allow</span> <span style=color:#d14>all</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>log_not_found</span> <span style=color:teal>off</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>access_log</span> <span style=color:teal>off</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> = <span style=color:#f1fa8c>/robots.txt</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>allow</span> <span style=color:#f1fa8c>all</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>log_not_found</span> off;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>access_log</span> off;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># Deny access to hidden files
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>location</span> ~ <span style=color:#009926>/\.</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>deny</span> <span style=color:#d14>all</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>access_log</span> <span style=color:teal>off</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>log_not_found</span> <span style=color:teal>off</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># Deny access to hidden files
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>location</span> ~ <span style=color:#f1fa8c>/\.</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>deny</span> <span style=color:#f1fa8c>all</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>access_log</span> off;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>log_not_found</span> off;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>root</span> <span style=color:#d14>/usr/share/icinga-web/pub</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>root</span> <span style=color:#f1fa8c>/usr/share/icinga-web/pub</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/icinga-web/styles</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>alias</span> <span style=color:#d14>/usr/share/icinga-web/pub/styles</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/icinga-web/images</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>alias</span> <span style=color:#d14>/usr/share/icinga-web/pub/images</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/icinga-web/styles</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>alias</span> <span style=color:#f1fa8c>/usr/share/icinga-web/pub/styles</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/icinga-web/js</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>alias</span> <span style=color:#d14>/usr/share/icinga-web/lib</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/icinga-web/modules</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/icinga-web/(.*)</span>$ <span style=color:#d14>/index.php?/</span><span style=color:teal>$1</span> <span style=color:#d14>last</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/icinga-web/web</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/icinga-web/(.*)</span>$ <span style=color:#d14>/index.php?/</span><span style=color:teal>$1</span> <span style=color:#d14>last</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/icinga-web/images</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>alias</span> <span style=color:#f1fa8c>/usr/share/icinga-web/pub/images</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic>#&gt;&gt;&gt; configuration for pnp4nagios
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/pnp4nagios</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>alias</span> <span style=color:#d14>/usr/share/pnp4nagios/html</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/icinga-web/js</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>alias</span> <span style=color:#f1fa8c>/usr/share/icinga-web/lib</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/icinga-web/modules</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/icinga-web/(.*)</span>$ <span style=color:#f1fa8c>/index.php?/</span><span style=color:#8be9fd;font-style:italic>$1</span> <span style=color:#f1fa8c>last</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/icinga-web/web</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/icinga-web/(.*)</span>$ <span style=color:#f1fa8c>/index.php?/</span><span style=color:#8be9fd;font-style:italic>$1</span> <span style=color:#f1fa8c>last</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> ~ <span style=color:#009926>^(/pnp4nagios.*\.php)(.*)$</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>root</span> <span style=color:#d14>/usr/share/pnp4nagios/html</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>include</span> <span style=color:#d14>fastcgi_params</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_split_path_info</span> <span style=color:#d14>^(.+\.php)(.*)</span>$;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>PATH_INFO</span> <span style=color:teal>$fastcgi_path_info</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_param</span> <span style=color:#d14>SCRIPT_FILENAME</span> <span style=color:teal>$document_root/index.php</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_pass</span> <span style=color:#d14>fpm</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>#&gt;&gt;&gt; configuration for pnp4nagios
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/pnp4nagios</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>alias</span> <span style=color:#f1fa8c>/usr/share/pnp4nagios/html</span>;
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic>#&lt;&lt;&lt;
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> <span style=color:#d14>/</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>root</span>   <span style=color:#d14>/usr/share/icinga-web/pub</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>index</span> <span style=color:#d14>index.php</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>location</span> ~<span style=color:#009926>*</span> <span style=color:#d14>^/(robots.txt|static|images)</span> {
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>break</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> ~ <span style=color:#f1fa8c>^(/pnp4nagios.*\.php)(.*)$</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>root</span> <span style=color:#f1fa8c>/usr/share/pnp4nagios/html</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>include</span> <span style=color:#f1fa8c>fastcgi_params</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_split_path_info</span> <span style=color:#f1fa8c>^(.+\.php)(.*)</span>$;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>PATH_INFO</span> <span style=color:#8be9fd;font-style:italic>$fastcgi_path_info</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_param</span> <span style=color:#f1fa8c>SCRIPT_FILENAME</span> <span style=color:#8be9fd;font-style:italic>$document_root/index.php</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_pass</span> <span style=color:#f1fa8c>fpm</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>#&lt;&lt;&lt;
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> <span style=color:#f1fa8c>/</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>root</span>   <span style=color:#f1fa8c>/usr/share/icinga-web/pub</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>index</span> <span style=color:#f1fa8c>index.php</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>location</span> ~<span style=color:#f1fa8c>*</span> <span style=color:#f1fa8c>^/(robots.txt|static|images)</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>break</span>;
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>if</span> <span style=color:#d14>(</span><span style=color:teal>$uri</span> <span style=color:#d14>!~</span> <span style=color:#d14>&#34;^/(favicon.ico|robots.txt|static|index.php)&#34;)</span> {
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>rewrite</span> <span style=color:#d14>^/([^?]*)</span>$ <span style=color:#d14>/index.php?/</span><span style=color:teal>$1</span> <span style=color:#d14>last</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>if</span> <span style=color:#f1fa8c>(</span><span style=color:#8be9fd;font-style:italic>$uri</span> <span style=color:#f1fa8c>!~</span> <span style=color:#f1fa8c>&#34;^/(favicon.ico|robots.txt|static|index.php)&#34;)</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>rewrite</span> <span style=color:#f1fa8c>^/([^?]*)</span>$ <span style=color:#f1fa8c>/index.php?/</span><span style=color:#8be9fd;font-style:italic>$1</span> <span style=color:#f1fa8c>last</span>;
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>location</span> ~ <span style=color:#009926>\.php$</span> {
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>include</span> <span style=color:#d14>/etc/nginx/fastcgi_params</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>location</span> ~ <span style=color:#f1fa8c>\.php$</span> {
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>include</span> <span style=color:#f1fa8c>/etc/nginx/fastcgi_params</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_split_path_info</span> <span style=color:#d14>^(/icinga-web)(/.*)</span>$;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_split_path_info</span> <span style=color:#f1fa8c>^(/icinga-web)(/.*)</span>$;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_pass</span> <span style=color:#d14>fpm</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>fastcgi_index</span> <span style=color:#d14>index.php</span>;
-</span></span><span style=display:flex><span>      <span style=color:#000;font-weight:700>include</span> <span style=color:#d14>/etc/nginx/fastcgi_params</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_pass</span> <span style=color:#f1fa8c>fpm</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>fastcgi_index</span> <span style=color:#f1fa8c>index.php</span>;
+</span></span><span style=display:flex><span>      <span style=color:#ff79c6>include</span> <span style=color:#f1fa8c>/etc/nginx/fastcgi_params</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/icinga/>icinga</a>

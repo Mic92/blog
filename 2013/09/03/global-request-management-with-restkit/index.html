@@ -10,63 +10,63 @@ which is a really great and advanced library to communicate to your REST API.</p
 to have a global handling for failure events. For example how an Login View, if
 any of the requests gives you an 401 (Unauthorized) status code.</p><p>In RestKit 0.20 they introduced the opportunity to register your own
 <code>RKObjectRequestOperation</code>, which is the common way to do this.</p><p>So at first you create a subclass of <code>RKObjectRequestOperation</code>, let&rsquo;s call it
-<code>CustomRKObjectRequestOperation</code></p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#999;font-weight:700;font-style:italic>#import &#34;RKObjectRequestOperation.h&#34;
-</span></span></span><span style=display:flex><span><span style=color:#999;font-weight:700;font-style:italic></span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>@interface</span> <span style=color:#458;font-weight:700>CustomRKObjectRequestOperation</span> : <span style=color:#458;font-weight:700>RKObjectRequestOperation</span>
+<code>CustomRKObjectRequestOperation</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#import &#34;RKObjectRequestOperation.h&#34;
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>@interface</span> <span style=color:#50fa7b>CustomRKObjectRequestOperation</span> : <span style=color:#50fa7b>RKObjectRequestOperation</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>@end</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>@end</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>@implementation</span> <span style=color:#458;font-weight:700>CustomRKObjectRequestOperation</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>@implementation</span> <span style=color:#50fa7b>CustomRKObjectRequestOperation</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>- (<span style=color:#458;font-weight:700>void</span>)<span style=color:#900;font-weight:700>setCompletionBlockWithSuccess:</span>(<span style=color:#458;font-weight:700>void</span> ( <span style=color:#000;font-weight:700>^</span> ) ( RKObjectRequestOperation <span style=color:#000;font-weight:700>*</span>operation , RKMappingResult <span style=color:#000;font-weight:700>*</span>mappingResult ))<span style=color:teal>success</span> <span style=color:#900;font-weight:700>failure:</span>(<span style=color:#458;font-weight:700>void</span> ( <span style=color:#000;font-weight:700>^</span> ) ( RKObjectRequestOperation <span style=color:#000;font-weight:700>*</span>operation , NSError <span style=color:#000;font-weight:700>*</span>error ))<span style=color:teal>failure</span>
+</span></span><span style=display:flex><span>- (<span style=color:#8be9fd>void</span>)<span style=color:#50fa7b>setCompletionBlockWithSuccess:</span>(<span style=color:#8be9fd>void</span> ( <span style=color:#ff79c6>^</span> ) ( RKObjectRequestOperation <span style=color:#ff79c6>*</span>operation , RKMappingResult <span style=color:#ff79c6>*</span>mappingResult ))<span style=color:#8be9fd;font-style:italic>success</span> <span style=color:#50fa7b>failure:</span>(<span style=color:#8be9fd>void</span> ( <span style=color:#ff79c6>^</span> ) ( RKObjectRequestOperation <span style=color:#ff79c6>*</span>operation , NSError <span style=color:#ff79c6>*</span>error ))<span style=color:#8be9fd;font-style:italic>failure</span>
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    [<span style=color:#0086b3>super</span> <span style=color:#900;font-weight:700>setCompletionBlockWithSuccess</span>:<span style=color:#000;font-weight:700>^</span><span style=color:#458;font-weight:700>void</span>(RKObjectRequestOperation <span style=color:#000;font-weight:700>*</span>operation , RKMappingResult <span style=color:#000;font-weight:700>*</span>mappingResult) {
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>if</span> (success) {
+</span></span><span style=display:flex><span>    [<span style=color:#8be9fd;font-style:italic>super</span> <span style=color:#8be9fd;font-style:italic>setCompletionBlockWithSuccess</span>:<span style=color:#ff79c6>^</span><span style=color:#8be9fd>void</span>(RKObjectRequestOperation <span style=color:#ff79c6>*</span>operation , RKMappingResult <span style=color:#ff79c6>*</span>mappingResult) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (success) {
 </span></span><span style=display:flex><span>            success(operation, mappingResult);
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    }<span style=color:#900;font-weight:700>failure</span>:<span style=color:#000;font-weight:700>^</span><span style=color:#458;font-weight:700>void</span>(RKObjectRequestOperation <span style=color:#000;font-weight:700>*</span>operation , NSError <span style=color:#000;font-weight:700>*</span>error) {
+</span></span><span style=display:flex><span>    }<span style=color:#8be9fd;font-style:italic>failure</span>:<span style=color:#ff79c6>^</span><span style=color:#8be9fd>void</span>(RKObjectRequestOperation <span style=color:#ff79c6>*</span>operation , NSError <span style=color:#ff79c6>*</span>error) {
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        [[NSNotificationCenter defaultCenter] <span style=color:#900;font-weight:700>postNotificationName</span>:<span style=color:#d14>@&#34;connectionFailure&#34;</span> <span style=color:#900;font-weight:700>object</span>:operation];
+</span></span><span style=display:flex><span>        [[NSNotificationCenter defaultCenter] <span style=color:#8be9fd;font-style:italic>postNotificationName</span>:<span style=color:#f1fa8c>@&#34;connectionFailure&#34;</span> <span style=color:#8be9fd;font-style:italic>object</span>:operation];
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>if</span> (failure) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (failure) {
 </span></span><span style=display:flex><span>            failure(operation, error);
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    }];
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>@end</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>@end</span>
 </span></span></code></pre></div><p>This is the point where we overwrite the method which sets the completion and
 failure block. I use the Observer Pattern (<code>NSNotificationCenter</code>) to notify
 about connectionFailures.
 (<a href=http://mobile.tutsplus.com/tutorials/iphone/ios-sdk_nsnotificationcenter/ target=_blank>Learn more about NSNotificationCenter</a>)</p><p>Of course we need to tell RestKit to use our custom <code>RKObjectRequestOperation</code>
-class. You can do this by adding this line to you RestKit configuration:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>[[RKObjectManager sharedManager] <span style=color:#900;font-weight:700>registerRequestOperationClass</span>:[CustomRKObjectRequestOperation <span style=color:#000;font-weight:700>class</span>]];
+class. You can do this by adding this line to you RestKit configuration:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>[[RKObjectManager sharedManager] <span style=color:#8be9fd;font-style:italic>registerRequestOperationClass</span>:[CustomRKObjectRequestOperation <span style=color:#ff79c6>class</span>]];
 </span></span></code></pre></div><p>Now we need a class where we listen to the failure notifications. You can choose
-any of your class, I use the AppDelegate for this.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>[[NSNotificationCenter defaultCenter] <span style=color:#900;font-weight:700>addObserver</span>:<span style=color:#0086b3>self</span> <span style=color:#900;font-weight:700>selector</span>:<span style=color:#000;font-weight:700>@selector</span>(<span style=color:#900;font-weight:700>connectionFailedWithOperation</span>:) <span style=color:#900;font-weight:700>name</span>:<span style=color:#d14>@&#34;connectionFailure&#34;</span> <span style=color:#900;font-weight:700>object</span>:<span style=color:#0086b3>nil</span>];
+any of your class, I use the AppDelegate for this.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>[[NSNotificationCenter defaultCenter] <span style=color:#8be9fd;font-style:italic>addObserver</span>:<span style=color:#8be9fd;font-style:italic>self</span> <span style=color:#8be9fd;font-style:italic>selector</span>:<span style=color:#ff79c6>@selector</span>(<span style=color:#8be9fd;font-style:italic>connectionFailedWithOperation</span>:) <span style=color:#8be9fd;font-style:italic>name</span>:<span style=color:#f1fa8c>@&#34;connectionFailure&#34;</span> <span style=color:#8be9fd;font-style:italic>object</span>:<span style=color:#8be9fd;font-style:italic>nil</span>];
 </span></span></code></pre></div><p>As you should know, the <code>connectionFailedWithOperation:</code> is called when a
-connection failure occurs.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>- (<span style=color:#458;font-weight:700>void</span>)<span style=color:#900;font-weight:700>connectionFailedWithOperation:</span>(NSNotification <span style=color:#000;font-weight:700>*</span>)<span style=color:teal>notification</span>
+connection failure occurs.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-objective-c data-lang=objective-c><span style=display:flex><span>- (<span style=color:#8be9fd>void</span>)<span style=color:#50fa7b>connectionFailedWithOperation:</span>(NSNotification <span style=color:#ff79c6>*</span>)<span style=color:#8be9fd;font-style:italic>notification</span>
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    RKObjectRequestOperation <span style=color:#000;font-weight:700>*</span>operation <span style=color:#000;font-weight:700>=</span> (RKObjectRequestOperation <span style=color:#000;font-weight:700>*</span>)notification.object;
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>if</span> (operation) {
+</span></span><span style=display:flex><span>    RKObjectRequestOperation <span style=color:#ff79c6>*</span>operation <span style=color:#ff79c6>=</span> (RKObjectRequestOperation <span style=color:#ff79c6>*</span>)notification.object;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (operation) {
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        NSInteger statusCode <span style=color:#000;font-weight:700>=</span> operation.HTTPRequestOperation.response.statusCode;
+</span></span><span style=display:flex><span>        NSInteger statusCode <span style=color:#ff79c6>=</span> operation.HTTPRequestOperation.response.statusCode;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>switch</span> (statusCode) {
-</span></span><span style=display:flex><span>            <span style=color:#000;font-weight:700>case</span> <span style=color:#099>0</span><span style=color:#000;font-weight:700>:</span> <span style=color:#998;font-style:italic>// No internet connection
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>            {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>switch</span> (statusCode) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>case</span> <span style=color:#bd93f9>0</span><span style=color:#ff79c6>:</span> <span style=color:#6272a4>// No internet connection
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            {
 </span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>                <span style=color:#000;font-weight:700>break</span>;
-</span></span><span style=display:flex><span>            <span style=color:#000;font-weight:700>case</span>  <span style=color:#099>401</span><span style=color:#000;font-weight:700>:</span> <span style=color:#998;font-style:italic>// not authenticated
-</span></span></span><span style=display:flex><span><span style=color:#998;font-style:italic></span>            {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>break</span>;
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>case</span>  <span style=color:#bd93f9>401</span><span style=color:#ff79c6>:</span> <span style=color:#6272a4>// not authenticated
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            {
 </span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>                <span style=color:#000;font-weight:700>break</span>;
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>break</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>            <span style=color:#000;font-weight:700>default</span><span style=color:#000;font-weight:700>:</span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>default</span><span style=color:#ff79c6>:</span>
 </span></span><span style=display:flex><span>            {
 </span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>                <span style=color:#000;font-weight:700>break</span>;
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>break</span>;
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}

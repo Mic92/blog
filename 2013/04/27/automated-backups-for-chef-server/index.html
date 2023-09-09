@@ -7,62 +7,62 @@ like <a href=http://www.rsnapshot.org/ target=_blank>rsnapshot</a> or
 directory. In my case I use a raspberry pie with a
 <a href="http://www.amazon.de/dp/B0017J4IAQ?tag=gitblo-21" target=_blank>hdd docking station</a> and a
 <a href="http://www.amazon.de/dp/B004VFJ9MK?tag=gitblo-21" target=_blank>power saving harddrive</a></p><p>To get started you will need ruby on the backup machine. I prefer using rvm for
-this job. Feel free to choose your preferred way:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> curl -L https://get.rvm.io | bash -s stable --autolibs<span style=color:#000;font-weight:700>=</span>enabled
+this job. Feel free to choose your preferred way:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ curl -L https://get.rvm.io | bash -s stable --autolibs<span style=color:#ff79c6>=</span>enabled
 </span></span></code></pre></div><p>To create the backup, I use the great
 <a href=https://github.com/mdxp/knife-backup target=_blank>knife-backup gem</a> of
-<a href=http://www.ducea.com/ target=_blank>Marius Ducea</a>:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> gem install knife-backup
-</span></span></code></pre></div><p>Then add these scripts to your system:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> mkdir -p ~/bin <span style=color:#000;font-weight:700>&amp;&amp;</span> <span style=color:#0086b3>cd</span> ~/bin
-</span></span><span style=display:flex><span><span style=color:#555>$</span> wget http://blog.higgsboson.tk/downloads/code/chef-backup/backup-chef.sh
-</span></span><span style=display:flex><span><span style=color:#555>$</span> wget http://blog.higgsboson.tk/downloads/code/chef-backup/restore-chef.sh
-</span></span><span style=display:flex><span><span style=color:#555>$</span> chmod +x <span style=color:#000;font-weight:700>{</span>backup,restore<span style=color:#000;font-weight:700>}</span>-chef.sh
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#999;font-weight:700;font-style:italic>#!/bin/bash
-</span></span></span><span style=display:flex><span><span style=color:#999;font-weight:700;font-style:italic></span><span style=color:#998;font-style:italic># optional: load rvm</span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>source</span> <span style=color:#d14>&#34;</span><span style=color:teal>$HOME</span><span style=color:#d14>/.rvm/scripts/rvm&#34;</span> <span style=color:#000;font-weight:700>||</span> <span style=color:#0086b3>source</span> <span style=color:#d14>&#34;/usr/local/rvm/scripts/rvm&#34;</span>
+<a href=http://www.ducea.com/ target=_blank>Marius Ducea</a>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ gem install knife-backup
+</span></span></code></pre></div><p>Then add these scripts to your system:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ mkdir -p ~/bin <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#8be9fd;font-style:italic>cd</span> ~/bin
+</span></span><span style=display:flex><span>$ wget http://blog.higgsboson.tk/downloads/code/chef-backup/backup-chef.sh
+</span></span><span style=display:flex><span>$ wget http://blog.higgsboson.tk/downloads/code/chef-backup/restore-chef.sh
+</span></span><span style=display:flex><span>$ chmod +x <span style=color:#ff79c6>{</span>backup,restore<span style=color:#ff79c6>}</span>-chef.sh
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#ff79c6>#!/bin/bash
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span><span style=color:#6272a4># optional: load rvm</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>source</span> <span style=color:#f1fa8c>&#34;</span><span style=color:#8be9fd;font-style:italic>$HOME</span><span style=color:#f1fa8c>/.rvm/scripts/rvm&#34;</span> <span style=color:#ff79c6>||</span> <span style=color:#8be9fd;font-style:italic>source</span> <span style=color:#f1fa8c>&#34;/usr/local/rvm/scripts/rvm&#34;</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>cd</span> /tmp
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>cd</span> /tmp
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:teal>BACKUP</span><span style=color:#000;font-weight:700>=</span>/path/to/your/backup <span style=color:#998;font-style:italic>#&amp;lt;--- EDIT THIS LINE</span>
-</span></span><span style=display:flex><span><span style=color:teal>TMPDIR</span><span style=color:#000;font-weight:700>=</span>/tmp/<span style=color:#000;font-weight:700>$(</span>mktemp -d chef-backup-XXXX<span style=color:#000;font-weight:700>)</span>
-</span></span><span style=display:flex><span><span style=color:teal>MAX_BACKUPS</span><span style=color:#000;font-weight:700>=</span><span style=color:#099>8</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>BACKUP</span><span style=color:#ff79c6>=</span>/path/to/your/backup <span style=color:#6272a4>#&amp;lt;--- EDIT THIS LINE</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>TMPDIR</span><span style=color:#ff79c6>=</span>/tmp/<span style=color:#ff79c6>$(</span>mktemp -d chef-backup-XXXX<span style=color:#ff79c6>)</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>MAX_BACKUPS</span><span style=color:#ff79c6>=</span><span style=color:#bd93f9>8</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>cd</span> <span style=color:teal>$TMPDIR</span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>trap</span> <span style=color:#d14>&#34;rm -rf &#39;</span><span style=color:teal>$TMPDIR</span><span style=color:#d14>&#39;&#34;</span> INT QUIT TERM EXIT
-</span></span><span style=display:flex><span>knife --config <span style=color:teal>$HOME</span>/.chef/knife-backup.rb backup <span style=color:#0086b3>export</span> -D . &amp;gt;/dev/null
-</span></span><span style=display:flex><span>tar -cjf <span style=color:#d14>&#34;</span><span style=color:teal>$BACKUP</span><span style=color:#d14>/</span><span style=color:#000;font-weight:700>$(</span>date +%m.%d.%Y<span style=color:#000;font-weight:700>)</span><span style=color:#d14>.tar.bz2&#34;</span> .
-</span></span><span style=display:flex><span><span style=color:#998;font-style:italic># keep the last X backups</span>
-</span></span><span style=display:flex><span>ls -t <span style=color:#d14>&#34;</span><span style=color:teal>$BACKUP</span><span style=color:#d14>&#34;</span> | tail -n+<span style=color:teal>$MAX_BACKUPS</span> | xargs rm -f
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#999;font-weight:700;font-style:italic>#!/bin/bash
-</span></span></span><span style=display:flex><span><span style=color:#999;font-weight:700;font-style:italic></span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>if</span> <span style=color:#000;font-weight:700>[</span> <span style=color:#d14>&#34;</span><span style=color:teal>$#</span><span style=color:#d14>&#34;</span> -eq <span style=color:#099>0</span> <span style=color:#000;font-weight:700>]</span>; <span style=color:#000;font-weight:700>then</span>
-</span></span><span style=display:flex><span>    <span style=color:#0086b3>echo</span> <span style=color:#d14>&#34;USAGE: </span><span style=color:teal>$0</span><span style=color:#d14> /path/to/backup&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#0086b3>exit</span> <span style=color:#099>1</span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>fi</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>cd</span> <span style=color:#8be9fd;font-style:italic>$TMPDIR</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>trap</span> <span style=color:#f1fa8c>&#34;rm -rf &#39;</span><span style=color:#8be9fd;font-style:italic>$TMPDIR</span><span style=color:#f1fa8c>&#39;&#34;</span> INT QUIT TERM EXIT
+</span></span><span style=display:flex><span>knife --config <span style=color:#8be9fd;font-style:italic>$HOME</span>/.chef/knife-backup.rb backup <span style=color:#8be9fd;font-style:italic>export</span> -D . &amp;gt;/dev/null
+</span></span><span style=display:flex><span>tar -cjf <span style=color:#f1fa8c>&#34;</span><span style=color:#8be9fd;font-style:italic>$BACKUP</span><span style=color:#f1fa8c>/</span><span style=color:#ff79c6>$(</span>date +%m.%d.%Y<span style=color:#ff79c6>)</span><span style=color:#f1fa8c>.tar.bz2&#34;</span> .
+</span></span><span style=display:flex><span><span style=color:#6272a4># keep the last X backups</span>
+</span></span><span style=display:flex><span>ls -t <span style=color:#f1fa8c>&#34;</span><span style=color:#8be9fd;font-style:italic>$BACKUP</span><span style=color:#f1fa8c>&#34;</span> | tail -n+<span style=color:#8be9fd;font-style:italic>$MAX_BACKUPS</span> | xargs rm -f
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#ff79c6>#!/bin/bash
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>if</span> <span style=color:#ff79c6>[</span> <span style=color:#f1fa8c>&#34;</span><span style=color:#8be9fd;font-style:italic>$#</span><span style=color:#f1fa8c>&#34;</span> -eq <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>]</span>; <span style=color:#ff79c6>then</span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>echo</span> <span style=color:#f1fa8c>&#34;USAGE: </span><span style=color:#8be9fd;font-style:italic>$0</span><span style=color:#f1fa8c> /path/to/backup&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>exit</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fi</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>source</span> <span style=color:#d14>&#34;</span><span style=color:teal>$HOME</span><span style=color:#d14>/.rvm/scripts/rvm&#34;</span> <span style=color:#000;font-weight:700>||</span> <span style=color:#0086b3>source</span> <span style=color:#d14>&#34;/usr/local/rvm/scripts/rvm&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>source</span> <span style=color:#f1fa8c>&#34;</span><span style=color:#8be9fd;font-style:italic>$HOME</span><span style=color:#f1fa8c>/.rvm/scripts/rvm&#34;</span> <span style=color:#ff79c6>||</span> <span style=color:#8be9fd;font-style:italic>source</span> <span style=color:#f1fa8c>&#34;/usr/local/rvm/scripts/rvm&#34;</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>cd</span> /tmp
-</span></span><span style=display:flex><span><span style=color:teal>TMPDIR</span><span style=color:#000;font-weight:700>=</span>/tmp/<span style=color:#000;font-weight:700>$(</span>mktemp -d chef-restore-XXXX<span style=color:#000;font-weight:700>)</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>cd</span> /tmp
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>TMPDIR</span><span style=color:#ff79c6>=</span>/tmp/<span style=color:#ff79c6>$(</span>mktemp -d chef-restore-XXXX<span style=color:#ff79c6>)</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>cd</span> <span style=color:#d14>&#34;</span><span style=color:teal>$TMPDIR</span><span style=color:#d14>&#34;</span>
-</span></span><span style=display:flex><span><span style=color:#0086b3>trap</span> <span style=color:#d14>&#34;rm -rf &#39;</span><span style=color:teal>$TMPDIR</span><span style=color:#d14>&#39;&#34;</span> INT QUIT TERM EXIT
-</span></span><span style=display:flex><span>tar xf <span style=color:teal>$1</span>
-</span></span><span style=display:flex><span>knife --config <span style=color:teal>$HOME</span>/.chef/knife-backup.rb backup restore -D .
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>cd</span> <span style=color:#f1fa8c>&#34;</span><span style=color:#8be9fd;font-style:italic>$TMPDIR</span><span style=color:#f1fa8c>&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>trap</span> <span style=color:#f1fa8c>&#34;rm -rf &#39;</span><span style=color:#8be9fd;font-style:italic>$TMPDIR</span><span style=color:#f1fa8c>&#39;&#34;</span> INT QUIT TERM EXIT
+</span></span><span style=display:flex><span>tar xf <span style=color:#8be9fd;font-style:italic>$1</span>
+</span></span><span style=display:flex><span>knife --config <span style=color:#8be9fd;font-style:italic>$HOME</span>/.chef/knife-backup.rb backup restore -D .
 </span></span></code></pre></div><p>Modify BACKUP variable to match your backup destination. Next you will need a
-knife.rb to get access to your server. I suggest to create a new client:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> mkdir -p ~/.chef
-</span></span><span style=display:flex><span><span style=color:#555>$</span> knife client create backup --admin --file <span style=color:#d14>&#34;</span><span style=color:teal>$HOME</span><span style=color:#d14>/.chef/backup.pem&#34;</span>
-</span></span><span style=display:flex><span><span style=color:#555>$</span> cat <span style=color:#d14>&lt;&lt;&#39;__EOF__</span><span style=color:#a61717;background-color:#e3d2d2>&#39;</span> &gt;&gt; ~/.chef/knife-backup.rb
-</span></span><span style=display:flex><span><span style=color:#888>log_level                :info
-</span></span></span><span style=display:flex><span><span style=color:#888>log_location             STDOUT
-</span></span></span><span style=display:flex><span><span style=color:#888>node_name                &#39;backup&#39;
-</span></span></span><span style=display:flex><span><span style=color:#888>client_key               &#34;#{ENV[&#34;HOME&#34;]}/.chef/backup.pem&#34;
-</span></span></span><span style=display:flex><span><span style=color:#888>chef_server_url          &#39;https://chef.yourdomain.tld&#39; # EDIT HERE
-</span></span></span><span style=display:flex><span><span style=color:#888>syntax_check_cache_path  &#34;#{ENV[&#34;HOME&#34;]}.chef/syntax_check_cache&#34;
-</span></span></span><span style=display:flex><span><span style=color:#888>__EOF__
-</span></span></span><span style=display:flex><span><span style=color:#888></span><span style=color:#555>$</span> knife role list <span style=color:#998;font-style:italic># test authentication</span>
-</span></span></code></pre></div><p>Now test the whole setup, by running the <code>backup-chef.sh</code> script:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> ~/bin/backup-chef.sh
-</span></span></code></pre></div><p>It should create a tar file in the backup directory.</p><p>If everything works, you can add a cronjob to automate this.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> crontab -e
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>@daily $HOME/bin/backup-chef.sh
-</span></span></code></pre></div><p>To restore a backup simply run (where <code>DATE</code> is the date of the backup)</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> ~/bin/restore-chef.sh /path/to/backup/DATE.tar.bz2
+knife.rb to get access to your server. I suggest to create a new client:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ mkdir -p ~/.chef
+</span></span><span style=display:flex><span>$ knife client create backup --admin --file <span style=color:#f1fa8c>&#34;</span><span style=color:#8be9fd;font-style:italic>$HOME</span><span style=color:#f1fa8c>/.chef/backup.pem&#34;</span>
+</span></span><span style=display:flex><span>$ cat <span style=color:#f1fa8c>&lt;&lt;&#39;__EOF__</span>&#39; &gt;&gt; ~/.chef/knife-backup.rb
+</span></span><span style=display:flex><span><span style=color:#44475a>log_level                :info
+</span></span></span><span style=display:flex><span><span style=color:#44475a>log_location             STDOUT
+</span></span></span><span style=display:flex><span><span style=color:#44475a>node_name                &#39;backup&#39;
+</span></span></span><span style=display:flex><span><span style=color:#44475a>client_key               &#34;#{ENV[&#34;HOME&#34;]}/.chef/backup.pem&#34;
+</span></span></span><span style=display:flex><span><span style=color:#44475a>chef_server_url          &#39;https://chef.yourdomain.tld&#39; # EDIT HERE
+</span></span></span><span style=display:flex><span><span style=color:#44475a>syntax_check_cache_path  &#34;#{ENV[&#34;HOME&#34;]}.chef/syntax_check_cache&#34;
+</span></span></span><span style=display:flex><span><span style=color:#44475a>__EOF__
+</span></span></span><span style=display:flex><span><span style=color:#44475a></span>$ knife role list <span style=color:#6272a4># test authentication</span>
+</span></span></code></pre></div><p>Now test the whole setup, by running the <code>backup-chef.sh</code> script:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ ~/bin/backup-chef.sh
+</span></span></code></pre></div><p>It should create a tar file in the backup directory.</p><p>If everything works, you can add a cronjob to automate this.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ crontab -e
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>@daily $HOME/bin/backup-chef.sh
+</span></span></code></pre></div><p>To restore a backup simply run (where <code>DATE</code> is the date of the backup)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ ~/bin/restore-chef.sh /path/to/backup/DATE.tar.bz2
 </span></span></code></pre></div><p>That&rsquo;s all folks!</p></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/backup/>backup</a>
 <a href=/categories/chef/>chef</a>
 <a href=/categories/cron/>cron</a>

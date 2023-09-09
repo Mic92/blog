@@ -20,16 +20,16 @@ executables may have dependencies on libraries that are not available in the Nix
 package manager, or may require patching or modification to work correctly on
 the operating system.</p><h2 id=the-problem>The problem</h2><p>If you have used NixOS for a while, you may have encountered an issue when
 attempting to run a pre-compiled executable. You probably saw something like
-this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ./masterpdfeditor5
+this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ./masterpdfeditor5
 </span></span><span style=display:flex><span>bash: ./masterpdfeditor5: No such file or directory
-</span></span></code></pre></div><p>However, the file clearly exists:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ls -la ./masterpdfeditor5
+</span></span></code></pre></div><p>However, the file clearly exists:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ls -la ./masterpdfeditor5
 </span></span><span style=display:flex><span>-rwxr-xr-x 1 joerg users 27160344 Jul  4 16:22 ./masterpdfeditor5
 </span></span></code></pre></div><p>To understand what is going on, we need to look at what happens when an
 executable is run on a Linux operating system. When the shell attempts to run a
 program, it uses an
 <a href=https://man7.org/linux/man-pages/man2/execve.2.html target=_blank>execve</a> system call to
 request the operating system to run the program. We can use the tool
-<a href=https://strace.io/ target=_blank>strace</a> to visualize this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ strace -f ./masterpdfeditor5
+<a href=https://strace.io/ target=_blank>strace</a> to visualize this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ strace -f ./masterpdfeditor5
 </span></span><span style=display:flex><span>execve(&#34;./masterpdfeditor5&#34;, [&#34;./masterpdfeditor5&#34;], 0x7fff70350ef8 /* 188 vars */) = -1 ENOENT (No such file or directory)
 </span></span><span style=display:flex><span>strace: exec: No such file or directory
 </span></span><span style=display:flex><span>+++ exited with 1 +++
@@ -38,7 +38,7 @@ code from the operating system. In this case, we can see that bash derived its
 error message (<code>No such file or directory</code>) from the <code>execve</code> system call.</p><p>To understand why the operating system is reporting this error, we need to
 analyze the executable file further. The
 <a href=https://man7.org/linux/man-pages/man1/file.1.html target=_blank>file</a> command from the
-binutils package provides more information about the executable file:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ file ./masterpdfeditor5
+binutils package provides more information about the executable file:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ file ./masterpdfeditor5
 </span></span><span style=display:flex><span>masterpdfeditor5: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=406f865023e33cc6a0f9d179cc14a939c4b29fbe, stripped
 </span></span></code></pre></div><p>We can see that the executable is a dynamically linked ELF binary that depends
 on libraries found on the system to function. It uses a link-loader program,
@@ -49,7 +49,7 @@ allows users to mix different libraries, including the glibc package. Unlike
 Linux, it does not provide a fixed path such as <code>/lib64/ld-linux-x86-64.so.2</code>
 for the link-loader program. Executables packaged with Nix are linked against a
 specific version of glibc. The <a href=https://github.com/Mic92/patchelf target=_blank>patchelf</a>
-command can be used to find out exactly which version is being used.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ patchelf --print-interpreter /run/current-system/sw/bin/ls
+command can be used to find out exactly which version is being used.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ patchelf --print-interpreter /run/current-system/sw/bin/ls
 </span></span><span style=display:flex><span>/nix/store/ayfr5l52xkqqjn3n4h9jfacgnchz1z7s-glibc-2.35-224/lib/ld-linux-x86-64.so.2
 </span></span></code></pre></div><p>When the operating system tries to run an executable, it parses the binary and
 looks for the specified link-loader. If it cannot find it, it returns the
@@ -62,11 +62,11 @@ link-loader uses this field to locate the libraries at runtime.</p><p>We can use
 effect of <code>autoPatchelfHook</code> on the <code>masterpdfeditor</code> program. By using
 <code>nix-shell</code> to load a shell with masterpdfeditor and then printing the RPATH of
 the program, we can see the paths to the necessary libraries encoded in the
-program.</p><p>First, we load up a shell with masterpdfeditor in it.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix-shell -p masterpdfeditor
-</span></span></code></pre></div><p>Next, we get the nix path to the program</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>[nix-shell]$ which masterpdfeditor5
+program.</p><p>First, we load up a shell with masterpdfeditor in it.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix-shell -p masterpdfeditor
+</span></span></code></pre></div><p>Next, we get the nix path to the program</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>[nix-shell]$ which masterpdfeditor5
 </span></span><span style=display:flex><span>/nix/store/zmdjwbizg4a6cja4darcn2qy9imr336k-masterpdfeditor-5.8.70/bin/masterpdfeditor5
-</span></span></code></pre></div><p>The next command prints the RPATH encoded in the program.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>[nix-shell]$ patchelf --print-rpath &#34;/nix/store/zmdjwbizg4a6cja4darcn2qy9imr336k-masterpdfeditor-5.8.70/bin/.masterpdfeditor5-wrapped&#34;
-</span></span></code></pre></div><p>It gives this result:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>/nix/store/y4k2206qhks30wspxx1nkmgfqfdmxp0j-sane-backends-1.1.1/lib:/nix/store/zaflwh2nwzj1f0wngd7hqm3nvlf3yhsx-zlib-1.2.13/lib:/nix/store/dgxn688wq7whsvs2fycygq0wn888xnsv-qtsvg-5.15.7/lib:/nix/store/9lcgwnc70f4wj1czklczql7a
+</span></span></code></pre></div><p>The next command prints the RPATH encoded in the program.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>[nix-shell]$ patchelf --print-rpath &#34;/nix/store/zmdjwbizg4a6cja4darcn2qy9imr336k-masterpdfeditor-5.8.70/bin/.masterpdfeditor5-wrapped&#34;
+</span></span></code></pre></div><p>It gives this result:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>/nix/store/y4k2206qhks30wspxx1nkmgfqfdmxp0j-sane-backends-1.1.1/lib:/nix/store/zaflwh2nwzj1f0wngd7hqm3nvlf3yhsx-zlib-1.2.13/lib:/nix/store/dgxn688wq7whsvs2fycygq0wn888xnsv-qtsvg-5.15.7/lib:/nix/store/9lcgwnc70f4wj1czklczql7a
 </span></span><span style=display:flex><span>wcv24mi-qtbase-5.15.7/lib:/nix/store/lgfp5762m5qzby9syd21kj04l5qmjg4h-qtdeclarative-5.15.7/lib:/nix/store/ykjcsxdh9c1w664g6v38d86gph8m6mq7-libglvnd-1.5.0/lib:/nix/store/wprxx5zkkk13hpj6k1v6qadjylh3vq9m-gcc-11.3.0-lib/lib
 </span></span></code></pre></div><p>While <code>autoPatchelfHook</code> is a useful tool for making many programs usable in
 Nix, there are a few cases where it may not be possible or practical to use it.
@@ -87,17 +87,17 @@ rewrites this variable to <code>LD_LIBRARY_PATH</code> before passing execution 
 link-loader. This allows users to specify additional libraries that the
 executable needs to run.</p><p>On a system configured with <code>nix-ld</code>, the error message when attempting to run
 an unpatched binary will be more informative and provide guidance on how to
-address the issue:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ./masterpdfeditor5
+address the issue:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ./masterpdfeditor5
 </span></span><span style=display:flex><span>cannot execute ./masterpdfeditor5: You are trying to run an unpatched binary on nixos, but you have not configured NIX_LD or NIX_LD_x86_64-linux. See https://github.com/Mic92/nix-ld for more details
 </span></span></code></pre></div><p>To further improve the user experience, a new feature is available in the latest
 unstable version of NixOS and the upcoming 23.05 release. It allows the most
-common libraries to be included in the NixOs configuration as follows:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{ config<span style=color:#000;font-weight:700>,</span> pkgs<span style=color:#000;font-weight:700>,</span> <span style=color:#000;font-weight:700>...</span> }: {
-</span></span><span style=display:flex><span>  <span style=color:#998;font-style:italic># Enable nix ld</span>
-</span></span><span style=display:flex><span>  programs<span style=color:#000;font-weight:700>.</span>nix-ld<span style=color:#000;font-weight:700>.</span>enable <span style=color:#000;font-weight:700>=</span> <span style=color:teal>true</span>;
+common libraries to be included in the NixOs configuration as follows:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{ config<span style=color:#ff79c6>,</span> pkgs<span style=color:#ff79c6>,</span> <span style=color:#ff79c6>...</span> }: {
+</span></span><span style=display:flex><span>  <span style=color:#6272a4># Enable nix ld</span>
+</span></span><span style=display:flex><span>  programs<span style=color:#ff79c6>.</span>nix-ld<span style=color:#ff79c6>.</span>enable <span style=color:#ff79c6>=</span> true;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#998;font-style:italic># Sets up all the libraries to load</span>
-</span></span><span style=display:flex><span>  programs<span style=color:#000;font-weight:700>.</span>nix-ld<span style=color:#000;font-weight:700>.</span>libraries <span style=color:#000;font-weight:700>=</span> <span style=color:#000;font-weight:700>with</span> pkgs; [
-</span></span><span style=display:flex><span>    stdenv<span style=color:#000;font-weight:700>.</span>cc<span style=color:#000;font-weight:700>.</span>cc
+</span></span><span style=display:flex><span>  <span style=color:#6272a4># Sets up all the libraries to load</span>
+</span></span><span style=display:flex><span>  programs<span style=color:#ff79c6>.</span>nix-ld<span style=color:#ff79c6>.</span>libraries <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>with</span> pkgs; [
+</span></span><span style=display:flex><span>    stdenv<span style=color:#ff79c6>.</span>cc<span style=color:#ff79c6>.</span>cc
 </span></span><span style=display:flex><span>    zlib
 </span></span><span style=display:flex><span>    fuse3
 </span></span><span style=display:flex><span>    icu
@@ -106,7 +106,7 @@ common libraries to be included in the NixOs configuration as follows:</p><div c
 </span></span><span style=display:flex><span>    openssl
 </span></span><span style=display:flex><span>    curl
 </span></span><span style=display:flex><span>    expat
-</span></span><span style=display:flex><span>    <span style=color:#998;font-style:italic># ...</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># ...</span>
 </span></span><span style=display:flex><span>  ];
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>For a more extensive version of this configuration, see my

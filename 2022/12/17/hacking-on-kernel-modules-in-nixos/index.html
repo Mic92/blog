@@ -17,14 +17,14 @@ packages that have the kernel as a build dependency. So, to access the kernel
 only, you should look into <code>boot.kernelPackages.kernel</code>.</p><p>Now that you are familiar with the topic, let&rsquo;s proceed to building kernel
 modules. This article will guide you through the following steps:</p><ol><li>Setting up a development environment with the necessary tools for building a
 kernel</li><li>Building an out-of-tree kernel</li><li>Building an in-tree kernel</li><li>Bonus: Creating a symbolic link to our NixOS configuration flake for easy
-reference to the kernel configuration used to build the system.</li></ol><h1 id=getting-the-development-environment>Getting the development environment</h1><p>Let&rsquo;s say you have your NixOS configured in <code>flake.nix</code> like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  inputs<span style=color:#000;font-weight:700>.</span>nixpkgs<span style=color:#000;font-weight:700>.</span>url <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;github:NixOS/nixpkgs/nixos-unstable-small&#34;</span>;
+reference to the kernel configuration used to build the system.</li></ol><h1 id=getting-the-development-environment>Getting the development environment</h1><p>Let&rsquo;s say you have your NixOS configured in <code>flake.nix</code> like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  inputs<span style=color:#ff79c6>.</span>nixpkgs<span style=color:#ff79c6>.</span>url <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;github:NixOS/nixpkgs/nixos-unstable-small&#34;</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  outputs <span style=color:#000;font-weight:700>=</span> { self<span style=color:#000;font-weight:700>,</span> nixpkgs }: {
-</span></span><span style=display:flex><span>    nixosConfigurations <span style=color:#000;font-weight:700>=</span> {
-</span></span><span style=display:flex><span>      my-nixos <span style=color:#000;font-weight:700>=</span> nixpkgs<span style=color:#000;font-weight:700>.</span>lib<span style=color:#000;font-weight:700>.</span>nixosSystem {
-</span></span><span style=display:flex><span>       system <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;x86_64-linux&#34;</span>;
-</span></span><span style=display:flex><span>       modules <span style=color:#000;font-weight:700>=</span> [ <span style=color:#009926>./configuration.nix</span> ];
+</span></span><span style=display:flex><span>  outputs <span style=color:#ff79c6>=</span> { self<span style=color:#ff79c6>,</span> nixpkgs }: {
+</span></span><span style=display:flex><span>    nixosConfigurations <span style=color:#ff79c6>=</span> {
+</span></span><span style=display:flex><span>      my-nixos <span style=color:#ff79c6>=</span> nixpkgs<span style=color:#ff79c6>.</span>lib<span style=color:#ff79c6>.</span>nixosSystem {
+</span></span><span style=display:flex><span>       system <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;x86_64-linux&#34;</span>;
+</span></span><span style=display:flex><span>       modules <span style=color:#ff79c6>=</span> [ <span style=color:#f1fa8c>./configuration.nix</span> ];
 </span></span><span style=display:flex><span>     };
 </span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>  };
@@ -32,9 +32,9 @@ reference to the kernel configuration used to build the system.</li></ol><h1 id=
 </span></span></code></pre></div><p>Let’s assume your NixOS flake is in <code>/etc/nixos</code>. To get a development shell
 that has all the required dependencies for building a kernel and kernel modules,
 you can run the command below. It will add a C compiler and some libraries
-needed for compiling to your shell.</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix develop &#34;/etc/nixos#nixosConfigurations.my-nixos.config.boot.kernel&#34;
+needed for compiling to your shell.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix develop &#34;/etc/nixos#nixosConfigurations.my-nixos.config.boot.kernel&#34;
 </span></span></code></pre></div><h1 id=lets-build-a-kernel-module-with-that>Let&rsquo;s build a kernel module with that!</h1><p>Apart from the shell, we will also need the kernel development headers to build
-a kernel module. They can be found in <code>boot.kernelPackages.kernel.dev</code>.</p><p>Let’s clone an example kernel module and build it:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>nix-shell&gt; KERNELDIR=$(nix build --print-out-paths &#34;/etc/nixos/#nixosConfigurations.turingmachine.config.boot.kernelPackages.kernel.dev&#34;)
+a kernel module. They can be found in <code>boot.kernelPackages.kernel.dev</code>.</p><p>Let’s clone an example kernel module and build it:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>nix-shell&gt; KERNELDIR=$(nix build --print-out-paths &#34;/etc/nixos/#nixosConfigurations.turingmachine.config.boot.kernelPackages.kernel.dev&#34;)
 </span></span><span style=display:flex><span>nix-shell&gt; git clone https://github.com/Mic92/uptime_hack/
 </span></span><span style=display:flex><span>nix-shell&gt; cd uptime_hack
 </span></span><span style=display:flex><span>nix-shell&gt; make -C $KERNELDIR/lib/modules/*/build M=$(pwd)
@@ -49,17 +49,17 @@ a kernel module. They can be found in <code>boot.kernelPackages.kernel.dev</code
 </span></span></code></pre></div><h1 id=in-of-tree-kernel-modules>In-of-tree kernel modules</h1><p>We can also use this algorithm to build in-tree kernel drivers.</p><p>Next, we’ll need to unpack the current kernel source and copy the kernel
 configuration file to our unpacked Linux tree. The current kernel source is
 stored in <code>$src</code> in the shell provided by <code>nix develop</code>. We can unpack the
-kernel like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ tar -xvf &#34;$src&#34;
+kernel like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ tar -xvf &#34;$src&#34;
 </span></span><span style=display:flex><span>$ cd linux-*
 </span></span></code></pre></div><p>Then, the Linux kernel configuration is stored in <code>.config</code>. We can copy this
-file from the kernel.dev package to our unpacked Linux tree:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ cp $KERNELDIR/lib/modules/*/build/.config .config
+file from the kernel.dev package to our unpacked Linux tree:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ cp $KERNELDIR/lib/modules/*/build/.config .config
 </span></span></code></pre></div><p>Next, we will compile the kernel modules. But before, we need to prepare the
-build environment for building kernel modules:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ make scripts prepare modules_prepare
-</span></span></code></pre></div><p>Now, let’s build the new <code>null_blk</code> block device driver like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ make -C . M=drivers/block/null_blk
+build environment for building kernel modules:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ make scripts prepare modules_prepare
+</span></span></code></pre></div><p>Now, let’s build the new <code>null_blk</code> block device driver like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ make -C . M=drivers/block/null_blk
 </span></span></code></pre></div><h1 id=making-your-nixos-closure-refer-the-closure-it-was-build-from>Making your nixos closure refer the closure it was build from</h1><p>If we actually want to insert any of those drivers into the <strong>running</strong> system,
 the kernel in the NixOS configuration needs to be the same as the kernel of the
 booted system. So, it makes sense to check and compare the kernel versions,
-which you can do like this</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix build --print-out-paths &#34;/etc/nixos/#nixosConfigurations.my-nixos.config.boot.kernelPackages.kernel&#34;
+which you can do like this</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix build --print-out-paths &#34;/etc/nixos/#nixosConfigurations.my-nixos.config.boot.kernelPackages.kernel&#34;
 </span></span><span style=display:flex><span>/nix/store/yyz5jkjsan9q7v8aa4i7697rrivzwmjz-linux-6.0.12
 </span></span><span style=display:flex><span>$ realpath /run/booted-system/kernel
 </span></span><span style=display:flex><span>/nix/store/yyz5jkjsan9q7v8aa4i7697rrivzwmjz-linux-6.0.12/bzImage
@@ -67,20 +67,20 @@ which you can do like this</p><div class=highlight><pre tabindex=0 style=backgro
 rebooted.</p><p>However, there is an even better way to replace the drivers with the new ones:
 by adding a symlink of our NixOS flake to our NixOS system. This way, we will
 always be able to refer to the flake at boot time.</p><p>How can you make NixOS closure contain a symlink to its own configuration flake?
-By adding extra lines to <code>system.extraSystemBuilderCmds</code> like this:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  inputs<span style=color:#000;font-weight:700>.</span>nixpkgs<span style=color:#000;font-weight:700>.</span>url <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;github:NixOS/nixpkgs/nixos-unstable-small&#34;</span>;
+By adding extra lines to <code>system.extraSystemBuilderCmds</code> like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  inputs<span style=color:#ff79c6>.</span>nixpkgs<span style=color:#ff79c6>.</span>url <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;github:NixOS/nixpkgs/nixos-unstable-small&#34;</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  outputs <span style=color:#000;font-weight:700>=</span> { self<span style=color:#000;font-weight:700>,</span> nixpkgs }: {
-</span></span><span style=display:flex><span>    nixosConfigurations <span style=color:#000;font-weight:700>=</span> {
-</span></span><span style=display:flex><span>      my-nixos <span style=color:#000;font-weight:700>=</span> nixpkgs<span style=color:#000;font-weight:700>.</span>lib<span style=color:#000;font-weight:700>.</span>nixosSystem {
-</span></span><span style=display:flex><span>        system <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;x86_64-linux&#34;</span>;
-</span></span><span style=display:flex><span>        modules <span style=color:#000;font-weight:700>=</span> [
-</span></span><span style=display:flex><span>          <span style=color:#009926>./configuration.nix</span>
-</span></span><span style=display:flex><span>          <span style=color:#998;font-style:italic># This will add a symlink in your nixos closure</span>
+</span></span><span style=display:flex><span>  outputs <span style=color:#ff79c6>=</span> { self<span style=color:#ff79c6>,</span> nixpkgs }: {
+</span></span><span style=display:flex><span>    nixosConfigurations <span style=color:#ff79c6>=</span> {
+</span></span><span style=display:flex><span>      my-nixos <span style=color:#ff79c6>=</span> nixpkgs<span style=color:#ff79c6>.</span>lib<span style=color:#ff79c6>.</span>nixosSystem {
+</span></span><span style=display:flex><span>        system <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;x86_64-linux&#34;</span>;
+</span></span><span style=display:flex><span>        modules <span style=color:#ff79c6>=</span> [
+</span></span><span style=display:flex><span>          <span style=color:#f1fa8c>./configuration.nix</span>
+</span></span><span style=display:flex><span>          <span style=color:#6272a4># This will add a symlink in your nixos closure</span>
 </span></span><span style=display:flex><span>          {
-</span></span><span style=display:flex><span>            system<span style=color:#000;font-weight:700>.</span>extraSystemBuilderCmds <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#39;&#39;
-</span></span></span><span style=display:flex><span><span style=color:#d14>              ln -s </span><span style=color:#d14>${</span>self<span style=color:#d14>}</span><span style=color:#d14> $out/flake
-</span></span></span><span style=display:flex><span><span style=color:#d14>            &#39;&#39;</span>;
+</span></span><span style=display:flex><span>            system<span style=color:#ff79c6>.</span>extraSystemBuilderCmds <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>              ln -s </span><span style=color:#f1fa8c>${</span>self<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c> $out/flake
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>            &#39;&#39;</span>;
 </span></span><span style=display:flex><span>          }
 </span></span><span style=display:flex><span>        ];
 </span></span><span style=display:flex><span>      };
@@ -88,9 +88,9 @@ By adding extra lines to <code>system.extraSystemBuilderCmds</code> like this:</
 </span></span><span style=display:flex><span>  };
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>After a reboot, we can check the symlink was added by looking at
-<code>/run/booted-system/flake</code>:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ls -la /run/booted-system/flake
+<code>/run/booted-system/flake</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ ls -la /run/booted-system/flake
 </span></span><span style=display:flex><span>lrwxrwxrwx 2 root root 50 Jan  1  1970 /run/booted-system/flake -&gt; /nix/store/mpqvkfdn46c8b3sd4zcg2fm0y4nsya8v-source
-</span></span></code></pre></div><p>Now you can refer to your NixOS configuration like this…</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix develop &#34;$(realpath /run/booted-system/flake)#nixosConfigurations.$(hostname).config.boot.kernelPackages.kernel&#34;
+</span></span></code></pre></div><p>Now you can refer to your NixOS configuration like this…</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>$ nix develop &#34;$(realpath /run/booted-system/flake)#nixosConfigurations.$(hostname).config.boot.kernelPackages.kernel&#34;
 </span></span></code></pre></div><p>… and never have to wonder if your system is still in sync with your
 configuration.</p><h2 id=conclusion>Conclusion</h2><p>Because things in NixOS are different from what we are used to in regular Linux
 distributions, hacking a kernel needs some special attention. In this tutorial,

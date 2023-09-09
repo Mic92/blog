@@ -8,7 +8,7 @@ domain ip { table filter chain FORWARD { outerface docker0 mod conntrack ctstate
 <span class=rest>Nov 2014</span></div></div><div class=matter><h1 class=title>Ferm Rules for Docker</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p>The Docker daemon add his own custom rules by default to iptables. If you use
 <a href=http://ferm.foo-projects.org/ target=_blank>ferm</a> to manage your iptables rules, it is a
 good idea to prepopulate rules for docker. Otherwise they will be overwritten by
-ferm as it restarts.</p><p>To do so add the following lines at the top of your ferm.conf:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>domain ip {
+ferm as it restarts.</p><p>To do so add the following lines at the top of your ferm.conf:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>domain ip {
 </span></span><span style=display:flex><span>    table filter chain FORWARD {
 </span></span><span style=display:flex><span>        outerface docker0 mod conntrack ctstate (RELATED ESTABLISHED) ACCEPT;
 </span></span><span style=display:flex><span>        interface docker0 outerface !docker0 ACCEPT;

@@ -8,14 +8,14 @@ Host webtunnel HostName domain.tld # replace this with your ip or domain name of
 <span class=rest>Jun 2012</span></div></div><div class=matter><h1 class=title>Use Your Ssh Server as a Socks Proxy</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p>Sometimes for whatever reason you want a secure internet connection. Maybe
 because you distrust your local network or your network filter some traffic.
 Openssh is able to speak the
-<a href=http://en.wikipedia.org/wiki/SOCKS target=_blank>SOCKS protocol</a>, which does the trick.</p><p>Open you ~/.ssh/config on your local machine and add the following lines:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-apache data-lang=apache><span style=display:flex><span><span style=color:#0086b3>Host</span> webtunnel
-</span></span><span style=display:flex><span>  <span style=color:#0086b3>HostName</span> domain.tld # replace this with your ip or domain name of your server
-</span></span><span style=display:flex><span>  <span style=color:#0086b3>DynamicForward</span> <span style=color:#099>1080</span>
-</span></span><span style=display:flex><span>  <span style=color:#0086b3>User</span> myuser # replace this with your ssh login name
-</span></span></code></pre></div><p>next connect to your server like this</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#888>ssh webtunnel
+<a href=http://en.wikipedia.org/wiki/SOCKS target=_blank>SOCKS protocol</a>, which does the trick.</p><p>Open you ~/.ssh/config on your local machine and add the following lines:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-apache data-lang=apache><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>Host</span> webtunnel
+</span></span><span style=display:flex><span>  <span style=color:#8be9fd;font-style:italic>HostName</span> domain.tld # replace this with your ip or domain name of your server
+</span></span><span style=display:flex><span>  <span style=color:#8be9fd;font-style:italic>DynamicForward</span> <span style=color:#bd93f9>1080</span>
+</span></span><span style=display:flex><span>  <span style=color:#8be9fd;font-style:italic>User</span> myuser # replace this with your ssh login name
+</span></span></code></pre></div><p>next connect to your server like this</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#44475a>ssh webtunnel
 </span></span></span></code></pre></div><p>This opens a socks connection on your local machine on port 1080. Now you are
 able to set up every application to use this proxy. These are the common
-required settings:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>Server: localhost
+required settings:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>Server: localhost
 </span></span><span style=display:flex><span>Port: 1080
 </span></span><span style=display:flex><span>Proxy-Type: SOCKS5
 </span></span></code></pre></div><p>Personally I use <a href=http://getfoxyproxy.org/ target=_blank>FoxProxy Basic</a> extension for

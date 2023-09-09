@@ -22,20 +22,20 @@ session such as SuperSU. You will <strong>not</strong> be able to follow the exa
 instructions from this forum post, because it contains a windows specific batch
 file and windows executables. However these are just fancy wrappers around adb
 and fastboot, so you can still use the contained images/launch code.</p><p>To reboot your device into the bootloader, connect it to your computer and run,
-while it is turned on:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> adb reboot-bootloader
+while it is turned on:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ adb reboot-bootloader
 </span></span></code></pre></div><p>Within the boot loader, we will first put the alternate rescue image on the
 device along with some custom launcher code. I first tried TWRP on my device,
-but my touchscreen didn&rsquo;t work with it, so I sticked to CWM:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>#</span> assuming you have changed to the directory of extracted archive:
-</span></span><span style=display:flex><span><span style=color:#555>$</span> fastboot flash /tmp/recovery.zip FB_RecoveryLauncher/cwm.zip
-</span></span><span style=display:flex><span><span style=color:#555>$</span> fastboot flash /tmp/recovery.launcher FB_RecoveryLauncher/recovery.launcher
+but my touchscreen didn&rsquo;t work with it, so I sticked to CWM:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span># assuming you have changed to the directory of extracted archive:
+</span></span><span style=display:flex><span>$ fastboot flash /tmp/recovery.zip FB_RecoveryLauncher/cwm.zip
+</span></span><span style=display:flex><span>$ fastboot flash /tmp/recovery.launcher FB_RecoveryLauncher/recovery.launcher
 </span></span></code></pre></div><p>The next thing to do is to trigger the device via fastboot to start our
 recovery. The forum post contained 4 alternatives approaches based on the
-android device. The following (T4) was working for me:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>$</span> fastboot oem start_partitioning; fastboot flash /system/bin/logcat FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
+android device. The following (T4) was working for me:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ fastboot oem start_partitioning; fastboot flash /system/bin/logcat FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
 </span></span></code></pre></div><p>This temporary replace logcat with a launcher. It is important to execute all
-commands in one shot. Otherwise fastboot will fail to flash logcat.</p><p>If the command will not work for you, you could one of these commands:</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span><span style=color:#555>#</span> T1
-</span></span><span style=display:flex><span><span style=color:#555>$</span> fastboot flash /sbin/adbd FB_RecoveryLauncher/fbrl.trigger; fastboot oem startftm
-</span></span><span style=display:flex><span><span style=color:#555>#</span> T2
-</span></span><span style=display:flex><span><span style=color:#555>$</span> fastboot flash /system/bin/cp FB_RecoveryLauncher/fbrl.trigger; fastboot oem backup_factory
-</span></span><span style=display:flex><span><span style=color:#555>#</span> T3
-</span></span><span style=display:flex><span><span style=color:#555>$</span> fastboot flash /sbin/partlink FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
+commands in one shot. Otherwise fastboot will fail to flash logcat.</p><p>If the command will not work for you, you could one of these commands:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span># T1
+</span></span><span style=display:flex><span>$ fastboot flash /sbin/adbd FB_RecoveryLauncher/fbrl.trigger; fastboot oem startftm
+</span></span><span style=display:flex><span># T2
+</span></span><span style=display:flex><span>$ fastboot flash /system/bin/cp FB_RecoveryLauncher/fbrl.trigger; fastboot oem backup_factory
+</span></span><span style=display:flex><span># T3
+</span></span><span style=display:flex><span>$ fastboot flash /sbin/partlink FB_RecoveryLauncher/fbrl.trigger; fastboot oem stop_partitioning
 </span></span></code></pre></div><p>If everything works it should start the recovery image.</p></div></div><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//mic92.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></article></div></main><footer>© 2021 Jörg Thalheim</footer><script src=/js/dark-mode.js></script></body></html>

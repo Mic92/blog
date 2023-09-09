@@ -10,54 +10,54 @@ The systemd configuration could look like this:
 Listens on tcp port 3000 (both ipv4 and ipv6) Execute python script as user &rsquo;nobody&rsquo; with a timeout of 5 minutes [Unit] Description=Start update on demand [Socket] ListenStream=3000 # only listen on localhost #ListenStream=127."><meta itemprop=datePublished content="2015-06-25T00:00:00+00:00"><meta itemprop=dateModified content="2015-06-25T00:00:00+00:00"><meta itemprop=wordCount content="264"><meta itemprop=keywords content></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml rel=me aria-label=RSS><span title=RSS class="icons fas fa-rss" aria-hidden=true></span></a></li><li><a href=https://github.com/Mic92/blog rel=me aria-label=Github><span title=Github class="icons fab fa-github" aria-hidden=true></span></a></li><li><button id=dark-mode aria-label="Switch Dark Mode"><span title="Switch Dark Mode" class="icons fas fa-moon" aria-hidden=true></span></button></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><article><div class=post-header><div class=meta><div class=date><span class=day>25</span>
 <span class=rest>Jun 2015</span></div></div><div class=matter><h1 class=title>Cgi Like Python Scripts With Systemd Socket Activation</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p>Lets say you want to trigger remote the start of a python script. But you don&rsquo;t
 want to have a service running all the time waiting for requests.</p><p>What you can do, is using socket-unit in systemd, which is waiting on a tcp port
-for connections and starts the service, if somebody is requesting it.</p><p>The systemd configuration could look like this:</p><ul><li>Listens on tcp port 3000 (both ipv4 and ipv6)</li><li>Execute python script as user &rsquo;nobody&rsquo; with a timeout of 5 minutes</li></ul><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=display:flex><span><span style=color:#000;font-weight:700>[Unit]</span>
-</span></span><span style=display:flex><span><span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Start update on demand</span>
+for connections and starts the service, if somebody is requesting it.</p><p>The systemd configuration could look like this:</p><ul><li>Listens on tcp port 3000 (both ipv4 and ipv6)</li><li>Execute python script as user &rsquo;nobody&rsquo; with a timeout of 5 minutes</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=display:flex><span><span style=color:#ff79c6>[Unit]</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>Description</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>Start update on demand</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>[Socket]</span>
-</span></span><span style=display:flex><span><span style=color:teal>ListenStream</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>3000</span>
-</span></span><span style=display:flex><span><span style=color:#998;font-style:italic># only listen on localhost</span>
-</span></span><span style=display:flex><span><span style=color:#998;font-style:italic>#ListenStream=127.0.0.1:3000</span>
-</span></span><span style=display:flex><span><span style=color:teal>BindIPv6Only</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>both</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>[Socket]</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>ListenStream</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>3000</span>
+</span></span><span style=display:flex><span><span style=color:#6272a4># only listen on localhost</span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>#ListenStream=127.0.0.1:3000</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>BindIPv6Only</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>both</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>[Install]</span>
-</span></span><span style=display:flex><span><span style=color:teal>WantedBy</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>multi-user.target</span>
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=display:flex><span><span style=color:#000;font-weight:700>[Unit]</span>
-</span></span><span style=display:flex><span><span style=color:teal>Description</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>Start update on demand</span>
-</span></span><span style=display:flex><span><span style=color:teal>JobTimeoutSec</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>5min</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>[Install]</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>WantedBy</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>multi-user.target</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-systemd data-lang=systemd><span style=display:flex><span><span style=color:#ff79c6>[Unit]</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>Description</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>Start update on demand</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>JobTimeoutSec</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>5min</span>
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>[Service]</span>
-</span></span><span style=display:flex><span><span style=color:teal>User</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>nobody</span>
-</span></span><span style=display:flex><span><span style=color:teal>ExecStart</span><span style=color:#000;font-weight:700>=</span><span style=color:#d14>/usr/bin/python /path/to/script.py</span>
-</span></span></code></pre></div><p>In your python code, do the following</p><div class=highlight><pre tabindex=0 style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#000;font-weight:700>def</span> <span style=color:#900;font-weight:700>systemd_socket_response</span>():
-</span></span><span style=display:flex><span>    <span style=color:#d14>&#34;&#34;&#34;
-</span></span></span><span style=display:flex><span><span style=color:#d14>    Accepts every connection of the listen socket provided by systemd, send the
-</span></span></span><span style=display:flex><span><span style=color:#d14>    HTTP Response &#39;OK&#39; back.
-</span></span></span><span style=display:flex><span><span style=color:#d14>    &#34;&#34;&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>try</span>:
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>from</span> <span style=color:#555>systemd.daemon</span> <span style=color:#000;font-weight:700>import</span> listen_fds;
-</span></span><span style=display:flex><span>        fds <span style=color:#000;font-weight:700>=</span> listen_fds()
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>except</span> <span style=color:#900;font-weight:700>ImportError</span>:
-</span></span><span style=display:flex><span>        fds <span style=color:#000;font-weight:700>=</span> [<span style=color:#099>3</span>]
+</span></span><span style=display:flex><span><span style=color:#ff79c6>[Service]</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>User</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>nobody</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>ExecStart</span><span style=color:#ff79c6>=</span><span style=color:#f1fa8c>/usr/bin/python /path/to/script.py</span>
+</span></span></code></pre></div><p>In your python code, do the following</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff79c6>def</span> <span style=color:#50fa7b>systemd_socket_response</span>():
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;&#34;&#34;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    Accepts every connection of the listen socket provided by systemd, send the
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    HTTP Response &#39;OK&#39; back.
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    &#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>try</span>:
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>from</span> systemd.daemon <span style=color:#ff79c6>import</span> listen_fds;
+</span></span><span style=display:flex><span>        fds <span style=color:#ff79c6>=</span> listen_fds()
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>except</span> ImportError:
+</span></span><span style=display:flex><span>        fds <span style=color:#ff79c6>=</span> [<span style=color:#bd93f9>3</span>]
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#000;font-weight:700>for</span> fd <span style=color:#000;font-weight:700>in</span> fds:
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>import</span> <span style=color:#555>socket</span>
-</span></span><span style=display:flex><span>        sock <span style=color:#000;font-weight:700>=</span> socket<span style=color:#000;font-weight:700>.</span>fromfd(fd, socket<span style=color:#000;font-weight:700>.</span>AF_INET, socket<span style=color:#000;font-weight:700>.</span>SOCK_STREAM)
-</span></span><span style=display:flex><span>        sock<span style=color:#000;font-weight:700>.</span>settimeout(<span style=color:#099>0</span>)
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> fd <span style=color:#ff79c6>in</span> fds:
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>import</span> socket
+</span></span><span style=display:flex><span>        sock <span style=color:#ff79c6>=</span> socket<span style=color:#ff79c6>.</span>fromfd(fd, socket<span style=color:#ff79c6>.</span>AF_INET, socket<span style=color:#ff79c6>.</span>SOCK_STREAM)
+</span></span><span style=display:flex><span>        sock<span style=color:#ff79c6>.</span>settimeout(<span style=color:#bd93f9>0</span>)
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>try</span>:
-</span></span><span style=display:flex><span>            <span style=color:#000;font-weight:700>while</span> <span style=color:#000;font-weight:700>True</span>:
-</span></span><span style=display:flex><span>              conn, addr <span style=color:#000;font-weight:700>=</span> sock<span style=color:#000;font-weight:700>.</span>accept()
-</span></span><span style=display:flex><span>              conn<span style=color:#000;font-weight:700>.</span>sendall(<span style=color:#d14>b</span><span style=color:#d14>&#34;HTTP/1.1 200 OK</span><span style=color:#d14>\r\n</span><span style=color:#d14>Content-Type: text/plain</span><span style=color:#d14>\r\n</span><span style=color:#d14>Content-Length: 3</span><span style=color:#d14>\r\n\r\n</span><span style=color:#d14>OK</span><span style=color:#d14>\n</span><span style=color:#d14>&#34;</span>)
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>except</span> socket<span style=color:#000;font-weight:700>.</span>timeout:
-</span></span><span style=display:flex><span>            <span style=color:#000;font-weight:700>pass</span>
-</span></span><span style=display:flex><span>        <span style=color:#000;font-weight:700>except</span> <span style=color:#900;font-weight:700>OSError</span> <span style=color:#000;font-weight:700>as</span> e:
-</span></span><span style=display:flex><span>            <span style=color:#998;font-style:italic># Connection closed again? Don&#39;t care, we just do our job.</span>
-</span></span><span style=display:flex><span>            <span style=color:#0086b3>print</span>(e)
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>try</span>:
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>while</span> <span style=color:#ff79c6>True</span>:
+</span></span><span style=display:flex><span>              conn, addr <span style=color:#ff79c6>=</span> sock<span style=color:#ff79c6>.</span>accept()
+</span></span><span style=display:flex><span>              conn<span style=color:#ff79c6>.</span>sendall(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#34;HTTP/1.1 200 OK</span><span style=color:#f1fa8c>\r\n</span><span style=color:#f1fa8c>Content-Type: text/plain</span><span style=color:#f1fa8c>\r\n</span><span style=color:#f1fa8c>Content-Length: 3</span><span style=color:#f1fa8c>\r\n\r\n</span><span style=color:#f1fa8c>OK</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>except</span> socket<span style=color:#ff79c6>.</span>timeout:
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>pass</span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>except</span> OSError <span style=color:#ff79c6>as</span> e:
+</span></span><span style=display:flex><span>            <span style=color:#6272a4># Connection closed again? Don&#39;t care, we just do our job.</span>
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>print</span>(e)
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#000;font-weight:700>if</span> __name__ <span style=color:#000;font-weight:700>==</span> <span style=color:#d14>&#34;__main__&#34;</span>:
-</span></span><span style=display:flex><span>   <span style=color:#000;font-weight:700>if</span> os<span style=color:#000;font-weight:700>.</span>environ<span style=color:#000;font-weight:700>.</span>get(<span style=color:#d14>&#34;LISTEN_FDS&#34;</span>, <span style=color:#000;font-weight:700>None</span>) <span style=color:#000;font-weight:700>!=</span> <span style=color:#000;font-weight:700>None</span>:
+</span></span><span style=display:flex><span><span style=color:#ff79c6>if</span> __name__ <span style=color:#ff79c6>==</span> <span style=color:#f1fa8c>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>   <span style=color:#ff79c6>if</span> os<span style=color:#ff79c6>.</span>environ<span style=color:#ff79c6>.</span>get(<span style=color:#f1fa8c>&#34;LISTEN_FDS&#34;</span>, <span style=color:#ff79c6>None</span>) <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>None</span>:
 </span></span><span style=display:flex><span>        systemd_socket_response()
-</span></span><span style=display:flex><span>   <span style=color:#998;font-style:italic># here your own code begins</span>
+</span></span><span style=display:flex><span>   <span style=color:#6272a4># here your own code begins</span>
 </span></span><span style=display:flex><span>   do_work()
 </span></span></code></pre></div><p>This still lacks of authentication and does not take any arguments. You could
 protect this port using a frontend webserver with http authentication, or you

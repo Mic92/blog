@@ -193,7 +193,6 @@ common libraries to be included in the NixOs configuration as follows:
     zlib
     fuse3
     icu
-    zlib
     nss
     openssl
     curl

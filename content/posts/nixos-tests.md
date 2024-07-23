@@ -8,7 +8,7 @@ author: "Jörg Thalheim and Alex A. Renoire"
 In this article, I will explain how to perform full integration tests with
 flakes outside nixpkgs.
 
-With [NixOS testing framework](https://nixos.wiki/wiki/NixOS_Testing_library),
+With [NixOS testing framework](https://wiki.nixos.org/wiki/NixOS_Testing_library),
 you can
 [create end-to-end integration tests](https://nix.dev/tutorials/integration-testing-using-virtual-machines)
 easily. It all comes down to starting a virtual machine based on your custom
@@ -61,7 +61,7 @@ There are several ways to import `nixpkgs` in your code. One way is via
 
 But `fetchTarball` is a builtin, which means that `nixpkgs` will be downloaded
 during evaluation. Another way is to load `nixpkgs` using a
-[flake](https://nixos.wiki/wiki/Flakes). It's more convenient, because this way
+[flake](https://wiki.nixos.org/wiki/Flakes). It's more convenient, because this way
 you can update the dependencies easily. I'll use this approach in my example.
 
 Let's move to the coding part now.

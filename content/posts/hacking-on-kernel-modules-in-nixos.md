@@ -189,5 +189,5 @@ distributions, hacking a kernel needs some special attention. In this tutorial,
 I shared my experience of hacking the NixOS kernel.
 
 For quicker iterations on building kernels, also check out the
-[nixos wiki article](https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU) that
+[nixos wiki article](https://wiki.nixos.org/wiki/Kernel_Debugging_with_QEMU) that
 describes how to debug the Linux kernel with Qemu in NixOS.

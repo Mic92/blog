@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.110.0">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2024-07-23T01:49:33+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">How to execute NixOS tests interactively for debugging</title><link href="https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.110.0">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2024-07-23T17:58:20+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">How to execute NixOS tests interactively for debugging</title><link href="https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/how-to-execute-nixos-tests-interactively-for-debugging/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>For complex modules, you may sometimes struggle to understand why a test isn&rsquo;t
 behaving properly. To gain more insight, you may want to check the debug output.
 This leads me to discuss how to execute NixOS tests interactively.</p>
 <h1 id="problem-statement">Problem statement</h1>
@@ -80,7 +80,7 @@ and look at the intermediate results.</p>
 your NixOS modules and ensure that they are functioning correctly.</p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/></entry><entry><title type="html">How to use NixOS testing framework with flakes</title><link href="https://blog.thalheim.io/2023/01/08/how-to-use-nixos-testing-framework-with-flakes/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2023/01/08/how-to-use-nixos-testing-framework-with-flakes/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2023-01-08T11:46:06+01:00</published><updated>2023-01-08T11:46:06+01:00</updated><content type="html"><![CDATA[<p>In this article, I will explain how to perform full integration tests with
 flakes outside nixpkgs.</p>
-<p>With <a href="https://nixos.wiki/wiki/NixOS_Testing_library" target="_blank">NixOS testing framework</a>,
+<p>With <a href="https://wiki.nixos.org/wiki/NixOS_Testing_library" target="_blank">NixOS testing framework</a>,
 you can
 <a href="https://nix.dev/tutorials/integration-testing-using-virtual-machines" target="_blank">create end-to-end integration tests</a>
 easily. It all comes down to starting a virtual machine based on your custom
@@ -121,7 +121,7 @@ testing library is located.</p>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>But <code>fetchTarball</code> is a builtin, which means that <code>nixpkgs</code> will be downloaded
 during evaluation. Another way is to load <code>nixpkgs</code> using a
-<a href="https://nixos.wiki/wiki/Flakes" target="_blank">flake</a>. It&rsquo;s more convenient, because this way
+<a href="https://wiki.nixos.org/wiki/Flakes" target="_blank">flake</a>. It&rsquo;s more convenient, because this way
 you can update the dependencies easily. I&rsquo;ll use this approach in my example.</p>
 <p>Let&rsquo;s move to the coding part now.</p>
 <h1 id="defining-a-flake-to-be-tested">Defining a flake to be tested</h1>
@@ -554,7 +554,7 @@ configuration.</p>
 distributions, hacking a kernel needs some special attention. In this tutorial,
 I shared my experience of hacking the NixOS kernel.</p>
 <p>For quicker iterations on building kernels, also check out the
-<a href="https://nixos.wiki/wiki/Kernel_Debugging_with_QEMU" target="_blank">nixos wiki article</a> that
+<a href="https://wiki.nixos.org/wiki/Kernel_Debugging_with_QEMU" target="_blank">nixos wiki article</a> that
 describes how to debug the Linux kernel with Qemu in NixOS.</p>
 ]]></content><category scheme="https://blog.thalheim.io/categories/nixos" term="nixos" label="nixos"/><category scheme="https://blog.thalheim.io/categories/kernel" term="kernel" label="kernel"/></entry><entry><title type="html">Cross compiling and deploying NixOS</title><link href="https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2022/11/27/cross-compiling-and-deploying-nixos/</id><author><name>Jörg Thalheim and Alex A. Renoire</name></author><published>2022-11-27T00:00:00+00:00</published><updated>2022-11-27T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
 <p>Last week I was setting up this RISCv-based HiFive Unmatched board[1] with
@@ -2124,4 +2124,30 @@ configuration, increase the size in the php.ini as described
 <a href="http://www.radinks.com/upload/config.php" target="_blank">here</a></p>
 <h2 id="references">References</h2>
 <p><a href="http://nblock.org/2012/03/12/nginx-and-owncloud" target="_blank">Setting up Nginx and Owncloud - nblock.org</a></p>
-]]></content><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/owncloud" term="owncloud" label="owncloud"/></entry></feed>
+]]></content><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/owncloud" term="owncloud" label="owncloud"/></entry><entry><title type="html"></title><link href="https://blog.thalheim.io/1/01/01/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/1/01/01/</id><published>0001-01-01T00:00:00+00:00</published><updated>0001-01-01T00:00:00+00:00</updated><content type="html"><![CDATA[<h1 id="buildbot-nix">Buildbot-nix</h1>
+<p>In this article my journey that let me to create <a href="https://github.com/Mic92/buildbot-nix" target="_blank">buildbot-nix</a>,
+an extension to the buildbot CI framework to make nix a first class citizen.</p>
+<h2 id="how-did-it-come-to-be-what-was-the-initial-motivation">How did it come to be, what was the initial motivation?</h2>
+<p>Since maintain a number of project around nix, I often also need a CI to build and test nix-based projects.</p>
+<p>Over the years, I tried almost every CI that exists: Hydra, Hercules CI, self-hosted GitHub Actions, Garnix, Drone.io, Gitlab runner, Gitea runner.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>The main thing that was missing was:</p>
+<ul>
+<li>Fast evaluation</li>
+<li>Good github integration</li>
+<li>Support for contributor pull-requests</li>
+<li>It should share the same /nix/store for all the builds, for speed</li>
+<li>Support for virtualization for NixOS tests</li>
+<li>Build matrix based on Nix</li>
+<li>No arbitrary code outside of the Nix sandbox (like GitHub Actions).</li>
+</ul>
+<p>What if all we needed for CI, was a flake, and the CI would build that.</p>
+<h2 id="why-buildbot">Why buildbot</h2>
+<h2 id="what-are-the-requirements">What are the requirements?</h2>
+<h2 id="whats-the-status-of-it-what-can-it-do">What&rsquo;s the status of it, what can it do?</h2>
+<h2 id="what-is-the-vision">What is the vision?</h2>
+<p>You start this with a vision in mind, what is the status, and what are the things that are missing, that you want to do. And what if other people are helping you, would it help to get other things done?</p>
+<h2 id="validation-where-is-it-being-used">Validation: Where is it being used?</h2>
+<h2 id="how-does-it-compare-to-hydra-hercules-ci">How does it compare to Hydra? Hercules CI</h2>
+]]></content></entry></feed>

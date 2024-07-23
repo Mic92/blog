@@ -36,4 +36,5 @@ initscript to run pyload on gentoo as a service</description></item><item><title
 Sometimes for whatever reason you want a secure internet connection. Maybe because you distrust your local network or your network filter …</description></item><item><title>Owncloud 4 and Nginx</title><link>https://blog.thalheim.io/2012/06/03/owncloud-4-and-nginx/</link><pubDate>Sun, 03 Jun 2012 00:00:00 +0000</pubDate><guid>https://blog.thalheim.io/2012/06/03/owncloud-4-and-nginx/</guid><description>
 updated at Do 14. Jul 2012
 Short after writing this entry, I discover a good one.
-Nginx don’t understand the .htaccess, which is shipped …</description></item></channel></rss>
+Nginx don’t understand the .htaccess, which is shipped …</description></item><item><title/><link>https://blog.thalheim.io/1/01/01/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://blog.thalheim.io/1/01/01/</guid><description>
+Buildbot-nix In this article my journey that let me to create buildbot-nix, an extension to the buildbot CI framework to make nix a first …</description></item></channel></rss>

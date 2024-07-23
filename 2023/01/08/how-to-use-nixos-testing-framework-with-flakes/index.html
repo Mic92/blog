@@ -7,7 +7,7 @@ With NixOS testing framework, you can create end-to-end integration tests easily
 One of the framework&rsquo;s upsides is that it&rsquo;s extremely fast — maybe the fastest of its kind: setting up VMs and running tests does not take much time thanks to sharing files with the nix store on the host."><meta itemprop=datePublished content="2023-01-08T11:46:06+01:00"><meta itemprop=dateModified content="2023-01-08T11:46:06+01:00"><meta itemprop=wordCount content="1374"><meta itemprop=keywords content></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml rel=me aria-label=RSS><span title=RSS class="icons fas fa-rss" aria-hidden=true></span></a></li><li><a href=https://github.com/Mic92/blog rel=me aria-label=Github><span title=Github class="icons fab fa-github" aria-hidden=true></span></a></li><li><button id=dark-mode aria-label="Switch Dark Mode"><span title="Switch Dark Mode" class="icons fas fa-moon" aria-hidden=true></span></button></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><article><div class=post-header><div class=meta><div class=date><span class=day>08</span>
 <span class=rest>Jan 2023</span></div></div><div class=matter><h1 class=title>How to use NixOS testing framework with flakes</h1><p class=post-meta><span class=post-meta><span aria-label=Author:><span class="fas fa-user" aria-hidden=true></span></span>&nbsp;
 Jörg Thalheim and Alex A. Renoire</span></p></div></div><div class=markdown><p>In this article, I will explain how to perform full integration tests with
-flakes outside nixpkgs.</p><p>With <a href=https://nixos.wiki/wiki/NixOS_Testing_library target=_blank>NixOS testing framework</a>,
+flakes outside nixpkgs.</p><p>With <a href=https://wiki.nixos.org/wiki/NixOS_Testing_library target=_blank>NixOS testing framework</a>,
 you can
 <a href=https://nix.dev/tutorials/integration-testing-using-virtual-machines target=_blank>create end-to-end integration tests</a>
 easily. It all comes down to starting a virtual machine based on your custom
@@ -39,7 +39,7 @@ testing library is located.</p><p>There are several ways to import <code>nixpkgs
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>But <code>fetchTarball</code> is a builtin, which means that <code>nixpkgs</code> will be downloaded
 during evaluation. Another way is to load <code>nixpkgs</code> using a
-<a href=https://nixos.wiki/wiki/Flakes target=_blank>flake</a>. It&rsquo;s more convenient, because this way
+<a href=https://wiki.nixos.org/wiki/Flakes target=_blank>flake</a>. It&rsquo;s more convenient, because this way
 you can update the dependencies easily. I&rsquo;ll use this approach in my example.</p><p>Let&rsquo;s move to the coding part now.</p><h1 id=defining-a-flake-to-be-tested>Defining a flake to be tested</h1><p>As an example, I’ll take a simple project that runs a web server returning a
 “Hello world!” string. First, let’s specify the flake:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span><span style=color:#6272a4># flake.nix</span>
 </span></span><span style=display:flex><span>{

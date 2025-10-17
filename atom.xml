@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.110.0">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2025-10-17T11:49:51+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">ZFS ate my RAM: Understanding the ARC cache</title><link href="https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/</id><author><name>Jörg Thalheim</name></author><published>2025-10-17T11:36:00+00:00</published><updated>2025-10-17T11:36:00+00:00</updated><content type="html"><![CDATA[<p>If you&rsquo;re running ZFS on Linux and checking your system&rsquo;s memory usage, you
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.110.0">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2025-10-17T13:26:34+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">ZFS ate my RAM: Understanding the ARC cache</title><link href="https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/</id><author><name>Jörg Thalheim</name></author><published>2025-10-17T11:36:00+00:00</published><updated>2025-10-17T11:36:00+00:00</updated><content type="html"><![CDATA[<p>If you&rsquo;re running ZFS on Linux and checking your system&rsquo;s memory usage, you
 might be shocked to see that most of your RAM appears to be consumed. Don&rsquo;t
 panic! This is actually by design, and it&rsquo;s a good thing.</p>
 <h2 id="the-confusion">The confusion</h2>
@@ -54,9 +54,19 @@ you might have actual memory pressure.</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#44475a">Hit rate: 94.23%
 </span></span></span></code></pre></div><p>A high hit rate (above 80-90%) means the ARC is doing its job well.</p>
 <h2 id="tuning-the-arc">Tuning the ARC</h2>
+<h3 id="understanding-the-defaults">Understanding the defaults</h3>
+<p>The default ARC size is <strong>50% of all your RAM</strong>, which may be reasonable for
+storage servers but is often not optimal for your laptop or desktop workstation.
+This aggressive default can lead to issues, especially if you run memory-intensive
+applications like web browsers, development tools, or virtual machines.</p>
+<p><strong>Important warning about swap</strong>: If you do not have swap configured, your kernel
+will happily OOM kill your applications when the ARC cache is not reclaimed
+quickly enough. While the ARC is supposed to be reclaimable, under memory
+pressure the kernel may kill processes before ZFS has a chance to shrink the ARC.
+Having swap configured provides a safety buffer to prevent this.</p>
 <h3 id="set-maximum-arc-size">Set maximum ARC size</h3>
-<p>If you really want to limit the ARC (for example, if you&rsquo;re running memory-heavy
-applications), you can set a maximum size.</p>
+<p>If you&rsquo;re running memory-heavy applications or using ZFS on a laptop/desktop, you
+should consider limiting the ARC to a more conservative value.</p>
 <p>Add to <code>/etc/modprobe.d/zfs.conf</code>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>options zfs zfs_arc_max=17179869184
 </span></span></code></pre></div><p>This limits the ARC to 16GB (value is in bytes). Apply with:</p>
@@ -66,11 +76,60 @@ applications), you can set a maximum size.</p>
 <p>You can also set a minimum to ensure ZFS always has some cache:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>options zfs zfs_arc_min=4294967296
 </span></span></code></pre></div><p>This ensures at least 4GB is always reserved for the ARC.</p>
+<h3 id="nixos-configuration">NixOS configuration</h3>
+<p>On NixOS, you can configure ZFS ARC parameters in your <code>configuration.nix</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nix" data-lang="nix"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># Using boot.extraModprobeConfig (recommended)</span>
+</span></span><span style="display:flex;"><span>  boot<span style="color:#ff79c6">.</span>extraModprobeConfig <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">    options zfs zfs_arc_max=17179869184
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">    options zfs zfs_arc_min=2147483648
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">  &#39;&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># Alternatively, you can use kernel parameters</span>
+</span></span><span style="display:flex;"><span>  boot<span style="color:#ff79c6">.</span>kernelParams <span style="color:#ff79c6">=</span> [
+</span></span><span style="display:flex;"><span>    <span style="color:#f1fa8c">&#34;zfs.zfs_arc_max=17179869184&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f1fa8c">&#34;zfs.zfs_arc_min=2147483648&#34;</span>
+</span></span><span style="display:flex;"><span>  ];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>Rule of thumb for sizing</strong>: A good starting point is <code>1GB minimum + 1GB per TB of storage</code> (from the
+<a href="https://docs-archive.freebsd.org/doc/8.4-RELEASE/usr/share/doc/freebsd/en_US.ISO8859-1/books/handbook/filesystems-zfs.html" target="_blank">FreeBSD ZFS handbook</a>).
+However, don&rsquo;t go below 2GB for the minimum as the system becomes noticeably slow
+below that.</p>
+<p><strong>Practical examples</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nix" data-lang="nix"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># System with 16GB RAM and 2TB storage</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># Using 4GB max (25% of RAM) and 2GB min</span>
+</span></span><span style="display:flex;"><span>  boot<span style="color:#ff79c6">.</span>extraModprobeConfig <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">    options zfs zfs_arc_max=4294967296
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">    options zfs zfs_arc_min=2147483648
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">  &#39;&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># System with 32GB RAM and 4TB storage</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># Using 8GB max (25% of RAM) and 4GB min (1GB + 1GB per TB)</span>
+</span></span><span style="display:flex;"><span>  boot<span style="color:#ff79c6">.</span>extraModprobeConfig <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">    options zfs zfs_arc_max=8589934592
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">    options zfs zfs_arc_min=4294967296
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">  &#39;&#39;</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This is more convenient than manually editing modprobe configuration files and
+ensures your settings are managed declaratively with the rest of your system
+configuration.</p>
 <h2 id="best-practices">Best practices</h2>
 <ol>
 <li>
-<p><strong>Don&rsquo;t limit the ARC unless necessary</strong>: ZFS is designed to use available
-memory efficiently. The default behavior is usually optimal.</p>
+<p><strong>Configure swap</strong>: Always have swap configured when using ZFS, even on
+systems with plenty of RAM. This prevents the OOM killer from targeting your
+applications when the ARC doesn&rsquo;t shrink fast enough under memory pressure.</p>
+</li>
+<li>
+<p><strong>Limit ARC on laptops/desktops</strong>: On non-server systems, consider limiting
+the ARC to 25-30% of your RAM instead of the default 50%. Storage servers can
+use the more aggressive default.</p>
+</li>
+<li>
+<p><strong>Don&rsquo;t limit the ARC too much</strong>: While you should limit it on
+laptops/desktops, don&rsquo;t be too conservative. The ARC provides real performance
+benefits. Find a balance that works for your workload.</p>
 </li>
 <li>
 <p><strong>Monitor the &ldquo;available&rdquo; memory</strong>: This is your real indicator of memory
@@ -78,7 +137,7 @@ pressure, not &ldquo;used&rdquo; memory.</p>
 </li>
 <li>
 <p><strong>Watch for swap usage</strong>: If your system starts swapping while the ARC is
-large, you might need to limit the ARC size.</p>
+large, you might need to further limit the ARC size.</p>
 </li>
 <li>
 <p><strong>Use <code>htop</code> or similar tools</strong>: They often show memory usage in a more

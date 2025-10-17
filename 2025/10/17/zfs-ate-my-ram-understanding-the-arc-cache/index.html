@@ -4,7 +4,7 @@ $ free -h total used free shared buff/cache available Mem: 31Gi 28Gi 512Mi 128Mi
 The confusion When you run free -h, you might see something like this:
 $ free -h total used free shared buff/cache available Mem: 31Gi 28Gi 512Mi 128Mi 2.5Gi 2.8Gi Swap: 8.0Gi 1."><meta itemprop=name content="ZFS ate my RAM: Understanding the ARC cache"><meta itemprop=description content="If you&rsquo;re running ZFS on Linux and checking your system&rsquo;s memory usage, you might be shocked to see that most of your RAM appears to be consumed. Don&rsquo;t panic! This is actually by design, and it&rsquo;s a good thing.
 The confusion When you run free -h, you might see something like this:
-$ free -h total used free shared buff/cache available Mem: 31Gi 28Gi 512Mi 128Mi 2.5Gi 2.8Gi Swap: 8.0Gi 1."><meta itemprop=datePublished content="2025-10-17T11:36:00+00:00"><meta itemprop=dateModified content="2025-10-17T11:36:00+00:00"><meta itemprop=wordCount content="1109"><meta itemprop=keywords content></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml rel=me aria-label=RSS><span title=RSS class="icons fas fa-rss" aria-hidden=true></span></a></li><li><a href=https://github.com/Mic92/blog rel=me aria-label=Github><span title=Github class="icons fab fa-github" aria-hidden=true></span></a></li><li><button id=dark-mode aria-label="Switch Dark Mode"><span title="Switch Dark Mode" class="icons fas fa-moon" aria-hidden=true></span></button></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><article><div class=post-header><div class=meta><div class=date><span class=day>17</span>
+$ free -h total used free shared buff/cache available Mem: 31Gi 28Gi 512Mi 128Mi 2.5Gi 2.8Gi Swap: 8.0Gi 1."><meta itemprop=datePublished content="2025-10-17T11:36:00+00:00"><meta itemprop=dateModified content="2025-10-17T11:36:00+00:00"><meta itemprop=wordCount content="1080"><meta itemprop=keywords content></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml rel=me aria-label=RSS><span title=RSS class="icons fas fa-rss" aria-hidden=true></span></a></li><li><a href=https://github.com/Mic92/blog rel=me aria-label=Github><span title=Github class="icons fab fa-github" aria-hidden=true></span></a></li><li><button id=dark-mode aria-label="Switch Dark Mode"><span title="Switch Dark Mode" class="icons fas fa-moon" aria-hidden=true></span></button></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><article><div class=post-header><div class=meta><div class=date><span class=day>17</span>
 <span class=rest>Oct 2025</span></div></div><div class=matter><h1 class=title>ZFS ate my RAM: Understanding the ARC cache</h1><p class=post-meta><span class=post-meta><span aria-label=Author:><span class="fas fa-user" aria-hidden=true></span></span>&nbsp;
 Jörg Thalheim</span></p></div></div><div class=markdown><p>If you&rsquo;re running ZFS on Linux and checking your system&rsquo;s memory usage, you
 might be shocked to see that most of your RAM appears to be consumed. Don&rsquo;t
@@ -47,13 +47,6 @@ should consider limiting the ARC to a more conservative value.</p><p>Add to <cod
 </span></span></code></pre></div><p>This limits the ARC to 16GB (value is in bytes). Apply with:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-console data-lang=console><span style=display:flex><span>$ <span style=color:#8be9fd;font-style:italic>echo</span> <span style=color:#bd93f9>17179869184</span> &gt; /sys/module/zfs/parameters/zfs_arc_max
 </span></span></code></pre></div><p>Or reboot for the modprobe setting to take effect.</p><h3 id=set-minimum-arc-size>Set minimum ARC size</h3><p>You can also set a minimum to ensure ZFS always has some cache:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>options zfs zfs_arc_min=4294967296
 </span></span></code></pre></div><p>This ensures at least 4GB is always reserved for the ARC.</p><h3 id=nixos-configuration>NixOS configuration</h3><p>On NixOS, you can configure ZFS ARC parameters in your <code>configuration.nix</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#6272a4># Using boot.extraModprobeConfig (recommended)</span>
-</span></span><span style=display:flex><span>  boot<span style=color:#ff79c6>.</span>extraModprobeConfig <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;&#39;
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    options zfs zfs_arc_max=17179869184
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    options zfs zfs_arc_min=2147483648
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>  &#39;&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#6272a4># Alternatively, you can use kernel parameters</span>
 </span></span><span style=display:flex><span>  boot<span style=color:#ff79c6>.</span>kernelParams <span style=color:#ff79c6>=</span> [
 </span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;zfs.zfs_arc_max=17179869184&#34;</span>
 </span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;zfs.zfs_arc_min=2147483648&#34;</span>
@@ -65,17 +58,17 @@ However, don&rsquo;t go below 2GB for the minimum as the system becomes noticeab
 below that.</p><p><strong>Practical examples</strong>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix><span style=display:flex><span>{
 </span></span><span style=display:flex><span>  <span style=color:#6272a4># System with 16GB RAM and 2TB storage</span>
 </span></span><span style=display:flex><span>  <span style=color:#6272a4># Using 4GB max (25% of RAM) and 2GB min</span>
-</span></span><span style=display:flex><span>  boot<span style=color:#ff79c6>.</span>extraModprobeConfig <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;&#39;
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    options zfs zfs_arc_max=4294967296
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    options zfs zfs_arc_min=2147483648
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>  &#39;&#39;</span>;
+</span></span><span style=display:flex><span>  boot<span style=color:#ff79c6>.</span>kernelParams <span style=color:#ff79c6>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;zfs.zfs_arc_max=4294967296&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;zfs.zfs_arc_min=2147483648&#34;</span>
+</span></span><span style=display:flex><span>  ];
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#6272a4># System with 32GB RAM and 4TB storage</span>
 </span></span><span style=display:flex><span>  <span style=color:#6272a4># Using 8GB max (25% of RAM) and 4GB min (1GB + 1GB per TB)</span>
-</span></span><span style=display:flex><span>  boot<span style=color:#ff79c6>.</span>extraModprobeConfig <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;&#39;
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    options zfs zfs_arc_max=8589934592
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    options zfs zfs_arc_min=4294967296
-</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>  &#39;&#39;</span>;
+</span></span><span style=display:flex><span>  boot<span style=color:#ff79c6>.</span>kernelParams <span style=color:#ff79c6>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;zfs.zfs_arc_max=8589934592&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#34;zfs.zfs_arc_min=4294967296&#34;</span>
+</span></span><span style=display:flex><span>  ];
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>This is more convenient than manually editing modprobe configuration files and
 ensures your settings are managed declaratively with the rest of your system

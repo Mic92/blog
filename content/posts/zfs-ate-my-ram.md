@@ -147,22 +147,42 @@ On NixOS, you can configure ZFS ARC parameters in your `configuration.nix`:
 
 ```nix
 {
-  # Set maximum ARC size to 16GB
+  # Using boot.extraModprobeConfig (recommended)
   boot.extraModprobeConfig = ''
     options zfs zfs_arc_max=17179869184
+    options zfs zfs_arc_min=2147483648
   '';
 
   # Alternatively, you can use kernel parameters
   boot.kernelParams = [
     "zfs.zfs_arc_max=17179869184"
+    "zfs.zfs_arc_min=2147483648"
   ];
+}
+```
 
-  # For a laptop with 32GB RAM, a reasonable configuration might be:
-  # - Limit ARC to 25% of RAM (8GB)
-  # - Set minimum to 2GB to ensure some caching benefit
+**Rule of thumb for sizing**: A good starting point is `1GB minimum + 1GB per TB
+of storage` (from the
+[FreeBSD ZFS handbook](https://docs-archive.freebsd.org/doc/8.4-RELEASE/usr/share/doc/freebsd/en_US.ISO8859-1/books/handbook/filesystems-zfs.html)).
+However, don't go below 2GB for the minimum as the system becomes noticeably slow
+below that.
+
+**Practical examples**:
+
+```nix
+{
+  # System with 16GB RAM and 2TB storage
+  # Using 4GB max (25% of RAM) and 2GB min
+  boot.extraModprobeConfig = ''
+    options zfs zfs_arc_max=4294967296
+    options zfs zfs_arc_min=2147483648
+  '';
+
+  # System with 32GB RAM and 4TB storage
+  # Using 8GB max (25% of RAM) and 4GB min (1GB + 1GB per TB)
   boot.extraModprobeConfig = ''
     options zfs zfs_arc_max=8589934592
-    options zfs zfs_arc_min=2147483648
+    options zfs zfs_arc_min=4294967296
   '';
 }
 ```

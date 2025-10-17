@@ -99,10 +99,23 @@ A high hit rate (above 80-90%) means the ARC is doing its job well.
 
 ## Tuning the ARC
 
+### Understanding the defaults
+
+The default ARC size is **50% of all your RAM**, which may be reasonable for
+storage servers but is often not optimal for your laptop or desktop workstation.
+This aggressive default can lead to issues, especially if you run memory-intensive
+applications like web browsers, development tools, or virtual machines.
+
+**Important warning about swap**: If you do not have swap configured, your kernel
+will happily OOM kill your applications when the ARC cache is not reclaimed
+quickly enough. While the ARC is supposed to be reclaimable, under memory
+pressure the kernel may kill processes before ZFS has a chance to shrink the ARC.
+Having swap configured provides a safety buffer to prevent this.
+
 ### Set maximum ARC size
 
-If you really want to limit the ARC (for example, if you're running memory-heavy
-applications), you can set a maximum size.
+If you're running memory-heavy applications or using ZFS on a laptop/desktop, you
+should consider limiting the ARC to a more conservative value.
 
 Add to `/etc/modprobe.d/zfs.conf`:
 
@@ -128,21 +141,60 @@ options zfs zfs_arc_min=4294967296
 
 This ensures at least 4GB is always reserved for the ARC.
 
+### NixOS configuration
+
+On NixOS, you can configure ZFS ARC parameters in your `configuration.nix`:
+
+```nix
+{
+  # Set maximum ARC size to 16GB
+  boot.extraModprobeConfig = ''
+    options zfs zfs_arc_max=17179869184
+  '';
+
+  # Alternatively, you can use kernel parameters
+  boot.kernelParams = [
+    "zfs.zfs_arc_max=17179869184"
+  ];
+
+  # For a laptop with 32GB RAM, a reasonable configuration might be:
+  # - Limit ARC to 25% of RAM (8GB)
+  # - Set minimum to 2GB to ensure some caching benefit
+  boot.extraModprobeConfig = ''
+    options zfs zfs_arc_max=8589934592
+    options zfs zfs_arc_min=2147483648
+  '';
+}
+```
+
+This is more convenient than manually editing modprobe configuration files and
+ensures your settings are managed declaratively with the rest of your system
+configuration.
+
 ## Best practices
 
-1. **Don't limit the ARC unless necessary**: ZFS is designed to use available
-   memory efficiently. The default behavior is usually optimal.
+1. **Configure swap**: Always have swap configured when using ZFS, even on
+   systems with plenty of RAM. This prevents the OOM killer from targeting your
+   applications when the ARC doesn't shrink fast enough under memory pressure.
 
-2. **Monitor the "available" memory**: This is your real indicator of memory
+2. **Limit ARC on laptops/desktops**: On non-server systems, consider limiting
+   the ARC to 25-30% of your RAM instead of the default 50%. Storage servers can
+   use the more aggressive default.
+
+3. **Don't limit the ARC too much**: While you should limit it on
+   laptops/desktops, don't be too conservative. The ARC provides real performance
+   benefits. Find a balance that works for your workload.
+
+4. **Monitor the "available" memory**: This is your real indicator of memory
    pressure, not "used" memory.
 
-3. **Watch for swap usage**: If your system starts swapping while the ARC is
-   large, you might need to limit the ARC size.
+5. **Watch for swap usage**: If your system starts swapping while the ARC is
+   large, you might need to further limit the ARC size.
 
-4. **Use `htop` or similar tools**: They often show memory usage in a more
+6. **Use `htop` or similar tools**: They often show memory usage in a more
    intuitive way, with better breakdowns of cache vs. active memory.
 
-5. **Check ARC hit rate**: If your hit rate is low, you might benefit from more
+7. **Check ARC hit rate**: If your hit rate is low, you might benefit from more
    RAM or need to optimize your workload.
 
 ## The bottom line

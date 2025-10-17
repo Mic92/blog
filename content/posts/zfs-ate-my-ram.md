@@ -147,17 +147,10 @@ On NixOS, you can configure ZFS ARC parameters in your `configuration.nix`:
 
 ```nix
 {
-  # Using boot.extraModprobeConfig (recommended)
   boot.extraModprobeConfig = ''
     options zfs zfs_arc_max=17179869184
     options zfs zfs_arc_min=2147483648
   '';
-
-  # Alternatively, you can use kernel parameters
-  boot.kernelParams = [
-    "zfs.zfs_arc_max=17179869184"
-    "zfs.zfs_arc_min=2147483648"
-  ];
 }
 ```
 

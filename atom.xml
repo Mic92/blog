@@ -1,4 +1,209 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.110.0">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2025-11-12T02:21:18+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">ZFS ate my RAM: Understanding the ARC cache</title><link href="https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/</id><author><name>Jörg Thalheim</name></author><published>2025-10-17T11:36:00+00:00</published><updated>2025-10-17T11:36:00+00:00</updated><content type="html"><![CDATA[<p>If you&rsquo;re running ZFS on Linux and checking your system&rsquo;s memory usage, you
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us"><generator uri="https://gohugo.io/" version="0.110.0">Hugo</generator><title type="html">~/git/blog</title><subtitle type="html">My brain-dump of random code/configuration.</subtitle><link href="https://blog.thalheim.io/" rel="alternate" type="text/html" title="HTML"/><link href="https://blog.thalheim.io/index.xml" rel="alternate" type="application/rss+xml" title="RSS"/><link href="https://blog.thalheim.io/atom.xml" rel="self" type="application/atom+xml" title="Atom"/><updated>2025-11-12T19:35:00+00:00</updated><rights>© 2021 Jörg Thalheim</rights><id>https://blog.thalheim.io/</id><entry><title type="html">Configuring Nginx for n8n MCP Servers with Claude Code</title><link href="https://blog.thalheim.io/2025/11/12/configuring-nginx-for-n8n-mcp-servers-with-claude-code/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2025/11/12/configuring-nginx-for-n8n-mcp-servers-with-claude-code/</id><author><name>Jörg Thalheim</name></author><published>2025-11-12T00:00:00+00:00</published><updated>2025-11-12T00:00:00+00:00</updated><content type="html"><![CDATA[<h2 id="background">Background</h2>
+<p>The <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol (MCP)</a> is an open standard that enables AI assistants like Claude to securely connect to external data sources and tools. <a href="https://n8n.io/" target="_blank">n8n</a> recently added support for creating MCP servers through their &ldquo;MCP Server Trigger&rdquo; node, allowing you to expose workflows as tools that AI assistants can use.</p>
+<p>However, when running n8n behind an nginx reverse proxy, the default configuration won&rsquo;t work for MCP servers. This guide explains the technical challenges and provides a complete working nginx configuration.</p>
+<h2 id="the-challenge">The Challenge</h2>
+<p>n8n&rsquo;s MCP Server Trigger uses <a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" target="_blank">Server-Sent Events (SSE)</a> for communication, which requires special nginx configuration. Additionally, n8n&rsquo;s implementation has specific header requirements that aren&rsquo;t immediately obvious.</p>
+<h3 id="what-we-learned-the-hard-way">What We Learned the Hard Way</h3>
+<ol>
+<li><strong>SSE requires specific proxy settings</strong> - Standard nginx proxy configuration buffers responses, which breaks SSE streaming</li>
+<li><strong>n8n MCP requires dual content type acceptance</strong> - Requests must accept both <code>application/json</code> and <code>text/event-stream</code></li>
+<li><strong>Connection header must be empty</strong> - Unlike WebSocket proxying which sets <code>Connection: Upgrade</code>, SSE needs an empty Connection header</li>
+</ol>
+<h2 id="the-solution">The Solution</h2>
+<p>Here&rsquo;s a complete working nginx configuration for n8n MCP servers:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#ff79c6">server</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">listen</span> <span style="color:#bd93f9">443</span> <span style="color:#f1fa8c">ssl</span> <span style="color:#f1fa8c">http2</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">server_name</span> <span style="color:#f1fa8c">n8n.example.com</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">ssl_certificate</span> <span style="color:#f1fa8c">/path/to/cert.pem</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">ssl_certificate_key</span> <span style="color:#f1fa8c">/path/to/key.pem</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4"># MCP Server Trigger endpoints - requires SSE support
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">location</span> ~ <span style="color:#f1fa8c">^/mcp/</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_pass</span> <span style="color:#f1fa8c">http://127.0.0.1:5678</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4"># Essential SSE configuration
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">proxy_http_version</span> <span style="color:#bd93f9">1</span><span style="color:#f1fa8c">.1</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_buffering</span> off;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Connection</span> <span style="color:#f1fa8c">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">chunked_transfer_encoding</span> off;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4"># n8n MCP specific: Accept header requirement
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Accept</span> <span style="color:#f1fa8c">&#34;application/json,</span> <span style="color:#f1fa8c">text/event-stream&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4"># Increase timeouts for long-lived SSE connections (24 hours)
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">proxy_read_timeout</span> <span style="color:#f1fa8c">86400s</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_send_timeout</span> <span style="color:#f1fa8c">86400s</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4"># Standard proxy headers
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Host</span> <span style="color:#8be9fd;font-style:italic">$host</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">X-Real-IP</span> <span style="color:#8be9fd;font-style:italic">$remote_addr</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">X-Forwarded-For</span> <span style="color:#8be9fd;font-style:italic">$proxy_add_x_forwarded_for</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">X-Forwarded-Proto</span> <span style="color:#8be9fd;font-style:italic">$scheme</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4"># Regular n8n endpoints (webhooks, UI, API)
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">location</span> <span style="color:#f1fa8c">/</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_pass</span> <span style="color:#f1fa8c">http://127.0.0.1:5678</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_http_version</span> <span style="color:#bd93f9">1</span><span style="color:#f1fa8c">.1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4"># WebSocket support for UI
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Upgrade</span> <span style="color:#8be9fd;font-style:italic">$http_upgrade</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Connection</span> <span style="color:#8be9fd;font-style:italic">$connection_upgrade</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4"># Standard proxy headers
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Host</span> <span style="color:#8be9fd;font-style:italic">$host</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">X-Real-IP</span> <span style="color:#8be9fd;font-style:italic">$remote_addr</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">X-Forwarded-For</span> <span style="color:#8be9fd;font-style:italic">$proxy_add_x_forwarded_for</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">X-Forwarded-Proto</span> <span style="color:#8be9fd;font-style:italic">$scheme</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># Required for WebSocket connection upgrade
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">map</span> <span style="color:#8be9fd;font-style:italic">$http_upgrade</span> <span style="color:#8be9fd;font-style:italic">$connection_upgrade</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">default</span> <span style="color:#f1fa8c">upgrade</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#39;&#39;</span> <span style="color:#f1fa8c">close</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="nixos-configuration-example">NixOS Configuration Example</h3>
+<p>If you&rsquo;re using NixOS, here&rsquo;s the equivalent configuration:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nix" data-lang="nix"><span style="display:flex;"><span>services<span style="color:#ff79c6">.</span>nginx<span style="color:#ff79c6">.</span>virtualHosts<span style="color:#ff79c6">.</span><span style="color:#f1fa8c">&#34;n8n.example.com&#34;</span> = {
+</span></span><span style="display:flex;"><span>  forceSSL <span style="color:#ff79c6">=</span> true;
+</span></span><span style="display:flex;"><span>  useACMEHost <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;example.com&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># MCP Server Trigger endpoints with SSE support</span>
+</span></span><span style="display:flex;"><span>  locations<span style="color:#ff79c6">.</span><span style="color:#f1fa8c">&#34;~ ^/mcp/&#34;</span> <span style="color:#ff79c6">=</span> {
+</span></span><span style="display:flex;"><span>    proxyPass <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;http://127.0.0.1:5678&#34;</span>;
+</span></span><span style="display:flex;"><span>    extraConfig <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      # n8n MCP requires this Accept header for both GET and POST requests
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      proxy_set_header Accept &#34;application/json, text/event-stream&#34;;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      # SSE (Server-Sent Events) configuration for MCP endpoints
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      proxy_http_version 1.1;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      proxy_buffering off;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      proxy_set_header Connection &#34;&#34;;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      chunked_transfer_encoding off;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      # Increase timeouts for long-lived SSE connections
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      proxy_read_timeout 86400s;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">      proxy_send_timeout 86400s;
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">    &#39;&#39;</span>;
+</span></span><span style="display:flex;"><span>  };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#6272a4"># All other endpoints</span>
+</span></span><span style="display:flex;"><span>  locations<span style="color:#ff79c6">.</span><span style="color:#f1fa8c">&#34;/&#34;</span> <span style="color:#ff79c6">=</span> {
+</span></span><span style="display:flex;"><span>    proxyPass <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;http://127.0.0.1:5678&#34;</span>;
+</span></span><span style="display:flex;"><span>    proxyWebsockets <span style="color:#ff79c6">=</span> true;
+</span></span><span style="display:flex;"><span>  };
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><h2 id="understanding-the-configuration">Understanding the Configuration</h2>
+<p>Let&rsquo;s break down the critical parts:</p>
+<h3 id="sse-configuration">SSE Configuration</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#ff79c6">proxy_http_version</span> <span style="color:#bd93f9">1</span><span style="color:#f1fa8c">.1</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">proxy_buffering</span> off;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Connection</span> <span style="color:#f1fa8c">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">chunked_transfer_encoding</span> off;
+</span></span></code></pre></div><ul>
+<li><strong><code>proxy_http_version 1.1</code></strong>: SSE requires HTTP/1.1 for persistent connections</li>
+<li><strong><code>proxy_buffering off</code></strong>: Critical - nginx must not buffer SSE streams</li>
+<li><strong><code>proxy_set_header Connection &quot;&quot;</code></strong>: SSE needs an empty Connection header (not <code>Upgrade</code> like WebSockets)</li>
+<li><strong><code>chunked_transfer_encoding off</code></strong>: Prevents chunking issues with SSE streams</li>
+</ul>
+<h3 id="n8n-specific-requirements">n8n-Specific Requirements</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#ff79c6">proxy_set_header</span> <span style="color:#f1fa8c">Accept</span> <span style="color:#f1fa8c">&#34;application/json,</span> <span style="color:#f1fa8c">text/event-stream&#34;</span>;
+</span></span></code></pre></div><p>n8n&rsquo;s MCP implementation validates the Accept header and rejects requests that don&rsquo;t include both content types. The error message you&rsquo;ll see without this header is:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Not Acceptable: Client must accept both application/json and text/event-stream
+</span></span></code></pre></div><h3 id="timeouts">Timeouts</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#ff79c6">proxy_read_timeout</span> <span style="color:#f1fa8c">86400s</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">proxy_send_timeout</span> <span style="color:#f1fa8c">86400s</span>;
+</span></span></code></pre></div><p>MCP connections can be long-lived. Setting 24-hour timeouts ensures the connection doesn&rsquo;t get terminated prematurely. Adjust based on your needs.</p>
+<h2 id="testing-your-configuration">Testing Your Configuration</h2>
+<h3 id="1-test-sse-connection">1. Test SSE Connection</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -H <span style="color:#f1fa8c">&#34;Accept: text/event-stream&#34;</span> <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>     -H <span style="color:#f1fa8c">&#34;Authorization: Bearer YOUR_TOKEN&#34;</span> <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>     https://n8n.example.com/mcp/YOUR_WORKFLOW_ID
+</span></span></code></pre></div><p>You should see a <code>Content-Type: text/event-stream</code> header in the response.</p>
+<h3 id="2-test-json-rpc">2. Test JSON-RPC</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -X POST <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>     -H <span style="color:#f1fa8c">&#34;Content-Type: application/json&#34;</span> <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>     -H <span style="color:#f1fa8c">&#34;Accept: application/json, text/event-stream&#34;</span> <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>     -H <span style="color:#f1fa8c">&#34;Authorization: Bearer YOUR_TOKEN&#34;</span> <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>     -d <span style="color:#f1fa8c">&#39;{&#34;jsonrpc&#34;:&#34;2.0&#34;,&#34;method&#34;:&#34;initialize&#34;,&#34;params&#34;:{},&#34;id&#34;:1}&#39;</span> <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>     https://n8n.example.com/mcp/YOUR_WORKFLOW_ID
+</span></span></code></pre></div><h3 id="3-test-with-claude-code">3. Test with Claude Code</h3>
+<p>Add the MCP server to Claude Code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>claude mcp add -t sse n8n https://n8n.example.com/mcp/YOUR_WORKFLOW_ID
+</span></span></code></pre></div><p>Then manually add authentication headers to <code>~/.claude.json</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;projects&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#34;/path/to/project&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#ff79c6">&#34;mcpServers&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">&#34;n8n&#34;</span>: {
+</span></span><span style="display:flex;"><span>          <span style="color:#ff79c6">&#34;type&#34;</span>: <span style="color:#f1fa8c">&#34;sse&#34;</span>,
+</span></span><span style="display:flex;"><span>          <span style="color:#ff79c6">&#34;url&#34;</span>: <span style="color:#f1fa8c">&#34;https://n8n.example.com/mcp/YOUR_WORKFLOW_ID&#34;</span>,
+</span></span><span style="display:flex;"><span>          <span style="color:#ff79c6">&#34;headers&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">&#34;Authorization&#34;</span>: <span style="color:#f1fa8c">&#34;Bearer YOUR_TOKEN&#34;</span>
+</span></span><span style="display:flex;"><span>          }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="common-pitfalls">Common Pitfalls</h2>
+<h3 id="1-missing-accept-header">1. Missing Accept Header</h3>
+<p>Without the dual Accept header, you&rsquo;ll see:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Error: Unexpected token &#39;&lt;&#39;, &#34;&lt;!DOCTYPE &#34;... is not valid JSON
+</span></span></code></pre></div><p>This happens because n8n returns an HTML error page that gets parsed as JSON.</p>
+<h3 id="2-proxy-buffering-enabled">2. Proxy Buffering Enabled</h3>
+<p>If buffering is enabled, the SSE connection will appear to hang or timeout. Always set <code>proxy_buffering off</code> for SSE endpoints.</p>
+<h3 id="3-short-timeouts">3. Short Timeouts</h3>
+<p>Default nginx timeouts (60s) will kill long-lived MCP connections. Always increase read/send timeouts for SSE endpoints.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="sse-not-working">SSE Not Working</h3>
+<p>Test directly without nginx:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -H <span style="color:#f1fa8c">&#34;Accept: text/event-stream&#34;</span> http://127.0.0.1:5678/mcp/YOUR_WORKFLOW_ID
+</span></span></code></pre></div><p>If this works but nginx doesn&rsquo;t, check your SSE configuration.</p>
+<h3 id="workflow-not-active">Workflow Not Active</h3>
+<p>n8n&rsquo;s MCP endpoints only work when the workflow is active. Check in the n8n UI that your workflow with the MCP Server Trigger is activated (toggle in top-right corner).</p>
+<h2 id="performance-tuning">Performance Tuning</h2>
+<p>For production deployments with many concurrent MCP connections:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#6272a4"># Increase worker connections
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">events</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">worker_connections</span> <span style="color:#bd93f9">4096</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># Optimize file descriptor limits
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">worker_rlimit_nofile</span> <span style="color:#bd93f9">8192</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># Enable keepalive to upstream
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">upstream</span> <span style="color:#f1fa8c">n8n</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">server</span> 127.0.0.1:<span style="color:#bd93f9">5678</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">keepalive</span> <span style="color:#bd93f9">32</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">server</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4"># Use upstream instead of direct proxy_pass
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">location</span> ~ <span style="color:#f1fa8c">^/mcp/</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">proxy_pass</span> <span style="color:#f1fa8c">http://n8n</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4"># ... rest of config
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="conclusion">Conclusion</h2>
+<p>Setting up n8n MCP servers behind nginx requires understanding both SSE protocol requirements and n8n&rsquo;s specific implementation details. The key takeaways:</p>
+<ol>
+<li>SSE needs <code>proxy_buffering off</code>, HTTP/1.1, and an empty Connection header</li>
+<li>n8n MCP requires the Accept header to include both <code>application/json</code> and <code>text/event-stream</code></li>
+<li>Long timeouts are essential for persistent MCP connections</li>
+<li>Separate MCP endpoints from regular n8n traffic for better control</li>
+</ol>
+<p>With this configuration, you can safely expose n8n workflows as MCP tools that AI assistants like Claude Code can discover and use.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://spec.modelcontextprotocol.io/" target="_blank">Model Context Protocol Specification</a></li>
+<li><a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.mcptrigger/" target="_blank">n8n MCP Server Trigger Documentation</a></li>
+<li><a href="https://www.nginx.com/blog/event-driven-data-management-nginx/" target="_blank">Nginx SSE Configuration</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" target="_blank">Server-Sent Events on MDN</a></li>
+</ul>
+]]></content><category scheme="https://blog.thalheim.io/categories/n8n" term="n8n" label="n8n"/><category scheme="https://blog.thalheim.io/categories/nginx" term="nginx" label="nginx"/><category scheme="https://blog.thalheim.io/categories/mcp" term="mcp" label="mcp"/><category scheme="https://blog.thalheim.io/categories/claude" term="claude" label="claude"/><category scheme="https://blog.thalheim.io/categories/ai" term="ai" label="ai"/></entry><entry><title type="html">ZFS ate my RAM: Understanding the ARC cache</title><link href="https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/?utm_source=atom_feed" rel="alternate" type="text/html"/><id>https://blog.thalheim.io/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/</id><author><name>Jörg Thalheim</name></author><published>2025-10-17T11:36:00+00:00</published><updated>2025-10-17T11:36:00+00:00</updated><content type="html"><![CDATA[<p>If you&rsquo;re running ZFS on Linux and checking your system&rsquo;s memory usage, you
 might be shocked to see that most of your RAM appears to be consumed. Don&rsquo;t
 panic! This is actually by design, and it&rsquo;s a good thing.</p>
 <h2 id="the-confusion">The confusion</h2>

@@ -243,34 +243,6 @@ If this works but nginx doesn't, check your SSE configuration.
 
 n8n's MCP endpoints only work when the workflow is active. Check in the n8n UI that your workflow with the MCP Server Trigger is activated (toggle in top-right corner).
 
-## Performance Tuning
-
-For production deployments with many concurrent MCP connections:
-
-```nginx
-# Increase worker connections
-events {
-    worker_connections 4096;
-}
-
-# Optimize file descriptor limits
-worker_rlimit_nofile 8192;
-
-# Enable keepalive to upstream
-upstream n8n {
-    server 127.0.0.1:5678;
-    keepalive 32;
-}
-
-server {
-    # Use upstream instead of direct proxy_pass
-    location ~ ^/mcp/ {
-        proxy_pass http://n8n;
-        # ... rest of config
-    }
-}
-```
-
 ## Conclusion
 
 Setting up n8n MCP servers behind nginx requires understanding both SSE protocol requirements and n8n's specific implementation details. The key takeaways:

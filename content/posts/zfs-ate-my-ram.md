@@ -48,14 +48,17 @@ applications need memory, ZFS will shrink the ARC to make room.
 
 ### Check ZFS ARC usage
 
-To see how much RAM the ARC is actually using:
+The simplest way to check ARC usage is with `arcstat`:
 
 ```console
-$ cat /proc/spl/kstat/zfs/arcstats | grep "^size" | head -1
-size                            4    26843545600
+$ arcstat
+    time  read  ddread  ddh%  dmread  dmh%  pread  ph%   size      c  avail
+11:58:00     9       0     0       9   100      0    0   125G   126G  52.3G
 ```
 
-The second number is in bytes. To make it human-readable:
+The `size` column shows current ARC size, and `c` shows the target size.
+
+Alternatively, you can read the raw stats:
 
 ```console
 $ awk '/^size/ { printf "ARC size: %.2f GB\n", $3/1024/1024/1024; exit }' \
@@ -63,7 +66,7 @@ $ awk '/^size/ { printf "ARC size: %.2f GB\n", $3/1024/1024/1024; exit }' \
 ARC size: 25.00 GB
 ```
 
-Or use the `arc_summary` tool if available:
+Or use `arc_summary` for a detailed breakdown:
 
 ```console
 $ arc_summary | head -20
@@ -71,18 +74,29 @@ $ arc_summary | head -20
 
 ### Check actual available memory
 
-The "available" column in `free` already accounts for reclaimable memory,
-including some of the ARC. So in our earlier example:
+**Important caveat**: The "available" column in `free` does **not** include the
+ARC because the ARC is not part of the kernel's page cache—it's managed by ZFS
+itself. This means `free` can report very low available memory even though the
+kernel could reclaim memory from the ARC if needed.
+
+Here's an example from a server with 251GB RAM:
 
 ```console
 $ free -h
               total        used        free      shared  buff/cache   available
-Mem:           31Gi        28Gi       512Mi       128Mi       2.5Gi       2.8Gi
+Mem:           251Gi       191Gi       2.3Gi        10Gi        72Gi        60Gi
+$ arcstat
+    time  read  ddread  ddh%  dmread  dmh%  pread  ph%   size      c  avail
+11:58:00     9       0     0       9   100      0    0   125G   126G  52.3G
 ```
 
-The **2.8Gi available** is what actually matters. This is the memory that can be
-immediately used by applications without swapping. If this number gets low, then
-you might have actual memory pressure.
+The ARC is using 125GB, which shows as "used" memory. Only the ~62GB in the page
+cache ("buff/cache") contributes to "available". So while `free` shows 60GB
+available, the system could actually reclaim up to 185GB (60GB + 125GB ARC) if
+applications needed it.
+
+If "available" gets low, check your ARC size before panicking—your system likely
+has plenty of reclaimable memory.
 
 ### Monitor ARC efficiency
 
@@ -101,10 +115,20 @@ A high hit rate (above 80-90%) means the ARC is doing its job well.
 
 ### Understanding the defaults
 
-The default ARC size is **50% of all your RAM**, which may be reasonable for
-storage servers but is often not optimal for your laptop or desktop workstation.
-This aggressive default can lead to issues, especially if you run memory-intensive
-applications like web browsers, development tools, or virtual machines.
+Since OpenZFS 2.3, the default ARC size is **max(RAM - 1GB, 5/8 × RAM)**, which
+means on most systems the ARC will use nearly all available memory—about 94% on a
+16GB system, ~97% on 32GB, and ~99% on 256GB. See
+[the commit](https://github.com/openzfs/zfs/pull/15437) for details. Earlier
+versions defaulted to 50%.
+
+The ARC also tries to maintain a minimum amount of free memory, controlled by
+`zfs_arc_sys_free` which defaults to **max(512KB, RAM/64)**. On a 32GB system,
+that's just 512MB—not much headroom. See `man 4 zfs` for details.
+
+This aggressive default may be reasonable for storage servers but is often not
+optimal for your laptop or desktop workstation. It can lead to issues, especially
+if you run memory-intensive applications like web browsers, development tools, or
+virtual machines.
 
 **Important warning about swap**: If you do not have swap configured, your kernel
 will happily OOM kill your applications when the ARC cache is not reclaimed

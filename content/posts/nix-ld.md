@@ -203,7 +203,7 @@ common libraries to be included in the NixOs configuration as follows:
 ```
 
 For a more extensive version of this configuration, see my
-[dotfiles](https://github.com/Mic92/dotfiles/blob/master/nixos/modules/nix-ld.nix).
+[dotfiles](https://github.com/Mic92/dotfiles/blob/6d85a0558e275517eb0a736f3b1e59acca22767f/nixosModules/fhs-compat.nix#L10-L70).
 
 By including the most common libraries in the configuration, nix-ld can provide
 a more seamless experience for users running pre-compiled executables on NixOS.

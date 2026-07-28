@@ -15,6 +15,11 @@
       url = "github:kaushalmodi/hugo-atom-feed";
       flake = false;
     };
+    nixbot = {
+      url = "github:Mic92/nixbot";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
   };
 
   outputs =
@@ -24,6 +29,7 @@
       treefmt-nix,
       hugo-vitae,
       hugo-atom-feed,
+      nixbot,
     }:
     let
       systems = [
@@ -104,6 +110,44 @@
       );
 
       formatter = forAllSystems (system: (treefmtFor system).config.build.wrapper);
+
+      herculesCI =
+        { primaryRepo, ... }:
+        let
+          system = "x86_64-linux";
+          pkgs = pkgsFor system;
+          inherit (nixbot.lib.effects { inherit pkgs; }) mkEffect runIf;
+          website = self.packages.${system}.website;
+        in
+        {
+          onPush.default.outputs = {
+            checks = self.checks.${system};
+            # Publish the website to the gh-pages branch.
+            effects.gh-pages = runIf (primaryRepo.branch or null == "main") (mkEffect {
+              name = "gh-pages";
+              inputs = [ pkgs.git ];
+              secretsMap.github.type = "GitToken";
+              effectScript = ''
+                token=$(jq -r '.github.data.token' "$HERCULES_CI_SECRETS_JSON")
+                remote=$(printf '%s' ${nixpkgs.lib.escapeShellArg primaryRepo.remoteHttpUrl} \
+                  | sed "s#https://#https://x-access-token:$token@#")
+
+                git config --global user.email "nixbot@thalheim.io"
+                git config --global user.name "nixbot"
+
+                work=$(mktemp -d)
+                cp -r --no-preserve=mode,ownership ${website}/. "$work/"
+                touch "$work/.nojekyll"
+
+                cd "$work"
+                git init -q -b gh-pages
+                git add -A
+                git commit -q -m "Deploy ${primaryRepo.rev}"
+                git push -f "$remote" gh-pages
+              '';
+            });
+          };
+        };
 
       checks = forAllSystems (
         system:

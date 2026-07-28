@@ -1,5 +1,5 @@
 baseURL: https://blog.thalheim.io/
-languageCode: en-us
+locale: en-us
 defaultContentLanguage: en
 theme:
   - hugo-atom-feed
@@ -30,8 +30,9 @@ outputs:
     - HTML
     - RSS
     - ATOM
-ignoreErrors:
+ignoreLogs:
   - error-output-taxonomy
+  - warning-goldmark-raw-html
 permalinks:
   posts: /:year/:month/:day/:title/
 

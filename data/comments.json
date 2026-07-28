@@ -1,0 +1,284 @@
+{
+  "/2013/04/27/automated-backups-for-chef-server/": [
+    {
+      "author": "pat",
+      "date": "26 Jun 2013",
+      "message": "<p>why restore script is named as backup script and vice-versa</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "27 Jun 2013",
+          "message": "<p>fixed.</p>",
+          "replies": []
+        }
+      ]
+    },
+    {
+      "author": "Santhosh",
+      "date": "02 Jul 2014",
+      "message": "<p>Hi.. This is backup made on same server. I just need to know what if chef server itself crashes along with workstation? How can I recover all the components like recipes and cookbooks in my chef-repo?</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "15 Jul 2014",
+          "message": "<p>With the restore script or is the backup on your workstation?</p>",
+          "replies": [
+            {
+              "author": "Santhosh",
+              "date": "16 Jul 2014",
+              "message": "<p>Thank you.</p>",
+              "replies": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "/2013/01/20/add-flattr-to-octopress/": [
+    {
+      "author": "Justin Gordon",
+      "date": "29 Sep 2013",
+      "message": "<p>Any updates on whether or not the Flattr button is useful? I'm considering it.</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "30 Sep 2013",
+          "message": "<p>I don't have regular readers and very specific topics, so I cannot make a general statement. Maybe you should ask someone with more visitors. I get half the money back I spent on flattr.</p>",
+          "replies": []
+        }
+      ]
+    }
+  ],
+  "/2013/06/09/use-systemd-as-a-cron-replacement/": [
+    {
+      "author": "Profpatsch",
+      "date": "12 Nov 2013",
+      "message": "<p>What about cronjobs I want to execute in my useraccount?</p><p>Like automatic home folder backups every 3 hours?</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "13 Nov 2013",
+          "message": "<p>You have basicly 2 options: 1. create a custom timer in the context of <br>systemd/user (<a href=\"https://wiki.archlinux.org/index.php/Systemd/User)\" rel=\"nofollow noopener\" target=\"_blank\" title=\"https://wiki.archlinux.org/index.php/Systemd/User)\">https://wiki.archlinux.org/...</a>. 2. set<br> the User variable in the service file.</p>",
+          "replies": []
+        },
+        {
+          "author": "Buddlespit",
+          "date": "10 May 2014",
+          "message": "<p>This backs up my home to my home on the server:</p><p>[Unit]<br>Description=Backup ~/<br>Wants=timer-weekly.timer</p><p>[Service]<br>User=pat                                          <br>Nice=19<br>IOSchedulingClass=2<br>IOSchedulingPriority=7<br>ExecStart=/usr/bin/rsync --delete -azvv -e ssh /home/pat/ pat@192.168.1.13:/home/pat/backup</p><p>[Install]<br>WantedBy=<a href=\"http://timer-weekly.target\" rel=\"nofollow noopener\" target=\"_blank\" title=\"timer-weekly.target\">timer-weekly.target</a></p>",
+          "replies": []
+        }
+      ]
+    },
+    {
+      "author": "Ken",
+      "date": "17 Sep 2014",
+      "message": "<p>I have the hourly daily weekly systemd cron replacement running but with one problem.</p><p>If I set up an hourly service \"test.service\" and enable it with:</p><p>\"systemctl enable test.service\"</p><p> a link to \"test.service\" is created in \"timer-hourly.target.wants\" as it should be.</p><p>I then remove it with:</p><p>\"systemctl disable test.service\"</p><p>the \"timer-hourly.target.wants\" directory is removed rather than just the link.</p><p>(if there are other links in \"timer-hourly.target.wants\" the directory survives)</p><p>What am I doing wrong ?</p><p>systemd 215</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "19 Sep 2014",
+          "message": "<p>Sound good to me, what behaviour did you expect?</p>",
+          "replies": [
+            {
+              "author": "Ken",
+              "date": "21 Sep 2014",
+              "message": "<p>Didn't expect the wants directory to disappear but now I realise the wants directories are created and deleted as required. Thanks for your comment.</p>",
+              "replies": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "author": "ferrvittorio",
+      "date": "09 Nov 2014",
+      "message": "<p>Hi. What about if I tried to setup a daily shutdown at 2200. I am landing here from suse cron and I am not yet familiar. <br>Might the following suffice?</p><p>daily-shutdown.timer</p><p>[Unit]<br>Description=\"daily shutdown\"<br>OnCalendar=*-*-* 22:0:0<br>Unit=daily-shutdown.timer</p><p>[Service]<br>Nice=19<br>IOSchedulingClass=2<br>IOSchedulingPriority=7<br>Type=oneshot<br>ExecStart=/path/to/shutdown</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "10 Nov 2014",
+          "message": "<p>the timer spec is correct should work, but you have to put service section in a separate file (if the name is the same except the suffix it will be pulled in by your timer)</p><p>daily-shutdown.timer<br>[Unit]<br>Description=\"daily shutdown\"</p><p>[Timer]<br>OnCalendar=22:00</p><p>[Install]<br>WantedBy=<a href=\"http://multi-user.target\" rel=\"nofollow noopener\" target=\"_blank\" title=\"multi-user.target\">multi-user.target</a></p><p>daily-shutdown.service<br>[Service]<br>Nice=19<br>IOSchedulingClass=2<br>IOSchedulingPriority=7<br>Type=oneshot<br>ExecStart=/path/to/shutdown</p><p>Enable it and start it with:<br>$ systemctl enable daily-shutdown.timer<br>$ systemctl start daily-shutdown.timer</p><p>To verify if it works use the subcommand:</p><p>$ systemctl list-timers</p><p>This will list, when the timer is scheduled.</p>",
+          "replies": [
+            {
+              "author": "ferrvittorio",
+              "date": "11 Nov 2014",
+              "message": "<p>Hi! Unit did shutdown, but .. something went really wrong!</p><p>LXDE refused to let me log back in, even as root. Login attempt as user jumped me at lxde screen, root loogin forced box to shut down!</p><p>For now I removed offending timer/service</p><p>What is your opinion</p><p>Edit: not LXDE, but LIGHTDM</p>",
+              "replies": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "/2012/09/19/systemd-on-raspbian/": [
+    {
+      "author": "issackelly",
+      "date": "07 Mar 2014",
+      "message": "<p>Sorry to bug you, but there's not a lot of info about systemd on raspberry pi. When I started it, it's got lightdm.service starting despite me setting <a href=\"http://default.target\" rel=\"nofollow noopener\" target=\"_blank\" title=\"default.target\">default.target</a> to symlink to <a href=\"http://multi-user.target\" rel=\"nofollow noopener\" target=\"_blank\" title=\"multi-user.target\">multi-user.target</a> instead of <a href=\"http://graphical.target\" rel=\"nofollow noopener\" target=\"_blank\" title=\"graphical.target\">graphical.target</a>. Can you give me any pointers here as to what might be going on?</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "07 Mar 2014",
+          "message": "<p>Did you try <br>$ systemctl disable lightdm.service<br>It is also possible that lightdm is pulled in by the debian init scripts:<br>$ update-rc.d -f lightdm remove<br>It would be also interesting, how the service was started:<br>$ systemctl status lightdm.service</p>",
+          "replies": [
+            {
+              "author": "issackelly",
+              "date": "07 Mar 2014",
+              "message": "<p>Removing it from debain init seems to have worked.</p><p><a href=\"https://gist.github.com/issackelly/9b8ebcaee727e734352b\" rel=\"nofollow noopener\" target=\"_blank\" title=\"https://gist.github.com/issackelly/9b8ebcaee727e734352b\">https://gist.github.com/iss...</a></p>",
+              "replies": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "/2013/09/03/global-request-management-with-restkit/": [
+    {
+      "author": "waffle",
+      "date": "10 Jun 2014",
+      "message": "<p>nice</p>",
+      "replies": []
+    },
+    {
+      "author": "Víctor Gutiérrez",
+      "date": "13 Jun 2014",
+      "message": "<p>Jobs bless this post that's going to organize my mess.</p>",
+      "replies": []
+    },
+    {
+      "author": "Thiago Magalhães",
+      "date": "07 Nov 2014",
+      "message": "<p>I've tried this approach on Swift and it worked well, but when the request times out, the response is 'nil'. Add an if statement to check if response != 'nil'</p>",
+      "replies": [
+        {
+          "author": "Dan",
+          "date": "05 Mar 2015",
+          "message": "<p>How were you able to do that in Swift?  I have been struggling to override the method.  I keep getting the error \"Overriding method with selector has an incompatible type.  My method is below.</p><p>func setCompletionBlockWithSuccess(success: (operation: RKObjectRequestOperation, mappingResult: RKMappingResult) -&gt; Void, failure: (operation: RKObjectRequestOperation, error: NSError) -&gt; Void) -&gt; Void {</p><p>}</p>",
+          "replies": []
+        }
+      ]
+    },
+    {
+      "author": "Fletcher Bumpus",
+      "date": "05 May 2015",
+      "message": "<p>Hey everyone, total n00b here.  When Albert mentions the changes made to \"RestKit Configuration,\" to what file is he specifying?</p>",
+      "replies": []
+    }
+  ],
+  "/2013/10/16/permanent-remap-keys-in-x11/": [
+    {
+      "author": "diana",
+      "date": "24 Jun 2014",
+      "message": "<p>hi, im having a problem with my keyboard the enter key is not working im using samsung sf410, windows 7 64bit .. im trying to replace left shift key as an enter key i have keyTwek install on my machine it did a great job, i have successfully change the left shift key into enter key but then problem is i just installed linux on my system which is cd bootable, every time i will try to use the linux i need to used enter key which in this case the remapped key which is left shift key to enter key is not working.. i was thinking if there is a permanent remapping appliction i could used so i can have an enter key?.</p><p>thanks<br>Diana<br>diana_degamo@yahoo.com</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "09 Nov 2016",
+          "message": "<p>Your comment get lost somehow. the same procedure should be also working for `enter`.<br>In case somebody else has this problem, the key code on my keyboard for enter is 50.</p>",
+          "replies": []
+        }
+      ]
+    }
+  ],
+  "/2014/11/01/ferm-rules-for-docker/": [
+    {
+      "author": "Michel Blanc",
+      "date": "22 Aug 2015",
+      "message": "<p>Very nice, thanks ! I think docker wants also a DOCKER chain in filter these days (1.8.1)</p>",
+      "replies": []
+    }
+  ],
+  "/2015/12/25/rooting-intel-based-tablets-on-linux-slash-mac-os-x/": [
+    {
+      "author": "Walter pinto",
+      "date": "14 Oct 2016",
+      "message": "<p>hi, i have a little problem, fastboot said the partion is smaller than the file, even when i try to flash the smaller ones, so i think that /tmp partition doesn't exist, what could i do?</p>",
+      "replies": [
+        {
+          "author": "Mic92",
+          "date": "14 Oct 2016",
+          "message": "<p>I have never seen an android system, where it does not exists actually. You could double check using:</p><p>$ cat /proc/mounts</p><p>Otherwise fbrl.trigger would be need to rewritten to accept recovery from a different writeable place</p>",
+          "replies": [
+            {
+              "author": "Walter pinto",
+              "date": "15 Oct 2016",
+              "message": "<p>thanks for your answer, i don't have clear where i have to put these line of code, i mean the process is at fastboot mode, i didn't see an shell option from there.</p><p>sorry my english</p>",
+              "replies": [
+                {
+                  "author": "Mic92",
+                  "date": "15 Oct 2016",
+                  "message": "<p>it could be done via adb when booting up as usual.</p>",
+                  "replies": [
+                    {
+                      "author": "Walter pinto",
+                      "date": "16 Oct 2016",
+                      "message": "<p>Does This /tmp partition is unique? I mean, I couldn't flash those file from fastboot, but I could push it from adb, could it work?</p>",
+                      "replies": [
+                        {
+                          "author": "Mic92",
+                          "date": "16 Oct 2016",
+                          "message": "<p>it purely exists in-memory, which means it will be recreated once you reboot into fastboot.</p>",
+                          "replies": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "author": "Walter pinto",
+              "date": "22 Oct 2016",
+              "message": "<p>$ cat /proc/mounts | grep tmp                     <br>tmpfs /dev tmpfs rw,seclabel,nosuid,relatime,mode=755 0 0<br>none /sys/fs/cgroup tmpfs rw,seclabel,relatime,mode=750,gid=1000 0 0<br>tmpfs /mnt/asec tmpfs rw,seclabel,relatime,mode=755,gid=1000 0 0<br>tmpfs /mnt/obb tmpfs rw,seclabel,relatime,mode=755,gid=1000 0 0</p><p>-------------------------------------------------------------------------------------------------<br>and this when i try to flash <br>------------------------------------------------------------------------------------------------</p><p>~/recovery android intel $ fastboot flash /tmp/<a href=\"http://recovery.zip\" rel=\"nofollow noopener\" target=\"_blank\" title=\"recovery.zip\">recovery.zip</a> <a href=\"http://cwm.zip\" rel=\"nofollow noopener\" target=\"_blank\" title=\"cwm.zip\">cwm.zip</a></p><p>(bootloader)  /tmp/<a href=\"http://recovery.zip\" rel=\"nofollow noopener\" target=\"_blank\" title=\"recovery.zip\">recovery.zip</a> partition type: raw<br>target reported max download size of 59768576 bytes<br>sending '/tmp/<a href=\"http://recovery.zip\" rel=\"nofollow noopener\" target=\"_blank\" title=\"recovery.zip\">recovery.zip</a>' (3623 KB)...<br>(bootloader)  Ready to receive: 0x00389e8f size of data<br>OKAY [  0.099s]<br>writing '/tmp/<a href=\"http://recovery.zip\" rel=\"nofollow noopener\" target=\"_blank\" title=\"recovery.zip\">recovery.zip</a>'...<br>(bootloader)  Flashing partition: /tmp/<a href=\"http://recovery.zip\" rel=\"nofollow noopener\" target=\"_blank\" title=\"recovery.zip\">recovery.zip</a><br>FAILED (remote:  Download image size is large than partition size)<br>finished. total time: 0.109s</p>",
+              "replies": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "author": "Тецель Хикламский вечноноющий",
+      "date": "01 Feb 2021",
+      "message": "<p>A very useful article, thank you! Used this to unbrick my 7-year-old Asus K01A once more. A small remark: on Linux distros like Debian, Ubuntu and Mint, the <code>fastboot</code> command usually requires <code>sudo</code>. If used without <code>sudo</code>, it either says \"waiting for any device\", or simply fails.<br>P.S. Shared the link on my Telegram channel ^_^</p>",
+      "replies": []
+    }
+  ],
+  "/2015/01/19/ipv6-configuration-on-digitalocean-on-freebsd/": [
+    {
+      "author": "Mike",
+      "date": "10 Apr 2017",
+      "message": "<p>Note that the prefix length for DigitalOcean addresses is 124, not 64.  This is why you only get 16 address, the prefix is 124 bits so you only get the last 4 bits... 16 digits.</p>",
+      "replies": []
+    }
+  ],
+  "/2022/12/17/hacking-on-kernel-modules-in-nixos/": [
+    {
+      "author": "pogobanane",
+      "date": "04 Mar 2023",
+      "message": "<p>Today i found out that this doesnt work, when your .config enables EXPERT mode.</p>",
+      "replies": []
+    }
+  ],
+  "/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/": [
+    {
+      "author": "Carl Thomé",
+      "date": "02 Dec 2023",
+      "message": "<p>Really great blog post and project! I'm going to try using nix-ld now for my quick `pip install torch` needs when pair programming with non-nix using peers.</p>",
+      "replies": []
+    },
+    {
+      "author": "Lucas Eduardo Wendt",
+      "date": "25 Oct 2025",
+      "message": "<p>A thing that I do that's a little cursed is to pass the list of packages used in the appimage-run fhs environment to the nix-ld packages and now appimages work out of the box. Never had since then weird lib issues! IMHO it should be the default for a out of the box install. It is less impure as it seems because /bin and /lib are still not there. Works like a charm without having to fiddle with LD_LIBRARY_PATH and stuff.</p>",
+      "replies": []
+    }
+  ],
+  "/2025/10/17/zfs-ate-my-ram-understanding-the-arc-cache/": [
+    {
+      "author": "makefu",
+      "date": "17 Oct 2025",
+      "message": "<p>The default ARC size is 50% of all your ram which may be reasonable for storage servers but normally not your laptop.<br>Also, if you do not have swap configured your kernel will happily oomkill your applications when ARC cache is not reclaimed quickly enough.</p>",
+      "replies": []
+    }
+  ]
+}

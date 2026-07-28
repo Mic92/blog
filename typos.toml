@@ -1,3 +1,2 @@
 [default.extend-words]
-PYLOAD = "PYLOAD"
 pyload = "pyload"

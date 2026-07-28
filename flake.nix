@@ -42,7 +42,6 @@
             options = [
               "--prose-wrap"
               "always"
-              "--write"
             ];
             # Hugo templates in *.html are not valid HTML for prettier
             includes = nixpkgs.lib.mkForce [
@@ -67,7 +66,6 @@
             nativeBuildInputs = [ pkgs.hugo ];
             buildPhase = ''
               runHook preBuild
-              rm -rf themes
               mkdir themes
               ln -s ${hugo-vitae} themes/hugo-vitae
               ln -s ${hugo-atom-feed} themes/hugo-atom-feed
@@ -89,7 +87,6 @@
           default = pkgs.mkShell {
             # Hugo needs the themes in ./themes; link them from the flake inputs.
             shellHook = ''
-              rm -rf themes
               mkdir -p themes
               ln -sfn ${hugo-vitae} themes/hugo-vitae
               ln -sfn ${hugo-atom-feed} themes/hugo-atom-feed

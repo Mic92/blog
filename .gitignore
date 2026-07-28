@@ -1,5 +1,8 @@
 # Hugo default output directory
 /public
+# themes are symlinked from flake inputs by the dev shell
+/themes
+/result
 # hugo server lock
 .hugo_build.lock
 

@@ -2,6 +2,9 @@
 {{- with index site.Data.comments .RelPermalink }}
 <section class="archived-comments">
   <h2>Archived comments</h2>
+  <p class="archived-comments-note">
+    Imported from Disqus, which this blog used before switching to giscus.
+  </p>
   {{- range . }}
     {{- partial "archived-comment.html" . }}
   {{- end }}

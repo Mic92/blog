@@ -32,6 +32,29 @@
         "type": "github"
       }
     },
+    "nixbot": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785099231,
+        "narHash": "sha256-Z0BaMfBOFj3ysAHrW4e3vXxgWjobtvHjATSCtgaboFA=",
+        "owner": "Mic92",
+        "repo": "nixbot",
+        "rev": "a2baa3c6366bc38f72a0f2df9a6a1f44cfbe1c8a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "repo": "nixbot",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1785141334,
@@ -52,6 +75,7 @@
       "inputs": {
         "hugo-atom-feed": "hugo-atom-feed",
         "hugo-vitae": "hugo-vitae",
+        "nixbot": "nixbot",
         "nixpkgs": "nixpkgs",
         "treefmt-nix": "treefmt-nix"
       }

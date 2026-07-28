@@ -87,6 +87,13 @@
         in
         {
           default = pkgs.mkShell {
+            # Hugo needs the themes in ./themes; link them from the flake inputs.
+            shellHook = ''
+              rm -rf themes
+              mkdir -p themes
+              ln -sfn ${hugo-vitae} themes/hugo-vitae
+              ln -sfn ${hugo-atom-feed} themes/hugo-atom-feed
+            '';
             packages = [
               pkgs.bashInteractive
               pkgs.hugo

@@ -116,8 +116,8 @@ A high hit rate (above 80-90%) means the ARC is doing its job well.
 ### Understanding the defaults
 
 Since OpenZFS 2.3, the default ARC size is **max(RAM - 1GB, 5/8 × RAM)**, which
-means on most systems the ARC will use nearly all available memory—about 94% on a
-16GB system, ~97% on 32GB, and ~99% on 256GB. See
+means on most systems the ARC will use nearly all available memory—about 94% on
+a 16GB system, ~97% on 32GB, and ~99% on 256GB. See
 [the commit](https://github.com/openzfs/zfs/pull/15437) for details. Earlier
 versions defaulted to 50%.
 
@@ -126,20 +126,20 @@ The ARC also tries to maintain a minimum amount of free memory, controlled by
 that's just 512MB—not much headroom. See `man 4 zfs` for details.
 
 This aggressive default may be reasonable for storage servers but is often not
-optimal for your laptop or desktop workstation. It can lead to issues, especially
-if you run memory-intensive applications like web browsers, development tools, or
-virtual machines.
+optimal for your laptop or desktop workstation. It can lead to issues,
+especially if you run memory-intensive applications like web browsers,
+development tools, or virtual machines.
 
-**Important warning about swap**: If you do not have swap configured, your kernel
-will happily OOM kill your applications when the ARC cache is not reclaimed
-quickly enough. While the ARC is supposed to be reclaimable, under memory
-pressure the kernel may kill processes before ZFS has a chance to shrink the ARC.
-Having swap configured provides a safety buffer to prevent this.
+**Important warning about swap**: If you do not have swap configured, your
+kernel will happily OOM kill your applications when the ARC cache is not
+reclaimed quickly enough. While the ARC is supposed to be reclaimable, under
+memory pressure the kernel may kill processes before ZFS has a chance to shrink
+the ARC. Having swap configured provides a safety buffer to prevent this.
 
 ### Set maximum ARC size
 
-If you're running memory-heavy applications or using ZFS on a laptop/desktop, you
-should consider limiting the ARC to a more conservative value.
+If you're running memory-heavy applications or using ZFS on a laptop/desktop,
+you should consider limiting the ARC to a more conservative value.
 
 Add to `/etc/modprobe.d/zfs.conf`:
 
@@ -178,11 +178,11 @@ On NixOS, you can configure ZFS ARC parameters in your `configuration.nix`:
 }
 ```
 
-**Rule of thumb for sizing**: A good starting point is `1GB minimum + 1GB per TB
-of storage` (from the
+**Rule of thumb for sizing**: A good starting point is
+`1GB minimum + 1GB per TB of storage` (from the
 [FreeBSD ZFS handbook](https://docs-archive.freebsd.org/doc/8.4-RELEASE/usr/share/doc/freebsd/en_US.ISO8859-1/books/handbook/filesystems-zfs.html)).
-However, don't go below 2GB for the minimum as the system becomes noticeably slow
-below that.
+However, don't go below 2GB for the minimum as the system becomes noticeably
+slow below that.
 
 **Practical examples**:
 
@@ -219,8 +219,8 @@ configuration.
    use the more aggressive default.
 
 3. **Don't limit the ARC too much**: While you should limit it on
-   laptops/desktops, don't be too conservative. The ARC provides real performance
-   benefits. Find a balance that works for your workload.
+   laptops/desktops, don't be too conservative. The ARC provides real
+   performance benefits. Find a balance that works for your workload.
 
 4. **Monitor the "available" memory**: This is your real indicator of memory
    pressure, not "used" memory.
@@ -253,5 +253,6 @@ eaten—it's being put to good use!
 ## Further reading
 
 - [ZFS on Linux ARC documentation](https://openzfs.github.io/openzfs-docs/Performance%20and%20Tuning/Module%20Parameters.html#arc)
-- [Linux ate my RAM](https://www.linuxatemyram.com/) - Understanding general Linux memory usage
+- [Linux ate my RAM](https://www.linuxatemyram.com/) - Understanding general
+  Linux memory usage
 - [OpenZFS ARC tuning guide](https://wiki.freebsd.org/ZFSTuningGuide#ARC)

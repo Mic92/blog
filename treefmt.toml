@@ -1,4 +1,0 @@
-[formatter.prettier]
-command = "prettier"
-options = ["--prose-wrap", "always", "--write"]
-includes = ["*.md", "*.yaml", "*.yml"]

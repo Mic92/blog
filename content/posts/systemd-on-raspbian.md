@@ -26,7 +26,7 @@ Systemd will automatically fallback to the lsb script, if a service file for a
 daemon is missing. So the speedup isn't as big as on other distributions such as
 archlinux or fedora, which provide a deeper integration.
 
-To get a quick overview, which services are started nativly, type the following
+To get a quick overview, which services are started natively, type the following
 command:
 
     $ systemctl list-units

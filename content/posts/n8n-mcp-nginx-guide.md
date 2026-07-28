@@ -8,19 +8,32 @@ author = "Jörg Thalheim"
 
 ## Background
 
-The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open standard that enables AI assistants like Claude to securely connect to external data sources and tools. [n8n](https://n8n.io/) recently added support for creating MCP servers through their "MCP Server Trigger" node, allowing you to expose workflows as tools that AI assistants can use.
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open
+standard that enables AI assistants like Claude to securely connect to external
+data sources and tools. [n8n](https://n8n.io/) recently added support for
+creating MCP servers through their "MCP Server Trigger" node, allowing you to
+expose workflows as tools that AI assistants can use.
 
-However, when running n8n behind an nginx reverse proxy, the default configuration won't work for MCP servers. This guide explains the technical challenges and provides a complete working nginx configuration.
+However, when running n8n behind an nginx reverse proxy, the default
+configuration won't work for MCP servers. This guide explains the technical
+challenges and provides a complete working nginx configuration.
 
 ## The Challenge
 
-n8n's MCP Server Trigger uses [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) for communication, which requires special nginx configuration. Additionally, n8n's implementation has specific header requirements that aren't immediately obvious.
+n8n's MCP Server Trigger uses
+[Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+for communication, which requires special nginx configuration. Additionally,
+n8n's implementation has specific header requirements that aren't immediately
+obvious.
 
 ### What We Learned the Hard Way
 
-1. **SSE requires specific proxy settings** - Standard nginx proxy configuration buffers responses, which breaks SSE streaming
-2. **n8n MCP requires dual content type acceptance** - Requests must accept both `application/json` and `text/event-stream`
-3. **Connection header must be empty** - Unlike WebSocket proxying which sets `Connection: Upgrade`, SSE needs an empty Connection header
+1. **SSE requires specific proxy settings** - Standard nginx proxy configuration
+   buffers responses, which breaks SSE streaming
+2. **n8n MCP requires dual content type acceptance** - Requests must accept both
+   `application/json` and `text/event-stream`
+3. **Connection header must be empty** - Unlike WebSocket proxying which sets
+   `Connection: Upgrade`, SSE needs an empty Connection header
 
 ## The Solution
 
@@ -133,7 +146,8 @@ chunked_transfer_encoding off;
 
 - **`proxy_http_version 1.1`**: SSE requires HTTP/1.1 for persistent connections
 - **`proxy_buffering off`**: Critical - nginx must not buffer SSE streams
-- **`proxy_set_header Connection ""`**: SSE needs an empty Connection header (not `Upgrade` like WebSockets)
+- **`proxy_set_header Connection ""`**: SSE needs an empty Connection header
+  (not `Upgrade` like WebSockets)
 - **`chunked_transfer_encoding off`**: Prevents chunking issues with SSE streams
 
 ### n8n-Specific Requirements
@@ -142,7 +156,9 @@ chunked_transfer_encoding off;
 proxy_set_header Accept "application/json, text/event-stream";
 ```
 
-n8n's MCP implementation validates the Accept header and rejects requests that don't include both content types. The error message you'll see without this header is:
+n8n's MCP implementation validates the Accept header and rejects requests that
+don't include both content types. The error message you'll see without this
+header is:
 
 ```
 Not Acceptable: Client must accept both application/json and text/event-stream
@@ -155,7 +171,8 @@ proxy_read_timeout 86400s;
 proxy_send_timeout 86400s;
 ```
 
-MCP connections can be long-lived. Setting 24-hour timeouts ensures the connection doesn't get terminated prematurely. Adjust based on your needs.
+MCP connections can be long-lived. Setting 24-hour timeouts ensures the
+connection doesn't get terminated prematurely. Adjust based on your needs.
 
 ## Testing Your Configuration
 
@@ -213,6 +230,7 @@ Then manually add authentication headers to `~/.claude.json`:
 ### 1. Missing Accept Header
 
 Without the dual Accept header, you'll see:
+
 ```
 Error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
 ```
@@ -221,11 +239,13 @@ This happens because n8n returns an HTML error page that gets parsed as JSON.
 
 ### 2. Proxy Buffering Enabled
 
-If buffering is enabled, the SSE connection will appear to hang or timeout. Always set `proxy_buffering off` for SSE endpoints.
+If buffering is enabled, the SSE connection will appear to hang or timeout.
+Always set `proxy_buffering off` for SSE endpoints.
 
 ### 3. Short Timeouts
 
-Default nginx timeouts (60s) will kill long-lived MCP connections. Always increase read/send timeouts for SSE endpoints.
+Default nginx timeouts (60s) will kill long-lived MCP connections. Always
+increase read/send timeouts for SSE endpoints.
 
 ## Troubleshooting
 
@@ -241,18 +261,23 @@ If this works but nginx doesn't, check your SSE configuration.
 
 ### Workflow Not Active
 
-n8n's MCP endpoints only work when the workflow is active. Check in the n8n UI that your workflow with the MCP Server Trigger is activated (toggle in top-right corner).
+n8n's MCP endpoints only work when the workflow is active. Check in the n8n UI
+that your workflow with the MCP Server Trigger is activated (toggle in top-right
+corner).
 
 ## Conclusion
 
-Setting up n8n MCP servers behind nginx requires understanding both SSE protocol requirements and n8n's specific implementation details. The key takeaways:
+Setting up n8n MCP servers behind nginx requires understanding both SSE protocol
+requirements and n8n's specific implementation details. The key takeaways:
 
 1. SSE needs `proxy_buffering off`, HTTP/1.1, and an empty Connection header
-2. n8n MCP requires the Accept header to include both `application/json` and `text/event-stream`
+2. n8n MCP requires the Accept header to include both `application/json` and
+   `text/event-stream`
 3. Long timeouts are essential for persistent MCP connections
 4. Separate MCP endpoints from regular n8n traffic for better control
 
-With this configuration, you can safely expose n8n workflows as MCP tools that AI assistants like Claude Code can discover and use.
+With this configuration, you can safely expose n8n workflows as MCP tools that
+AI assistants like Claude Code can discover and use.
 
 ## References
 

@@ -5,7 +5,8 @@ mkShell {
     hugo
     pandoc
     just
-    nodePackages.prettier
+    treefmt
+    prettier
     typos
   ];
 }

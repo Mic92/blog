@@ -1,1 +1,24 @@
-{{ template "_internal/disqus.html" . }}
+{{- /* Comments archived from Disqus before switching to giscus. */ -}}
+{{- with index site.Data.comments .RelPermalink }}
+<section class="archived-comments">
+  <h2>Archived comments</h2>
+  {{- range . }}
+    {{- partial "archived-comment.html" . }}
+  {{- end }}
+</section>
+{{- end }}
+<script src="https://giscus.app/client.js"
+        data-repo="Mic92/blog"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkzMzY1NjM0Njk="
+        data-category="Announcements"
+        data-category-id="DIC_kwDOFA-NDc4DCJdS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>

@@ -12,11 +12,12 @@ $ git clone https://github.com/Mic92/blog
 
 Get all build dependencies:
 
-``` shell
+```shell
 $ nix-shell
 ```
 
-Through the [just](https://github.com/casey/just) command runner you can perform common task:
+Through the [just](https://github.com/casey/just) command runner you can perform
+common task:
 
 ```console
 $ just -l
@@ -29,11 +30,10 @@ Available recipes:
 
 i.e. to run a server locally to view the website type:
 
-
 ```console
 $ just serve
 hugo server
-Start building sites … 
+Start building sites …
 ...
 Running in Fast Render Mode. For full rebuilds on change: hugo server --disableFastRender
 Web Server is available at http://localhost:1313/ (bind address 127.0.0.1)

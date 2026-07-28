@@ -1,0 +1,45 @@
+.archived-comments {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--line-color);
+}
+
+.archived-comments > h2 {
+  font-size: 1.2em;
+}
+
+.archived-comments-note {
+  color: var(--ft-txt-color);
+  font-size: 0.9em;
+  margin-top: -0.5em;
+}
+
+.archived-comment {
+  margin: 1em 0;
+  padding: 0.75em 1em;
+  border: 1px solid var(--line-color);
+  border-radius: 6px;
+}
+
+.archived-comment .archived-comment {
+  /* replies: no double border, just an indent line */
+  border: none;
+  border-left: 2px solid var(--line-color);
+  border-radius: 0;
+  padding: 0 0 0 1em;
+  margin-left: 0.5em;
+}
+
+.archived-comment-meta {
+  margin: 0 0 0.5em;
+}
+
+.archived-comment-meta time {
+  color: var(--ft-txt-color);
+  font-size: 0.85em;
+  margin-left: 0.5em;
+}
+
+.archived-comment p {
+  margin: 0.5em 0;
+}

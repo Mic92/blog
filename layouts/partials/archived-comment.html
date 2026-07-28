@@ -1,11 +1,10 @@
 <article class="archived-comment">
-  <p><strong>{{ .author }}</strong> <time>{{ .date }}</time></p>
+  <p class="archived-comment-meta">
+    <strong>{{ .author }}</strong>
+    <time>{{ .date }}</time>
+  </p>
   {{ .message | safeHTML }}
-  {{- with .replies }}
-  <div class="archived-comment-replies" style="margin-left: 2em">
-    {{- range . }}
-      {{- partial "archived-comment.html" . }}
-    {{- end }}
-  </div>
+  {{- range .replies }}
+    {{- partial "archived-comment.html" . }}
   {{- end }}
 </article>

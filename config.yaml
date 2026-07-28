@@ -51,6 +51,8 @@ menu:
 
 params:
   listAuthor: true
+  customcss:
+    - css/comments.css
   comments:
     enabled: true
   subtitle: "My brain-dump of random code/configuration."

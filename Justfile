@@ -16,4 +16,4 @@ spellcheck:
 
 # Format content
 fmt:
-     prettier --prose-wrap always -w .
+     treefmt

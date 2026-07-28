@@ -1,0 +1,15 @@
+[Unit]
+Description=Ad-hoc wireless network connectivity (%i)
+Wants=network.target
+Before=network.target
+Conflicts=netctl-auto@.service
+BindsTo=sys-subsystem-net-devices-%i.device
+After=sys-subsystem-net-devices-%i.device
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/rfkill unblock wifi
+ExecStart=/usr/sbin//wpa_supplicant -D nl80211,wext -c/etc/wpa_supplicant/wpa_supplicant-adhoc-%I.conf -i%I
+
+[Install]
+RequiredBy=share-internet@%i.service

@@ -1,0 +1,6 @@
+[Unit]
+Description=Run pkgstats
+
+[Service]
+User=nobody
+ExecStart=/usr/bin/pkgstats

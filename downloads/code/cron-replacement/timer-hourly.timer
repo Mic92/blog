@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly Timer
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Unit=timer-hourly.target
+
+[Install]
+WantedBy=basic.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=Update pacman's package cache
+
+[Service]
+Nice=19
+Type=oneshot
+IOSchedulingClass=2
+IOSchedulingPriority=7
+Environment=CHECKUPDATE_DB=/var/lib/pacman/checkupdate
+ExecStartPre=/bin/sh -c "/usr/bin/checkupdates > /var/log/pacman-updates.log"
+ExecStart=/usr/bin/pacman --sync --upgrades --downloadonly --noconfirm --dbpath=/var/lib/pacman/checkupdate

@@ -4,6 +4,7 @@ date = "2025-11-12"
 slug = "2025/11/12/n8n-mcp-nginx-claude-code"
 Categories = [ "n8n", "nginx", "mcp", "claude", "ai" ]
 author = "Jörg Thalheim"
+hidden = true
 +++
 
 ## Background

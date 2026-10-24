@@ -6,8 +6,13 @@ date: 2026-10-24T10:09:32+02:00
 In 2020, I got into voice assistants when I started playing around with
 [rhasspy](https://github.com/rhasspy/). Back then, one had to mix and match a
 lot of different components and services to find something usable, and it was
-brittle as hell. But it was fun to set up my own because I could give it a
-personality, compared to the too-clean commercial alternatives.
+brittle as hell.
+[Opensource deep-learning based text to speech](https://github.com/mozilla/TTS)
+was still very fresh and would often still get stuck on short words. The only
+useable wakeword detection was a commercial production by the name
+[porcupine](https://picovoice.ai/products/voice/wake-word/). But it was fun to
+set up my own because I could give it a personality, compared to the too-clean
+commercial alternatives.
 
 Skipping forward to 2026, TTS/STT/wakeword detection has made a lot of progress,
 both in terms of system resources and in detection performance. And thanks to

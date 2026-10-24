@@ -1,7 +1,7 @@
-# Generate new blog post. i.e. hugo new posts/nix-ld.md
-new PAGE:
-    hugo new "{{PAGE}}" || true
-    ${EDITOR:-vim} "./content/{{PAGE}}"
+# Generate new blog post, i.e. `just new nix-ld` -> content/posts/nix-ld.md
+new NAME:
+    hugo new "posts/{{NAME}}.md" || true
+    ${EDITOR:-vim} "./content/posts/{{NAME}}.md"
 
 # Build website
 build:

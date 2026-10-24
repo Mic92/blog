@@ -1,0 +1,125 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><title>Systemd on Raspbian | ~/git/blog</title><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=generator content="Hugo 0.164.0"><meta name=viewport content="width=device-width,initial-scale=1"><link rel=stylesheet type=text/css media=screen href=/css/normalize.css><link rel=stylesheet type=text/css media=screen href=/css/main.css><link rel=stylesheet type=text/css media=screen href=/css/all.css><link rel=stylesheet type=text/css media=screen href=/css/comments.css><script data-goatcounter=https://goatcounter.thalheim.io/count async src=https://goatcounter.thalheim.io/count.js></script><meta property="og:url" content="https://blog.thalheim.io/2012/09/19/systemd-on-raspbian/"><meta property="og:site_name" content="~/git/blog"><meta property="og:title" content="Systemd on Raspbian"><meta property="og:description" content="As I like the stability and raw speed of systemd, I wanted to leave debian’s init system behind and switch to systemd.
+The basic installation is pretty easy:
+$ apt-get install systemd Then you need to tell the kernel to use systemd as the init system:
+To do so, append init=/bin/systemd to the end of /boot/cmdline.txt line
+$ cat /boot/cmdline.txt dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd If you reboot, systemd will be used instead of the default init script."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2012-09-19T00:00:00+00:00"><meta property="article:modified_time" content="2012-09-19T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Systemd on Raspbian"><meta name=twitter:description content="As I like the stability and raw speed of systemd, I wanted to leave debian’s init system behind and switch to systemd.
+The basic installation is pretty easy:
+$ apt-get install systemd Then you need to tell the kernel to use systemd as the init system:
+To do so, append init=/bin/systemd to the end of /boot/cmdline.txt line
+$ cat /boot/cmdline.txt dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd If you reboot, systemd will be used instead of the default init script."><meta itemprop=name content="Systemd on Raspbian"><meta itemprop=description content="As I like the stability and raw speed of systemd, I wanted to leave debian’s init system behind and switch to systemd.
+The basic installation is pretty easy:
+$ apt-get install systemd Then you need to tell the kernel to use systemd as the init system:
+To do so, append init=/bin/systemd to the end of /boot/cmdline.txt line
+$ cat /boot/cmdline.txt dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd If you reboot, systemd will be used instead of the default init script."><meta itemprop=datePublished content="2012-09-19T00:00:00+00:00"><meta itemprop=dateModified content="2012-09-19T00:00:00+00:00"><meta itemprop=wordCount content="423"><meta itemprop=keywords content="Systemd,Raspberry Pie,Raspbian"></head><body><header><div id=titletext><h2 id=title><a href=https://blog.thalheim.io/>~/git/blog</a></h2></div><div id=title-description><p id=subtitle>My brain-dump of random code/configuration.</p><div id=social><nav><ul><li><a href=/index.xml rel=me aria-label=RSS><span title=RSS class="icons fas fa-rss" aria-hidden=true></span></a></li><li><a href=https://github.com/Mic92/blog rel=me aria-label=Github><span title=Github class="icons fab fa-github" aria-hidden=true></span></a></li><li><button id=dark-mode aria-label="Switch Dark Mode"><span title="Switch Dark Mode" class="icons fas fa-moon" aria-hidden=true></span></button></li></ul></nav></div></div><div id=mainmenu><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>All Posts</a></li><li><a href=/categories>Categories</a></li></ul></nav></div></header><main><div class=post><article><div class=post-header><div class=meta><div class=date><span class=day>19</span>
+<span class=rest>Sep 2012</span></div></div><div class=matter><h1 class=title>Systemd on Raspbian</h1><p class=post-meta><span class=post-meta></span></p></div></div><div class=markdown><p>As I like the stability and raw speed of systemd, I wanted to leave debian&rsquo;s
+init system behind and switch to systemd.</p><p>The basic installation is pretty easy:</p><pre><code>$ apt-get install systemd
+</code></pre><p>Then you need to tell the kernel to use systemd as the init system:</p><p>To do so, append <code>init=/bin/systemd</code> to the end of <code>/boot/cmdline.txt</code> line</p><pre><code>$ cat /boot/cmdline.txt
+dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait init=/bin/systemd
+</code></pre><p>If you reboot, systemd will be used instead of the default init script.</p><p>Currently debians version of systemd doesn&rsquo;t ship many service files by default.
+Systemd will automatically fallback to the lsb script, if a service file for a
+daemon is missing. So the speedup isn&rsquo;t as big as on other distributions such as
+archlinux or fedora, which provide a deeper integration.</p><p>To get a quick overview, which services are started natively, type the following
+command:</p><pre><code>$ systemctl list-units
+</code></pre><p>All descriptions containing <code>LSB: </code>are launched through lsb scripts.</p><p>Writing your own service files, is straight forward. If you add custom service
+files, put them in /etc/systemd/system, so they will not get overwritten by
+updates.</p><p>To get further information about systemd, I recommend the
+<a href=https://wiki.archlinux.org/index.php/Systemd target=_blank>great archlinux wiki article</a>.</p><p>At the end of this article, I provide some basic one, I use. I port them over
+mostly from archlinux. In the most cases, i just have adjusted the path of the
+binary to get them working. (from /usr/bin to /usr/sbin for ex.) It is
+important, that the service name match with the initscript, so it will be used
+instead by systemd. This will not work in all cases like dhcpcd which contains
+the specific network device (like dhcpcd@eth0). In this case, you have to remove
+origin service with <code>update-rc.d</code> and enable the service file with
+<code>systemctl enable</code>.</p><p>Also available as <a href=https://gist.github.com/ac8ab2e84125ededa5c5 target=_blank>gist</a>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-plain data-lang=plain><span style=display:flex><span># IMPORTANT: only works with dhcpcd5 not the old dhcpcd3!
+</span></span><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=dhcpcd on %I
+</span></span><span style=display:flex><span>Wants=network.target
+</span></span><span style=display:flex><span>Before=network.target
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=forking
+</span></span><span style=display:flex><span>PIDFile=/run/dhcpcd-%I.pid
+</span></span><span style=display:flex><span>ExecStart=/sbin/dhcpcd -A -q -w %I
+</span></span><span style=display:flex><span>ExecStop=/sbin/dhcpcd -k %I
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>Alias=multi-user.target.wants/dhcpcd@eth0.service
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=Pro-active monitoring utility for unix systems
+</span></span><span style=display:flex><span>After=network.target
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=simple
+</span></span><span style=display:flex><span>ExecStart=/usr/bin/monit -I
+</span></span><span style=display:flex><span>ExecStop=/usr/bin/monit quit
+</span></span><span style=display:flex><span>ExecReload=/usr/bin/monit reload
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=Network Time Service
+</span></span><span style=display:flex><span>After=network.target nss-lookup.target
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=forking
+</span></span><span style=display:flex><span>PrivateTmp=true
+</span></span><span style=display:flex><span>ExecStart=/usr/sbin/ntpd -g -u ntp:ntp
+</span></span><span style=display:flex><span>ControlGroup=cpu:/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=SSH Key Generation
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_key.pub
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_ecdsa_key.pub
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_dsa_key.pub
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key
+</span></span><span style=display:flex><span>ConditionPathExists=|!/etc/ssh/ssh_host_rsa_key.pub
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>ExecStart=/usr/bin/ssh-keygen -A
+</span></span><span style=display:flex><span>Type=oneshot
+</span></span><span style=display:flex><span>RemainAfterExit=yes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Conflicts=ssh.service
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Socket]
+</span></span><span style=display:flex><span>ListenStream=22
+</span></span><span style=display:flex><span>Accept=yes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=sockets.target
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=SSH Per-Connection Server
+</span></span><span style=display:flex><span>Requires=sshdgenkeys.service
+</span></span><span style=display:flex><span>After=syslog.target
+</span></span><span style=display:flex><span>After=sshdgenkeys.service
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>ExecStartPre=/bin/mkdir -m700 -p /var/run/sshd
+</span></span><span style=display:flex><span>ExecStart=-/usr/sbin/sshd -i
+</span></span><span style=display:flex><span>ExecReload=/bin/kill -HUP $MAINPID
+</span></span><span style=display:flex><span>StandardInput=socket
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-plain data-lang=plain><span style=display:flex><span>[Unit]
+</span></span><span style=display:flex><span>Description=Daemon which acts upon network cable insertion/removal
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Service]
+</span></span><span style=display:flex><span>Type=forking
+</span></span><span style=display:flex><span>PIDFile=/run/ifplugd.%i.pid
+</span></span><span style=display:flex><span>ExecStart=/usr/sbin/ifplugd %i
+</span></span><span style=display:flex><span>SuccessExitStatus=0 1 2
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[Install]
+</span></span><span style=display:flex><span>WantedBy=multi-user.target
+</span></span></code></pre></div></div><div class=tags><div class=taxosfloating_left><p>Categories</p></div><div class=termsfloating_right><p><a href=/categories/raspberry%20pie/>raspberry pie</a>
+<a href=/categories/raspbian/>raspbian</a>
+<a href=/categories/systemd/>systemd</a></p></div><div class=clearit></div></div><section class=archived-comments><h2>Archived comments</h2><p class=archived-comments-note>Imported from Disqus, which this blog used before switching to giscus.</p><article class=archived-comment><p class=archived-comment-meta><strong>issackelly</strong>
+<time>07 Mar 2014</time></p><p>Sorry to bug you, but there's not a lot of info about systemd on raspberry pi. When I started it, it's got lightdm.service starting despite me setting <a href=http://default.target rel="nofollow noopener" target=_blank title=default.target>default.target</a> to symlink to <a href=http://multi-user.target rel="nofollow noopener" target=_blank title=multi-user.target>multi-user.target</a> instead of <a href=http://graphical.target rel="nofollow noopener" target=_blank title=graphical.target>graphical.target</a>. Can you give me any pointers here as to what might be going on?</p><article class=archived-comment><p class=archived-comment-meta><strong>Mic92</strong>
+<time>07 Mar 2014</time></p><p>Did you try<br>$ systemctl disable lightdm.service<br>It is also possible that lightdm is pulled in by the debian init scripts:<br>$ update-rc.d -f lightdm remove<br>It would be also interesting, how the service was started:<br>$ systemctl status lightdm.service</p><article class=archived-comment><p class=archived-comment-meta><strong>issackelly</strong>
+<time>07 Mar 2014</time></p><p>Removing it from debain init seems to have worked.</p><p><a href=https://gist.github.com/issackelly/9b8ebcaee727e734352b rel="nofollow noopener" target=_blank title=https://gist.github.com/issackelly/9b8ebcaee727e734352b>https://gist.github.com/iss...</a></p></article></article></article></section><script src=https://giscus.app/client.js data-repo=Mic92/blog data-repo-id="MDEwOlJlcG9zaXRvcnkzMzY1NjM0Njk=" data-category=Announcements data-category-id=DIC_kwDOFA-NDc4DCJdS data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=en crossorigin=anonymous async></script></article></div></main><footer>© 2021 Jörg Thalheim</footer><script src=/js/dark-mode.js></script></body></html>

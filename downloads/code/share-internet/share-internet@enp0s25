@@ -1,0 +1,10 @@
+# Device which has internet access, ex: wlan0 or usb0
+EXTERNAL_DEVICE="wlp3s0"
+
+IP4_ADDRESS="10.20.0.1"
+IP4_NETMASK="24"
+IP4_SUBNET="10.20.0.2,10.20.0.255"
+
+IP6_ADDRESS="fd21:30c2:dd2f::1"
+IP6_NETMASK="64"
+IP6_SUBNET="fd21:30c2:dd2f::"

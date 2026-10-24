@@ -1,0 +1,35 @@
+[Unit]
+Description='share internet'
+Conflicts=dnsmasq.service
+Wants=network.target
+Before=network.target
+BindsTo=sys-subsystem-net-devices-%i.device
+After=sys-subsystem-net-devices-%i.device
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/conf.d/share-internet@%i
+ExecStartPre=/usr/bin/dnsmasq --test
+ExecStartPre=/usr/bin/iptables -t nat -A POSTROUTING -o $EXTERNAL_DEVICE -j MASQUERADE
+ExecStartPre=/usr/bin/ip6tables -t nat -A POSTROUTING -o $EXTERNAL_DEVICE -j MASQUERADE
+ExecStartPre=/usr/bin/sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1
+ExecStartPre=/usr/bin/ip link set %i up
+ExecStartPre=/usr/bin/ip addr add ${IP4_ADDRESS}/${IP4_NETMASK} dev %i
+ExecStartPre=/usr/bin/ip addr add ${IP6_ADDRESS}/${IP4_NETMASK} dev %i
+
+ExecStart=/usr/bin/dnsmasq -k --user=dnsmasq --pid-file \
+          --conf-file=/etc/dnsmasq.conf \
+          --interface=%i \
+          --dhcp-range=${IP4_SUBNET},infinite \
+          --dhcp-range=${IP6_SUBNET},ra-stateless,ra-names,infinite \
+          --dhcp-option=3,${IP4_ADDRESS}  \
+          --dhcp-option=5,${IP4_ADDRESS}  \
+          --enable-ra \
+          --no-daemon
+ExecReload=/bin/kill -HUP $MAINPID
+
+ExecStopPost=/usr/bin/ip addr flush dev %i
+ExecStopPost=/usr/bin/ip link set %i down
+ExecStopPost=/usr/bin/sysctl -w net.ipv4.ip_forward=0 net.ipv6.conf.all.forwarding=0
+ExecStopPost=/usr/bin/iptables -t nat -D POSTROUTING -o $EXTERNAL_DEVICE -j MASQUERADE
+ExecStopPost=/usr/bin/ip6tables -t nat -D POSTROUTING -o $EXTERNAL_DEVICE -j MASQUERADE
